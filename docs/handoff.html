@@ -1,0 +1,348 @@
+<title>OligoPoly Partner Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<style>
+:root{
+  --ground:#faf9fc;
+  --surface:#ffffff;
+  --surface-2:#f4f2f8;
+  --line:#e2dfea;
+  --line-strong:#cbc6d9;
+  --ink:#1a1726;
+  --ink-2:#4a4459;
+  --muted:#726c85;
+  --accent:#6d28d9;
+  --accent-soft:#f1ebfd;
+  --ok:#146c52;
+  --ok-soft:#e3f3ed;
+  --warn:#8a5a00;
+  --warn-soft:#fcf0da;
+  --stop:#9c2f2f;
+  --stop-soft:#fbe9e9;
+  --shadow:0 1px 2px rgba(26,23,38,.06), 0 8px 24px -16px rgba(26,23,38,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#100e18;
+    --surface:#191626;
+    --surface-2:#211d31;
+    --line:#2e2942;
+    --line-strong:#413a5c;
+    --ink:#eceaf3;
+    --ink-2:#bdb7cd;
+    --muted:#948ca6;
+    --accent:#b492f8;
+    --accent-soft:#241c3d;
+    --ok:#6bd0ac;
+    --ok-soft:#13291f;
+    --warn:#e5b567;
+    --warn-soft:#2c2312;
+    --stop:#f08c8c;
+    --stop-soft:#2e1717;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#100e18;
+  --surface:#191626;
+  --surface-2:#211d31;
+  --line:#2e2942;
+  --line-strong:#413a5c;
+  --ink:#eceaf3;
+  --ink-2:#bdb7cd;
+  --muted:#948ca6;
+  --accent:#b492f8;
+  --accent-soft:#241c3d;
+  --ok:#6bd0ac;
+  --ok-soft:#13291f;
+  --warn:#e5b567;
+  --warn-soft:#2c2312;
+  --stop:#f08c8c;
+  --stop-soft:#2e1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,4vw,2rem) 5rem;}
+
+/* ---- masthead ---- */
+.masthead{border-bottom:1px solid var(--line);padding-bottom:2rem;margin-bottom:2.75rem;}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.72rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 .9rem;
+}
+h1{
+  font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;
+  font-size:clamp(1.9rem,4.4vw,2.7rem);line-height:1.15;letter-spacing:-.015em;
+  margin:0 0 .8rem;text-wrap:balance;
+}
+.standfirst{font-size:1.06rem;color:var(--ink-2);max-width:60ch;margin:0;}
+.meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.5rem;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.76rem;color:var(--muted);
+}
+.meta b{font-weight:500;color:var(--ink-2);}
+
+h2{
+  font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;
+  font-size:1.35rem;letter-spacing:-.01em;margin:3.25rem 0 .5rem;text-wrap:balance;
+}
+h2:first-of-type{margin-top:0;}
+.section-note{color:var(--muted);font-size:.94rem;margin:0 0 1.4rem;max-width:62ch;}
+
+/* ---- shipped table ---- */
+.ships{display:flex;flex-direction:column;gap:.55rem;}
+.ship{
+  display:grid;grid-template-columns:1fr auto;gap:.5rem 1rem;align-items:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:.95rem 1.15rem;box-shadow:var(--shadow);
+}
+.ship a{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86rem;
+  color:var(--accent);text-decoration:none;overflow-wrap:anywhere;
+}
+.ship a:hover,.ship a:focus-visible{text-decoration:underline;}
+.ship .name{display:block;color:var(--ink);font-size:.95rem;font-weight:500;margin-bottom:.15rem;}
+
+/* ---- chips ---- */
+.chip{
+  display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.68rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;
+  padding:.3rem .6rem;border-radius:5px;border:1px solid transparent;
+}
+.chip::before{content:"";width:.42rem;height:.42rem;border-radius:50%;background:currentColor;}
+.chip-ok{color:var(--ok);background:var(--ok-soft);border-color:currentColor;}
+.chip-warn{color:var(--warn);background:var(--warn-soft);border-color:currentColor;}
+.chip-stop{color:var(--stop);background:var(--stop-soft);border-color:currentColor;}
+
+/* ---- action cards ---- */
+.owner{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:2.4rem 0 .9rem;
+  padding-bottom:.5rem;border-bottom:1px solid var(--line);
+}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:1.25rem 1.35rem;margin-bottom:.7rem;box-shadow:var(--shadow);
+}
+.card-head{display:flex;flex-wrap:wrap;gap:.6rem;align-items:baseline;justify-content:space-between;margin-bottom:.5rem;}
+.card-title{font-weight:600;font-size:1.02rem;color:var(--ink);margin:0;}
+.card p{margin:0 0 .7rem;color:var(--ink-2);font-size:.95rem;}
+.card p:last-child{margin-bottom:0;}
+.card ul{margin:.2rem 0 .7rem;padding-left:1.15rem;color:var(--ink-2);font-size:.95rem;}
+.card li{margin-bottom:.3rem;}
+.card a{color:var(--accent);}
+
+code{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:.1em .38em;
+}
+pre{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.8rem;line-height:1.65;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+  padding:.9rem 1rem;overflow-x:auto;margin:.5rem 0 .9rem;color:var(--ink);
+}
+pre code{background:none;border:none;padding:0;font-size:1em;}
+.label{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.68rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  display:block;margin:.8rem 0 .25rem;
+}
+
+/* ---- facts ---- */
+.facts{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;
+  margin:1.4rem 0 0;padding:0;list-style:none;
+}
+.facts li{
+  background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:.85rem 1rem;
+}
+.facts b{
+  display:block;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:1.15rem;font-weight:600;color:var(--accent);
+  font-variant-numeric:tabular-nums;margin-bottom:.15rem;
+}
+.facts span{font-size:.82rem;color:var(--muted);}
+
+.settled{margin:1.2rem 0 0;padding-left:1.15rem;color:var(--ink-2);font-size:.95rem;}
+.settled li{margin-bottom:.4rem;}
+.settled strong{color:var(--ink);font-weight:600;}
+
+footer{
+  margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.74rem;color:var(--muted);
+}
+footer a{color:var(--accent);}
+
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+@media (max-width:560px){
+  .ship{grid-template-columns:1fr;}
+  .card-head{flex-direction:column;gap:.4rem;}
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Research Partner Program · Handoff</p>
+    <h1>The program is live. Five items still need a person.</h1>
+    <p class="standfirst">All three pages are published and verified on oligopolypeptides.com. What remains is work I either cannot reach from the API or should not decide — grouped below by who owns it.</p>
+    <div class="meta">
+      <span><b>Site</b> oligopolypeptides.com</span>
+      <span><b>Published</b> 20 Aug 2026</span>
+      <span><b>Branch</b> claude/oligopoly-research-partner-page-0busra</span>
+    </div>
+  </header>
+
+  <h2>What shipped</h2>
+  <p class="section-note">Each URL returns HTTP 200 with the correct canonical. The program page carries FAQ schema alongside the site's existing breadcrumb schema — no Product schema, no conflict.</p>
+
+  <div class="ships">
+    <div class="ship">
+      <div>
+        <span class="name">Research Partner Program</span>
+        <a href="https://www.oligopolypeptides.com/research-partner-program/">/research-partner-program/</a>
+      </div>
+      <span class="chip chip-ok">Live</span>
+    </div>
+    <div class="ship">
+      <div>
+        <span class="name">Research Partner Program Terms</span>
+        <a href="https://www.oligopolypeptides.com/research-partner-program-terms/">/research-partner-program-terms/</a>
+      </div>
+      <span class="chip chip-ok">Live</span>
+    </div>
+    <div class="ship">
+      <div>
+        <span class="name">Partner Compliance Rules</span>
+        <a href="https://www.oligopolypeptides.com/research-partner-compliance-rules/">/research-partner-compliance-rules/</a>
+      </div>
+      <span class="chip chip-ok">Live</span>
+    </div>
+  </div>
+
+  <ul class="facts">
+    <li><b>10%</b><span>pilot commission</span></li>
+    <li><b>60 days</b><span>attribution</span></li>
+    <li><b>30 days</b><span>validation hold</span></li>
+    <li><b>$100</b><span>minimum payout</span></li>
+    <li><b>24</b><span>form fields, 17 required</span></li>
+    <li><b>6</b><span>analytics events</span></li>
+  </ul>
+
+  <h2>Still open</h2>
+  <p class="section-note">Ordered by who acts, not by sequence — these can all proceed in parallel.</p>
+
+  <p class="owner">Counsel</p>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Complete the bracketed fields in the Program Terms</p>
+      <span class="chip chip-stop">Public now</span>
+    </div>
+    <p>The Terms page is live with a visible <em>“DRAFT — PENDING LEGAL REVIEW”</em> banner and unfilled placeholders. The banner is honest, but the brackets are publicly readable until counsel fills them in. This is the highest-priority item.</p>
+    <ul>
+      <li><code>[LEGAL ENTITY NAME]</code> — the contracting entity, in the preamble</li>
+      <li><code>[TO BE SET AT PUBLICATION]</code> — effective date</li>
+      <li><code>[LIABILITY CAP]</code>, <code>[GOVERNING LAW]</code>, <code>[VENUE]</code>, <code>[DISPUTE-RESOLUTION PROCESS]</code> — §12</li>
+      <li><code>[MAILING ADDRESS]</code> — for formal legal notices</li>
+    </ul>
+    <p>Warranty disclaimers, limitation of liability and indemnity are already present in full, taken from the approved launch package — they need sign-off, not drafting. Once signed off, delete the draft banner from the top of both document pages.</p>
+  </div>
+
+  <p class="owner">Site admin · wp-admin</p>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Add the program to the navigation</p>
+      <span class="chip chip-stop">Blocked on me</span>
+    </div>
+    <p>I could not do this one. The header visitors see is not a WordPress menu — the theme's real header is hidden sitewide with <code>display:none !important</code>, and the visible one is hardcoded HTML injected by a snippet the API does not expose. Editing <em>Appearance → Menus</em> changes nothing.</p>
+    <p>In <strong>Snippets</strong> or <strong>Code Snippets → Header &amp; Footer</strong>, search for <code>opl-shared-nav-20260815</code>. In that snippet:</p>
+
+    <span class="label">Find</span>
+<pre><code>&lt;a href="https://www.oligopolypeptides.com/contact/"&gt;Contact Support&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;</code></pre>
+
+    <span class="label">Replace with</span>
+<pre><code>&lt;a href="https://www.oligopolypeptides.com/contact/"&gt;Contact Support&lt;/a&gt;&lt;a href="https://www.oligopolypeptides.com/research-partner-program/"&gt;Research Partner Program&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;</code></pre>
+
+    <p>That adds it to the Resources dropdown, beside Contact Support. No CSS needed — the panel styles apply to any link inside it. For the footer, add the same link after <code>Refund Policy</code> in the Company column. Paste me the snippet and I'll return it edited.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">SEO titles on the two document pages</p>
+      <span class="chip chip-warn">Partly done</span>
+    </div>
+    <p>The main program page is fixed — it now reads <em>Research Partner Program | OligoPoly Laboratories</em> at 49 characters. The other two still pick up Rank Math's template, which appends the site tagline and site name:</p>
+    <ul>
+      <li>Program Terms — <strong>98 characters</strong></li>
+      <li>Compliance Rules — <strong>92 characters</strong></li>
+    </ul>
+    <p>Google truncates around 60. Same fix as before: Rank Math → Edit Snippet → Title, or Quick Edit from the Pages list if you enabled bulk editing.</p>
+    <span class="label">Suggested</span>
+<pre><code>Research Partner Program Terms | OligoPoly Laboratories
+Partner Compliance Rules | OligoPoly Laboratories</code></pre>
+    <p>Cosmetic only — descriptions are already correct on all three.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Send one real test application</p>
+      <span class="chip chip-warn">Untested</span>
+    </div>
+    <p>Submitting the live form is the only way to confirm two things I could not exercise remotely: that the email lands in <code>labs@oligopolypeptides.com</code>, and that the styled confirmation message renders after submit.</p>
+    <p>Worth knowing: WP Mail SMTP and Site Mailer are both installed but inactive, so mail leaves through the host's default PHP mail — the same path your existing contact form already uses. Every submission is also stored in <strong>wp-admin → Feedback</strong> regardless of whether the email arrives.</p>
+  </div>
+
+  <p class="owner">Marketing · Google Tag Manager</p>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Create triggers for the six events</p>
+      <span class="chip chip-warn">Not wired</span>
+    </div>
+    <p>The page pushes into your existing <code>GTM-PFX8385C</code> dataLayer — I installed no new tracking and changed no analytics configuration, as the brief required. But container <code>GTM-PFX8385C</code> has no triggers for these yet, so nothing reaches GA4 until someone adds a Custom Event trigger and GA4 tag for each:</p>
+<pre><code>affiliate_page_view
+affiliate_cta_click
+affiliate_application_started
+affiliate_application_submitted
+affiliate_terms_click
+affiliate_compliance_click</code></pre>
+    <p>All six carry <code>page_area: "research_partner_program"</code> so they can be isolated from other site traffic. <code>affiliate_application_submitted</code> is the one to watch during the test submission above.</p>
+  </div>
+
+  <h2>Settled — no action needed</h2>
+  <ul class="settled">
+    <li><strong>Application delivery</strong> confirmed as <code>labs@oligopolypeptides.com</code>, with submissions also stored in wp-admin → Feedback.</li>
+    <li><strong>Nothing auto-approves.</strong> The form emails and stores. It creates no account, issues no referral link or partner code, and triggers no automation.</li>
+    <li><strong>No sensitive data</strong> is collected publicly — no bank, routing, tax ID or W-9 field exists. Payout country is asked; tax and payment details wait for the secure partner platform.</li>
+    <li><strong>Copy matches the approved launch package.</strong> Terms come from §2.1–2.13 and the Compliance Rules from §4, both verbatim apart from counsel-owned fields.</li>
+    <li><strong>Accessibility.</strong> All text meets WCAG AA; the button gradient was darkened to <code>#ae3ada</code> so white label text clears 4.5:1. Keyboard-operable FAQ, visible focus states, reduced-motion respected, zero horizontal overflow at 1440 / 834 / 390.</li>
+    <li><strong>Nothing on the do-not-change list was touched</strong> — no product data, cart, checkout, payments, shipping, tax, WooCommerce settings, account rules, canonicals, sitewide schema, analytics config or email automations.</li>
+  </ul>
+
+  <h2>If you need to undo it</h2>
+  <p class="section-note">The entire implementation lives inside the three pages' own block content. No theme edits, no child theme, no new plugins, no server files — so it survives theme and plugin updates, and deleting the pages removes every trace. To pull it quickly, set each page's status back to Draft; the URLs 404 and drop out of the sitemap. Full procedure and per-component removal steps are in <code>docs/ROLLBACK.md</code>.</p>
+
+  <footer>
+    Source, change log, test results and step-by-step guides: <code>claude/oligopoly-research-partner-page-0busra</code> — see <code>docs/OPEN-ITEMS.md</code>, <code>docs/NAVIGATION.md</code>, <code>docs/RANK-MATH-TITLE.md</code>.
+  </footer>
+
+</div>

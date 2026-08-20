@@ -21,8 +21,10 @@ deleting the pages removes every trace.
 
 ## Read these first
 
+- **Published handoff page** — https://claude.ai/code/artifact/8fcc7788-4b94-494c-b0fc-363f239d7ca2
+  (source: [docs/handoff.html](docs/handoff.html); republish that file to update the same URL)
 - **[docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)** — what still needs a human (counsel fields,
-  delivery address, GTM triggers, SEO title)
+  GTM triggers, SEO titles)
 - **[docs/NAVIGATION.md](docs/NAVIGATION.md)** — exact snippet edit to add the nav link
 - **[docs/CHANGELOG.md](docs/CHANGELOG.md)** — everything that was created and how
 - **[docs/TEST-RESULTS.md](docs/TEST-RESULTS.md)** — responsive, accessibility, contrast,
