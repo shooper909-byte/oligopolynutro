@@ -36,16 +36,12 @@ The commercial terms *were* carried through from the approved launch package and
 be changed without a decision: **10% commission**, **60-day attribution**, **30-day
 validation hold**, **$100 minimum payout**, **90-day pilot**, **10–20 partner cohort**.
 
-## 2. Application delivery — confirm the destination address
+## 2. Application delivery — CONFIRMED
 
-The form currently sends to **`labs@oligopolypeptides.com`**.
+The form sends to **`labs@oligopolypeptides.com`** — confirmed by the site owner on
+2026-08-20 as the correct destination for partner applications. No change needed.
 
-That address was **not invented** — it is the address the live `/contact/` page already
-posts to. But it is a general support inbox, and partner applications may belong somewhere
-else. **Confirm this is right, or give me the address to use instead.** Changing it is a
-one-field edit on the form block.
-
-Also worth confirming:
+Still worth a live check:
 
 - **Submission storage.** Jetpack Forms stores every submission in wp-admin under
   **Feedback**, in addition to emailing it. That is the site's existing approved form
@@ -88,25 +84,27 @@ the "link near the application checkbox and in the program-resource area" requir
 ## 4b. SEO title — one field to set by hand
 
 `rank_math_title` is not writable through this connection (verified twice — the value is
-dropped silently). Rank Math is falling back to its template, giving a 103-character title
-that search results will truncate. Set it in **wp-admin → edit page → Rank Math → Edit
-Snippet → Title**:
+dropped silently), so Rank Math falls back to its title template. Live result is 106
+characters, which Google will truncate:
 
-> Research Partner Program | OligoPoly Laboratories
+> OligoPoly Research Partner Program | Research Peptides & Laboratory Compounds | OligoPoly Laboratories
 
-The meta description is fine — it comes from the page excerpt and renders correctly.
+The two trailing phrases are the **site tagline** and the **site name**, appended by the
+template. Step-by-step fix in **[RANK-MATH-TITLE.md](RANK-MATH-TITLE.md)**.
+
+Cosmetic only — the meta description is correct (177 chars, from the page excerpt) and
+nothing is broken. Lower priority than the legal fields and the nav link.
 
 ## 5. Post-publish checklist
 
 1. Counsel completes §12 and the entity / address / effective-date placeholders.
 2. Remove the two `DRAFT — PENDING LEGAL REVIEW` banners.
-3. Confirm or change the application delivery address.
-4. Submit a real test application; confirm the email arrives and the confirmation message
-   renders.
-5. Confirm `affiliate_application_submitted` fires on the post-submit page load.
-6. Add the six GTM triggers/tags.
-7. Add the navigation link (see NAVIGATION.md).
-8. Set the Rank Math title.
+3. Submit a real test application; confirm the email arrives at
+   `labs@oligopolypeptides.com` and the confirmation message renders.
+4. Confirm `affiliate_application_submitted` fires on the post-submit page load.
+5. Add the six GTM triggers/tags.
+6. Add the navigation link (see NAVIGATION.md).
+7. Set the Rank Math title (see RANK-MATH-TITLE.md).
 
 Done already: all three pages published and verified live, links resolve, canonical correct,
 FAQ schema renders with no conflict, real theme chrome confirmed.
