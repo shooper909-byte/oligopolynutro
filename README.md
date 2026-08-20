@@ -3,17 +3,17 @@
 Source for the Research Partner Program pages on
 [oligopolypeptides.com](https://www.oligopolypeptides.com).
 
-**Status: drafted, tested, awaiting approval. Nothing is published.**
+**Status: published 2026-08-20.** Copy reconciled against the approved launch package.
 
 ## What this is
 
-Three WordPress pages, saved as drafts on the live site:
+Three WordPress pages, live:
 
-| ID | Page | Slug |
-|----|------|------|
-| 3500 | OligoPoly Research Partner Program | `research-partner-program` |
-| 3498 | Research Partner Program Terms | `research-partner-program-terms` |
-| 3499 | Partner Compliance Rules | `research-partner-compliance-rules` |
+| ID | Page | URL |
+|----|------|-----|
+| 3500 | OligoPoly Research Partner Program | `/research-partner-program/` |
+| 3498 | Research Partner Program Terms | `/research-partner-program-terms/` |
+| 3499 | Partner Compliance Rules | `/research-partner-compliance-rules/` |
 
 The whole implementation lives inside those pages' content as Gutenberg blocks — no theme
 changes, no new plugins, no server files. It survives theme and plugin updates, and
@@ -21,8 +21,9 @@ deleting the pages removes every trace.
 
 ## Read these first
 
-- **[docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)** — what still blocks publishing (legal
-  placeholders, delivery address, GTM triggers)
+- **[docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)** — what still needs a human (counsel fields,
+  delivery address, GTM triggers, SEO title)
+- **[docs/NAVIGATION.md](docs/NAVIGATION.md)** — exact snippet edit to add the nav link
 - **[docs/CHANGELOG.md](docs/CHANGELOG.md)** — everything that was created and how
 - **[docs/TEST-RESULTS.md](docs/TEST-RESULTS.md)** — responsive, accessibility, contrast,
   and analytics results
@@ -49,7 +50,7 @@ Edit the source blocks, never the two generated files:
 wordpress/research-partner-program.style.html      scoped stylesheet
 wordpress/research-partner-program.sections.html   hero through final CTA
 wordpress/research-partner-program.form.html       application form
-wordpress/research-partner-program.tracking.html   FAQ schema + analytics
+wordpress/research-partner-program.analytics.html  analytics (FAQ schema is generated)
 ```
 
 ## Ground rules this work respected

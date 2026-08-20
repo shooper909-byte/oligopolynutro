@@ -1,25 +1,33 @@
-# Open Items — must be resolved before publishing
+# Open Items
 
-Grouped by who needs to act. Nothing here blocks reviewing the drafts; everything here
-blocks going live.
+**The pages are live as of 2026-08-20.** Everything below is follow-up work that still needs
+a human. The first two items are the ones I would do first.
 
 ---
 
-## 1. Legal — counsel must complete these fields
+## 1. Legal — counsel must complete these fields (live now, so do this first)
 
-The Program Terms page carries a visible `DRAFT — PENDING LEGAL REVIEW` banner. These
-placeholders were deliberately **not invented**:
+The Program Terms page is **published with a visible `DRAFT — PENDING LEGAL REVIEW` banner**
+and bracketed placeholders. This was published on your explicit approval, and the banner is
+honest about the document's status — but the placeholders are publicly visible until counsel
+fills them in. The package's own §2.12 says the same: counsel finalizes liability cap,
+governing law, venue, and dispute process before publication.
+
+The terms text itself now comes from the approved launch package (§2.1–2.13) rather than my
+own drafting, so only these counsel-owned fields were **not invented**:
 
 | Placeholder | Where | Needs |
 |-------------|-------|-------|
 | `[LEGAL ENTITY NAME]` | Terms, preamble | The contracting entity's registered name |
 | `[TO BE SET AT PUBLICATION]` | Terms, effective date | Go-live date |
-| Warranty disclaimers | Terms §10 | Counsel drafting |
-| Limitation of liability | Terms §10 | Counsel drafting |
-| Indemnification | Terms §10 | Counsel drafting |
-| Governing law | Terms §10 | Jurisdiction |
-| Venue / dispute resolution | Terms §10 | Including any arbitration clause |
-| `[MAILING ADDRESS]` | Terms §11 | Address for formal legal notices |
+| `[LIABILITY CAP]` | Terms §12 | Counsel drafting |
+| `[GOVERNING LAW]` | Terms §12 | Jurisdiction |
+| `[VENUE]` | Terms §12 | Counsel drafting |
+| `[DISPUTE-RESOLUTION PROCESS]` | Terms §12 | Including any arbitration clause |
+| `[MAILING ADDRESS]` | Terms, Contact | Address for formal legal notices |
+
+Warranty disclaimers, limitation of liability, and indemnity are now **present in full**
+from the package — they no longer need drafting, only counsel's sign-off.
 
 **Remove both `DRAFT — PENDING LEGAL REVIEW` banners** (one on each document page) once
 counsel signs off — they are the first paragraph of each page.
@@ -62,50 +70,66 @@ for each of: `affiliate_page_view`, `affiliate_cta_click`, `affiliate_applicatio
 `affiliate_application_submitted`, `affiliate_terms_click`, `affiliate_compliance_click`.
 All six carry `page_area: "research_partner_program"` for filtering.
 
-## 4. Navigation — decide on placement
+## 4. Navigation — needs a snippet edit I cannot reach
 
-The page is not linked from anywhere yet. Nothing in the brief asked for menu changes, and
-the site's header/footer are Elementor templates, so I left them alone. Decide whether the
-program should appear in the footer, the main menu, or stay unlinked and be reached only by
-direct link during the closed pilot.
+You asked for the program in the nav bar. **I could not do this one**, because the visible
+header is not a WordPress menu — it is hardcoded HTML injected by a snippet that this
+connection does not expose. Full explanation and the exact copy-paste edits are in
+**[NAVIGATION.md](NAVIGATION.md)**.
 
-The two program documents are linked from the program page in three places (compliance
-section, above the form, and below the form) plus from each other, which satisfies the
-"link near the application checkbox and in the program-resource area" requirement without
-touching the global footer.
+Short version: the theme's real header is hidden by `display:none !important`, so editing
+Appearance → Menus changes nothing. The link has to go into the snippet containing
+`opl-shared-nav-20260815`, findable in Code Snippets or WPCode Lite.
 
-## 5. Pre-publish checklist
+The two program documents are already linked from the program page in three places
+(compliance section, above the form, below the form) plus from each other, which satisfies
+the "link near the application checkbox and in the program-resource area" requirement.
 
-1. Counsel completes §10 and the entity/address/date placeholders.
+## 4b. SEO title — one field to set by hand
+
+`rank_math_title` is not writable through this connection (verified twice — the value is
+dropped silently). Rank Math is falling back to its template, giving a 103-character title
+that search results will truncate. Set it in **wp-admin → edit page → Rank Math → Edit
+Snippet → Title**:
+
+> Research Partner Program | OligoPoly Laboratories
+
+The meta description is fine — it comes from the page excerpt and renders correctly.
+
+## 5. Post-publish checklist
+
+1. Counsel completes §12 and the entity / address / effective-date placeholders.
 2. Remove the two `DRAFT — PENDING LEGAL REVIEW` banners.
 3. Confirm or change the application delivery address.
-4. Publish **all three pages together** (the document links 404 otherwise).
-5. Submit a real test application; confirm the email arrives and the confirmation message
+4. Submit a real test application; confirm the email arrives and the confirmation message
    renders.
-6. Confirm `affiliate_application_submitted` fires on the post-submit page load.
-7. Add the six GTM triggers/tags.
-8. Confirm the page renders correctly inside the live header and footer.
-9. Decide on navigation placement.
+5. Confirm `affiliate_application_submitted` fires on the post-submit page load.
+6. Add the six GTM triggers/tags.
+7. Add the navigation link (see NAVIGATION.md).
+8. Set the Rank Math title.
+
+Done already: all three pages published and verified live, links resolve, canonical correct,
+FAQ schema renders with no conflict, real theme chrome confirmed.
 
 ## 6. Not delivered — dependencies I do not have
 
-- **The two attached files.** `Logo.png` and
-  `OligoPoly_Affiliate_Program_Launch_Package.docx` were referenced in the brief but did not
-  reach this session's filesystem, so I could not read the approved copy, application
-  questions, compliance rules, or launch email verbatim. Two consequences worth reviewing:
-  - **Logo:** I used the official logo already in the site's media library
-    (`/wp-content/uploads/2026/07/cropped-Logo3-3.png`) — the same asset the live site
-    header uses. It matches the logo shown in the brief. No new upload was needed, so
-    nothing was invented, but confirm it is the intended asset.
-  - **Copy:** page and document wording was written from the detailed specification in the
-    brief itself, and every commercial term matches the numbers you specified. But it is
-    **not** verbatim from the approved launch package. **Please diff the drafts against
-    that document.** If you can share the file, I will reconcile the wording exactly.
+- **The launch package** was supplied mid-session and the pages were **reconciled against it
+  before publishing** — see the reconciliation notes in CHANGELOG.md. This is no longer open.
+- **Logo.png** never reached this session, so the hero uses the official logo already in the
+  site's media library (`/wp-content/uploads/2026/07/cropped-Logo3-3.png`) — the same asset
+  the live header uses, matching the logo in the brief. Nothing was invented, but confirm it
+  is the intended asset.
+- **Naming.** The package says "OligoPoly Labs"; your brief's brand requirements say
+  "OligoPoly Laboratories", and the brief's own final-CTA wording uses "Laboratories". I
+  followed the brief. Say the word if you want the package's shorter form instead.
 - **The reference design** at `oligopoly-research-partners.shelby-ernie-8807.chatgpt.site`
   returns **HTTP 401** to this session, so I could not view the approved layout. The page
   was built to the written specification and to the live site's existing brand tokens
   (black/charcoal foundation, metallic silver, electric violet — no teal or navy anywhere).
   Section order follows the brief exactly. Compare against the reference and tell me what to
   adjust.
-- **The launch email** in the package was not implemented — it is outside the scope of the
-  page build, and the brief said not to touch existing email automations.
+- **The launch email** (package §6) was not implemented — outside the scope of the page
+  build, and the brief said not to touch existing email automations. The copy is ready in the
+  package whenever you want it built.
+- **The internal review rubric** (package §3) is an internal scoring tool, not public page
+  content, so it was deliberately not published.

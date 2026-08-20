@@ -22,7 +22,7 @@ menu. Fixed in the harness; page content has never overflowed.
 
 ## Application form
 
-- 22 fields render: 7 text/email/tel/url inputs, 6 textareas, 1 select, 1 checkbox group,
+- 24 fields render: 7 text/email/tel/url inputs, 6 textareas, 1 select, 1 checkbox group,
   and 5 required consent/confirmation checkboxes, plus the submit button.
 - 17 fields are `required` and block submission while empty (verified by counting `:invalid`
   elements in an untouched form).
@@ -87,7 +87,7 @@ real submission — **verify this one on staging after publishing.**
 - WordPress accepted all three pages with **zero content warnings** — no blocks or HTML
   elements were stripped on save. Re-verified after each edit.
 - Block integrity confirmed after every update: 13 top-level blocks on the program page with
-  all 22 form fields intact.
+  all 24 form fields intact.
 
 ## Links
 
@@ -97,13 +97,34 @@ Every internal link on the page points at a real destination:
 |------|--------|--------|
 | Apply to Partner (hero + final CTA) | `#apply` | Anchor exists on page |
 | Explore the Program | `#program` | Anchor exists on page |
-| Partner Compliance Rules (3 places) | `/research-partner-compliance-rules/` | Draft page 3499 |
-| Research Partner Program Terms (2 places) | `/research-partner-program-terms/` | Draft page 3498 |
+| Partner Compliance Rules (3 places) | `/research-partner-compliance-rules/` | Live (page 3499) |
+| Research Partner Program Terms (2 places) | `/research-partner-program-terms/` | Live (page 3498) |
 | Privacy Policy (2 places) | `/privacy-policy/` | Live page (ID 744) |
 | Contact (in both documents) | `/contact/` | Live page |
 
-The two program-document links 404 until those drafts are published. **Publish all three
-pages together.**
+All three pages were published together, so every link resolves.
+
+## Live verification after publishing (2026-08-20)
+
+All three URLs fetched from production:
+
+| URL | HTTP | Check |
+|-----|------|-------|
+| `/research-partner-program/` | 200 | hero, scoped CSS, form, analytics, FAQ schema all present |
+| `/research-partner-program-terms/` | 200 | renders |
+| `/research-partner-compliance-rules/` | 200 | renders |
+
+On the live program page:
+
+- Canonical resolves to `https://www.oligopolypeptides.com/research-partner-program/` — the
+  site's existing canonical logic handled it; nothing was hardcoded.
+- 10 `<details>` FAQ items render, matching the 10 `Question` entries in the schema.
+- The Jetpack form renders with its nonce and 63 form controls (inputs, textareas, selects,
+  and the checkbox groups expanded).
+- Two `ld+json` blocks on the page: the site's existing `BreadcrumbList` and this page's
+  `FAQPage`. **No Product schema, and no conflict** with existing sitewide schema.
+- The site's shared header and footer wrap the page correctly — the stylesheet's
+  `.site-main` neutralization works against the real theme chrome.
 
 ## Not testable in this environment
 
@@ -114,7 +135,6 @@ These need a check on staging or after publishing:
 2. **`affiliate_application_submitted`** firing on the post-submit page load.
 3. **Akismet spam filtering** on the form. Akismet is active on the site and Jetpack Forms
    uses it automatically, but whether the API key is valid could not be confirmed remotely.
-4. **Real theme chrome** — how the page sits inside the live Hello Elementor header and
-   footer. The stylesheet neutralizes the default `.site-main` padding and the duplicate
-   page title, but this should be eyeballed on the draft preview.
-5. **Core Web Vitals** on production infrastructure.
+4. **Core Web Vitals** on production infrastructure.
+
+Real theme chrome was verified after publishing (see above) and is no longer open.

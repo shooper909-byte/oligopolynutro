@@ -1,26 +1,42 @@
 # Research Partner Program — Change Log
 
 Site: https://www.oligopolypeptides.com (WordPress.com-connected Jetpack site, blog ID `254585378`)
-Theme: **Hello Elementor** · Builder: **Elementor** · Status of this work: **DRAFT ONLY — nothing published**
+Theme: **Hello Elementor** · Builder: **Elementor** · Status: **PUBLISHED 2026-08-20** (approved by the site owner)
 
 ---
 
 ## What was created
 
-Three new WordPress **pages, all saved as drafts**. No existing page, product, setting, or
-plugin was modified.
+Three new WordPress pages. No existing page, product, setting, or plugin was modified.
 
-| ID | Title | Slug | Status |
-|----|-------|------|--------|
-| 3500 | OligoPoly Research Partner Program | `research-partner-program` | draft |
-| 3498 | Research Partner Program Terms | `research-partner-program-terms` | draft |
-| 3499 | Partner Compliance Rules | `research-partner-compliance-rules` | draft |
+| ID | Title | URL | Status |
+|----|-------|-----|--------|
+| 3500 | OligoPoly Research Partner Program | `/research-partner-program/` | published |
+| 3498 | Research Partner Program Terms | `/research-partner-program-terms/` | published |
+| 3499 | Partner Compliance Rules | `/research-partner-compliance-rules/` | published |
 
-Once published these resolve to:
+All three returned HTTP 200 after publishing and were verified live.
 
-- `/research-partner-program/`
-- `/research-partner-program-terms/`
-- `/research-partner-compliance-rules/`
+### Copy reconciliation (2026-08-20)
+
+The approved launch package (`OligoPoly_Affiliate_Program_Launch_Package.docx`) arrived after
+the first draft was built, and the pages were reconciled against it before publishing:
+
+- **Program Terms** rewritten from the package's §2.1–2.13 — a materially more complete
+  document than the first draft, including the real "as is" / liability / indemnity language.
+  Only counsel-owned fields remain bracketed.
+- **Compliance Rules** rewritten from the package's §4 — five non-negotiables, approved
+  language-pattern table, disclosure examples, channel-rules table, content review checklist,
+  and enforcement ladder.
+- **FAQ answers** aligned to package wording, including code-precedence in attribution, the
+  exact Net Eligible Product Revenue definition, and "earnings are not guaranteed".
+- **Application form** extended to the package's question set: payout country, channel
+  tenure, share of research content, and the package's own option lists and phrasing.
+- **Benefits, eligibility, compliance lead-in, and final CTA** aligned to package copy.
+
+Deliberately kept from the brief rather than the package, because the brief overrides:
+**"OligoPoly Laboratories"** naming (the package says "OligoPoly Labs"), the hero eyebrow /
+headline / CTA labels, and the 10-question FAQ set.
 
 No slug collisions: a search of existing pages found nothing occupying these slugs.
 
@@ -32,7 +48,7 @@ no file on the server was edited. That means the work survives theme and plugin 
 and removing the pages removes 100% of the change.
 
 - **Page structure** — `core/html` blocks holding semantic `<section>` markup.
-- **Application form** — a `jetpack/contact-form` block with 22 fields. Jetpack is already
+- **Application form** — a `jetpack/contact-form` block with 24 fields. Jetpack is already
   active on this site, so no new form plugin was needed.
 - **Styling** — one `<style id="opp-styles">` block at the top of the program page. Every
   selector is prefixed `.opp-` or scoped under `.opp-form-zone`, so it cannot leak into
@@ -53,20 +69,30 @@ and removing the pages removes 100% of the change.
 | 7 | core/html | FAQ (10 questions) |
 | 8 | core/html | Final CTA |
 | 9 | core/html | Application intro + form-zone opening tag |
-| 10 | jetpack/contact-form | The 22-field application form |
+| 10 | jetpack/contact-form | The 24-field application form |
 | 11 | core/html | Consent footnote + form-zone closing tag |
 | 12 | core/html | FAQ schema (JSON-LD) + analytics |
 
 ## SEO
 
-Set via Rank Math post meta (Rank Math is the active SEO plugin; Yoast is installed but
-inactive and was not touched):
+Rank Math is the active SEO plugin (Yoast is installed but inactive and was not touched).
 
-- **Program page title:** `Research Partner Program | OligoPoly Laboratories`
-- **Program page description:** Earn a 10% pilot commission connecting qualified research
-  communities with OligoPoly laboratory research-use-only products. 60-day attribution,
-  monthly payouts. Applications reviewed manually.
-- Terms and Compliance pages have their own titles and descriptions.
+**Meta description — working.** Each page's excerpt is set, and Rank Math renders it as the
+meta description. Live on the program page:
+
+> Apply to the OligoPoly Research Partner Program: a closed pilot paying a 10% commission for
+> connecting qualified research communities with laboratory research-use-only products.
+
+**Title — needs a manual fix.** `rank_math_title` is **not writable** through the
+WordPress.com MCP connection: the value is silently dropped and the meta object comes back
+without it (verified twice). Rank Math therefore falls back to its title template, producing:
+
+> OligoPoly Research Partner Program | Research Peptides & Laboratory Compounds | OligoPoly Laboratories
+
+That is 103 characters and will be truncated in search results. Fix it in **wp-admin → edit
+page → Rank Math → Edit Snippet → Title**:
+
+> Research Partner Program | OligoPoly Laboratories
 
 Canonical URLs are left to the site's existing canonical logic (the OligoPoly SEO
 Remediation plugin enforces `www` canonicals sitewide) — no canonical tags were hardcoded
@@ -127,7 +153,7 @@ build.js                                        Generates the page content + loc
 wordpress/research-partner-program.style.html   Scoped stylesheet block
 wordpress/research-partner-program.sections.html  Hero → final CTA section blocks
 wordpress/research-partner-program.form.html    Application form blocks
-wordpress/research-partner-program.tracking.html  FAQ schema + analytics blocks
+wordpress/research-partner-program.analytics.html  Analytics block (FAQ schema is generated)
 wordpress/research-partner-program.page.html    BUILT: full page content (do not edit by hand)
 wordpress/research-partner-program-terms.blocks.html      Program Terms page content
 wordpress/research-partner-compliance-rules.blocks.html   Compliance Rules page content

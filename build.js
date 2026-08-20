@@ -17,7 +17,35 @@ const read = f => fs.readFileSync(dir(f), 'utf8');
 const style = read('wordpress/research-partner-program.style.html');
 const sections = read('wordpress/research-partner-program.sections.html');
 const form = read('wordpress/research-partner-program.form.html');
-const tracking = read('wordpress/research-partner-program.tracking.html');
+const analytics = read('wordpress/research-partner-program.analytics.html');
+
+/**
+ * Build the FAQPage JSON-LD from the visible FAQ markup, so the structured data can
+ * never drift from what a reader actually sees on the page.
+ */
+function buildFaqSchema(sectionsHtml) {
+  const re = /<details><summary>([\s\S]*?)<\/summary><div>([\s\S]*?)<\/div><\/details>/g;
+  const stripTags = h => h.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const decode = t => t
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ');
+  const entities = [];
+  let m;
+  while ((m = re.exec(sectionsHtml)) !== null) {
+    entities.push({
+      '@type': 'Question',
+      name: decode(stripTags(m[1])),
+      acceptedAnswer: { '@type': 'Answer', text: decode(stripTags(m[2])) }
+    });
+  }
+  if (!entities.length) throw new Error('No FAQ items found in sections markup');
+  const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: entities };
+  return '<!-- wp:html -->\n<script type="application/ld+json">\n'
+    + JSON.stringify(schema, null, 0) + '\n</script>\n<!-- /wp:html -->\n';
+}
+
+const faqSchema = buildFaqSchema(sections);
+const tracking = faqSchema + '\n' + analytics;
 
 // ---- 1. Concatenated page content for WordPress -------------------------------
 const pageContent = [style, sections, form, tracking].join('\n\n');
@@ -108,14 +136,16 @@ const preview =
 fs.writeFileSync(dir('preview/local-preview.html'), preview);
 
 // ---- Validate what we just built ----------------------------------------------
-const analytics = tracking.match(/<script id="opp-analytics">([\s\S]*?)<\/script>/)[1];
-new Function(analytics); // throws on a syntax error
+new Function(analytics.match(/<script id="opp-analytics">([\s\S]*?)<\/script>/)[1]); // throws on a syntax error
 const faq = JSON.parse(tracking.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
 const visibleFaqCount = (sections.match(/<details>/g) || []).length;
 if (faq.mainEntity.length !== visibleFaqCount) {
   throw new Error(`FAQ schema has ${faq.mainEntity.length} questions but the page shows ${visibleFaqCount}`);
 }
+for (const q of faq.mainEntity) {
+  if (!q.name || !q.acceptedAnswer.text) throw new Error('Empty FAQ entry: ' + JSON.stringify(q));
+}
 
 console.log(`page content: ${pageContent.length} bytes -> wordpress/research-partner-program.page.html`);
 console.log(`preview:      ${preview.length} bytes -> preview/local-preview.html`);
-console.log(`analytics JS syntax OK; FAQ schema matches ${visibleFaqCount} visible questions`);
+console.log(`analytics JS syntax OK; FAQ schema generated from ${visibleFaqCount} visible questions`);

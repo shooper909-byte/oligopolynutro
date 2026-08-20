@@ -4,23 +4,11 @@ Site: https://www.oligopolypeptides.com · Pages: **3500** (program), **3498** (
 
 ## The short version
 
-All three pages are **drafts**. Nothing is live, no existing content was edited, no plugin
-was installed or activated, and no theme or server file was touched. If you want this gone,
-trashing the three pages removes every trace of it.
+The three pages are **published** as of 2026-08-20. No existing content was edited, no plugin
+was installed or activated, and no theme or server file was touched. Unpublishing or trashing
+the three pages removes every trace of this work.
 
-## Before publishing — nothing to roll back
-
-Deleting the drafts is the complete undo:
-
-**wp-admin → Pages → Drafts**, select the three pages below, **Move to Trash**.
-
-- `OligoPoly Research Partner Program` (ID 3500)
-- `Research Partner Program Terms` (ID 3498)
-- `Partner Compliance Rules` (ID 3499)
-
-Trashed pages are recoverable for 30 days from **Pages → Trash**.
-
-## After publishing — reverting
+## Reverting
 
 Pick whichever fits the situation:
 
@@ -30,10 +18,11 @@ Edit the page → change status from Published back to **Draft** → Update. The
 whole program.
 
 **2. Revert one bad edit (keeps the page live).**
-Every save creates a WordPress revision. Edit the page → in the sidebar open **Revisions** →
-pick the timestamp you want → **Restore This Revision**. The three drafts created on
-2026-08-20 are the baseline revisions; restoring one of those returns the page to exactly
-the state described in `docs/CHANGELOG.md`.
+Every save creates a WordPress revision, and this work produced several on 2026-08-20 (the
+initial drafts, then the reconciliation against the launch package, then publication). Edit
+the page → in the sidebar open **Revisions** → pick the timestamp you want → **Restore This
+Revision**. The newest 2026-08-20 revision is the published state described in
+`docs/CHANGELOG.md`.
 
 **3. Restore from this repository.**
 `wordpress/research-partner-program.page.html` is the full block markup for the program

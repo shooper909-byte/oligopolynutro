@@ -1,0 +1,49 @@
+<!-- wp:html -->
+<script id="opp-analytics">
+(function () {
+  "use strict";
+  /* Analytics for the Research Partner Program page only.
+     Pushes events into the site's existing GTM dataLayer — no new tracking installs. */
+  window.dataLayer = window.dataLayer || [];
+  function push(eventName, extra) {
+    var payload = { event: eventName, page_area: "research_partner_program" };
+    if (extra) { for (var k in extra) { payload[k] = extra[k]; } }
+    window.dataLayer.push(payload);
+  }
+
+  // 1. Affiliate page view
+  push("affiliate_page_view");
+
+  // 4. Application submitted successfully (Jetpack redirects back with contact-form-sent)
+  if (/[?&]contact-form-sent=/.test(window.location.search) || /contact-form-sent/.test(window.location.hash)) {
+    push("affiliate_application_submitted");
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("[data-opp-cta], [data-opp-link], a[href*='research-partner-program-terms'], a[href*='research-partner-compliance-rules']") : null;
+    if (!el) { return; }
+    var cta = el.getAttribute("data-opp-cta");
+    var link = el.getAttribute("data-opp-link");
+    // 2. Primary CTA click
+    if (cta === "apply") { push("affiliate_cta_click", { cta_label: (el.textContent || "").trim() }); }
+    // 5. Terms link click / 6. Compliance-rules link click
+    if (link === "terms" || /research-partner-program-terms/.test(el.href || "")) { push("affiliate_terms_click"); }
+    else if (link === "compliance" || /research-partner-compliance-rules/.test(el.href || "")) { push("affiliate_compliance_click"); }
+  }, true);
+
+  // 3. Application started (first interaction with any form field)
+  var form = document.querySelector(".wp-block-jetpack-contact-form form, .opp-jetpack-form form");
+  if (form) {
+    var started = false;
+    form.addEventListener("focusin", function (e) {
+      if (started) { return; }
+      var t = e.target;
+      if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) {
+        started = true;
+        push("affiliate_application_started");
+      }
+    });
+  }
+})();
+</script>
+<!-- /wp:html -->
