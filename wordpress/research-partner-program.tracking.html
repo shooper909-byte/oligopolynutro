@@ -1,0 +1,67 @@
+<!-- wp:html -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What commission rate does the program pay?", "acceptedAnswer": {"@type": "Answer", "text": "The pilot pays a 10% commission on net eligible product revenue from validated referred purchases. Rates may be reviewed when the 90-day pilot concludes."}},
+    {"@type": "Question", "name": "What counts as eligible revenue?", "acceptedAnswer": {"@type": "Answer", "text": "Eligible revenue is the net product subtotal of qualifying referred orders — excluding shipping, taxes, refunds, chargebacks, canceled orders, and purchases excluded under the Program Terms (for example self-referrals or orders using unauthorized discounts)."}},
+    {"@type": "Question", "name": "How long is the attribution window?", "acceptedAnswer": {"@type": "Answer", "text": "60 days from the last qualifying click on your tracked referral link. If a customer purchases within that window, the order is attributed to you."}},
+    {"@type": "Question", "name": "When are commissions paid?", "acceptedAnswer": {"@type": "Answer", "text": "Payouts are issued monthly after a 30-day validation hold on each order. The minimum payout is $100; smaller balances roll forward to the next cycle."}},
+    {"@type": "Question", "name": "What happens with refunds or chargebacks?", "acceptedAnswer": {"@type": "Answer", "text": "Commissions on refunded, charged-back, or canceled orders are reversed. That is what the 30-day validation hold is for — it keeps payouts accurate for everyone."}},
+    {"@type": "Question", "name": "Can I run paid advertising?", "acceptedAnswer": {"@type": "Answer", "text": "Paid placements require prior written approval. Bidding on OligoPoly trademarks or brand terms is prohibited, and any approved paid activity must follow the same research-use-only and disclosure rules as organic content."}},
+    {"@type": "Question", "name": "Do I need to disclose my affiliate relationship?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. A clear, conspicuous affiliate disclosure must appear near every endorsement or referral link, consistent with FTC guidance and platform rules."}},
+    {"@type": "Question", "name": "What content is prohibited?", "acceptedAnswer": {"@type": "Answer", "text": "Anything implying human use: dosing guidance, reconstitution for human use, injection or administration content, treatment or disease claims, therapeutic or safety and efficacy claims, and self-experimentation content. OligoPoly products are for laboratory research use only."}},
+    {"@type": "Question", "name": "Is approval automatic?", "acceptedAnswer": {"@type": "Answer", "text": "No. Every application is reviewed manually by our partnerships team, and the pilot cohort is limited to 10–20 approved partners. Referral links, codes, and accounts are only issued after approval."}},
+    {"@type": "Question", "name": "Can applications be rejected or partners removed?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. We may decline any application at our discretion, and partners who violate the Compliance Rules can be removed from the program, with unvalidated commissions forfeited as described in the Program Terms."}}
+  ]
+}
+</script>
+<script id="opp-analytics">
+(function () {
+  "use strict";
+  /* Analytics for the Research Partner Program page only.
+     Pushes events into the site's existing GTM dataLayer — no new tracking installs. */
+  window.dataLayer = window.dataLayer || [];
+  function push(eventName, extra) {
+    var payload = { event: eventName, page_area: "research_partner_program" };
+    if (extra) { for (var k in extra) { payload[k] = extra[k]; } }
+    window.dataLayer.push(payload);
+  }
+
+  // 1. Affiliate page view
+  push("affiliate_page_view");
+
+  // 4. Application submitted successfully (Jetpack redirects back with contact-form-sent)
+  if (/[?&]contact-form-sent=/.test(window.location.search) || /contact-form-sent/.test(window.location.hash)) {
+    push("affiliate_application_submitted");
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("[data-opp-cta], [data-opp-link], a[href*='research-partner-program-terms'], a[href*='research-partner-compliance-rules']") : null;
+    if (!el) { return; }
+    var cta = el.getAttribute("data-opp-cta");
+    var link = el.getAttribute("data-opp-link");
+    // 2. Primary CTA click
+    if (cta === "apply") { push("affiliate_cta_click", { cta_label: (el.textContent || "").trim() }); }
+    // 5. Terms link click / 6. Compliance-rules link click
+    if (link === "terms" || /research-partner-program-terms/.test(el.href || "")) { push("affiliate_terms_click"); }
+    else if (link === "compliance" || /research-partner-compliance-rules/.test(el.href || "")) { push("affiliate_compliance_click"); }
+  }, true);
+
+  // 3. Application started (first interaction with any form field)
+  var form = document.querySelector(".wp-block-jetpack-contact-form form, .opp-jetpack-form form");
+  if (form) {
+    var started = false;
+    form.addEventListener("focusin", function (e) {
+      if (started) { return; }
+      var t = e.target;
+      if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) {
+        started = true;
+        push("affiliate_application_started");
+      }
+    });
+  }
+})();
+</script>
+<!-- /wp:html -->
