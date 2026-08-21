@@ -152,3 +152,27 @@ records, prices, availability, checkout and payment configuration, account requi
 age gate, RUO positioning and compliance language, and all existing URLs. No medical,
 human-use, dosing, therapeutic, testing or scientific claim was added anywhere — the build
 script fails on a banned-vocabulary match.
+
+## 7. wpautop residue — verified, and the remaining artifact neutralized
+
+`wpautop` is a render-time `the_content` filter; it does not alter stored content. Verified by
+round-tripping the payload through a real WordPress save/reopen cycle on a throwaway draft
+(created, read back byte-identical, trashed): `<style>`, inline `<svg>`, `!important`,
+`clip-path` and the entity escapes all survive kses, and no newlines are reintroduced.
+
+A faithful port of `wpautop` (calibrated until it reproduced the live breakage exactly —
+`<span></p><h3>Metabolic Systems</h3><p><small>`) was then run against the built payload:
+
+| Artifact | Live today | New payload |
+|---|---|---|
+| `</p><h3>` card breaks | 11 | **0** |
+| stray `<br />` | 6 | **0** |
+| `</svg></p>` | 4 | 3 |
+| `</span></p>` | 1 | 1 |
+
+The residual stray `</p>` come from `wpautop` wrapping inline content that precedes a block
+element (`<article><svg/>` before `<h3>`, `<div><span>` before `<h1>`). The HTML5 parser turns
+each into an empty `<p>`, which the theme gives a margin. These already exist on the live page,
+so they are not a regression — but they are now suppressed by a single scoped rule,
+`#op9-home p:empty{display:none}`, added to `homepage.style.css`. `wpautop` itself is untouched,
+globally and per-page.

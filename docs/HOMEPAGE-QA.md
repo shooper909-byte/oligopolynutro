@@ -8,7 +8,13 @@ The published homepage could not be rendered in this environment — the browser
 the site through the session proxy — so the layout results below come from the built markup,
 and the destination results come from live HTTP checks.
 
-## Destinations — 35 URLs, all HTTP 200, no redirects
+## Destinations — 37 unique (35 HTTP + mailto + tel), all HTTP 200, no redirects
+
+The two lists below total 42 entries (20 homepage + 22 footer); five destinations appear in
+both, so the deduplicated total is **37 unique destinations = 35 unique HTTP(S) URLs + 1
+`mailto:` + 1 `tel:`**. The shared five are `/research-catalog/`, `/research-stacks/`,
+`/build-your-research-bundle/`, `/research-peptides-with-coa/` and `/institutional-purchasing/`.
+All 35 HTTP URLs re-verified 2026-08-21: HTTP 200, no redirects.
 
 Homepage: `/research-catalog/` ×3, `/build-your-research-bundle/` ×2,
 `/products/tirzepatide-10mg-research-peptide/`, `/products/cagrilintide-5mg-research-peptide/`,
