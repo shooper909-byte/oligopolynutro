@@ -54,7 +54,8 @@ every Mix-and-Match container remains the primary requirement.
 
 ## Image
 
-`OP-STACK-METABOLIC-5.png` — five complete vials, full plinth. Replaces
+`OP-STACK-METABOLIC-5-2.png` — five complete vials, full plinth. Replaces
 `OP-STACK-METABOLIC.png` on container 3474, the `/research-stacks/` card and the homepage
-Metabolic Systems card. The approved file is supplied externally; it must be uploaded to the
-media library under exactly this filename so the staged markup resolves.
+Metabolic Systems card. Uploaded and verified live 2026-08-21: 1600x1000, HTTP 200. WordPress de-duplicated the
+filename with a `-2` suffix, so this exact URL is the one to use -- the unsuffixed
+`OP-STACK-METABOLIC-5.png` returns 404 and must not be referenced.
