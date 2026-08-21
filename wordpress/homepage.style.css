@@ -1,0 +1,165 @@
+/* OligoPoly Laboratories homepage — scoped stylesheet.
+   Every selector is prefixed #op9-home so it cannot leak into any other page.
+   Palette, radii and type scale are carried over unchanged from the live
+   op9-home-direct-20260820 stylesheet. */
+
+#op9-home{
+  --op9-bg:#050a14;
+  --op9-panel:#0b1729;
+  --op9-panel-2:#101f36;
+  --op9-line:#293a57;
+  --op9-line-soft:rgba(148,163,184,.16);
+  --op9-text:#f7f8fc;
+  --op9-muted:#c3cddd;
+  --op9-accent:#bf62f0;
+  --op9-accent-2:#8b5cf6;
+  --op9-accent-soft:#e9c8ff;
+  width:100%;
+  overflow-x:clip;
+  background:var(--op9-bg);
+  color:var(--op9-text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+#op9-home *{box-sizing:border-box;min-width:0}
+#op9-home img{display:block;max-width:100%;height:auto}
+#op9-home a{color:inherit}
+#op9-home ul{margin:0;padding:0;list-style:none}
+#op9-home .screen-reader-text{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+#op9-home .op9-shell{width:min(1180px,calc(100% - 40px));margin-inline:auto}
+#op9-home .op9-section{padding:72px 0;border-top:1px solid var(--op9-line-soft)}
+#op9-home .op9-eyebrow{margin:0 0 10px;color:var(--op9-accent-soft);font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+#op9-home h1,#op9-home h2,#op9-home h3,#op9-home p{overflow-wrap:anywhere}
+#op9-home h1{max-width:900px;margin:0;color:#fff;font-size:clamp(36px,5.4vw,68px);line-height:1.04;letter-spacing:-.035em;text-transform:uppercase}
+#op9-home h2{margin:0;color:#fff;font-size:clamp(27px,3.6vw,42px);line-height:1.14;letter-spacing:-.022em}
+#op9-home h3{margin:0;color:#fff;font-size:19px;line-height:1.32;letter-spacing:-.01em}
+#op9-home p{color:var(--op9-muted);line-height:1.7}
+#op9-home .op9-lead{max-width:730px;margin:18px 0 0;font-size:clamp(17px,2vw,21px)}
+
+/* ---------- buttons ---------- */
+#op9-home .op9-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+#op9-home .op9-btn{display:inline-flex;min-height:48px;align-items:center;justify-content:center;padding:12px 22px;border:1px solid var(--op9-line);border-radius:10px;font-weight:850;text-align:center;text-decoration:none;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+#op9-home .op9-btn:hover{transform:translateY(-2px);border-color:var(--op9-accent)}
+#op9-home .op9-btn-primary{border-color:transparent;background:linear-gradient(135deg,var(--op9-accent),var(--op9-accent-2));color:#0a0614}
+#op9-home .op9-btn-secondary{background:rgba(11,23,41,.86);color:#fff}
+#op9-home a:focus-visible,#op9-home .op9-btn:focus-visible{outline:3px solid var(--op9-accent-soft);outline-offset:4px;border-radius:10px}
+
+/* ---------- 1. hero ---------- */
+#op9-home .op9-hero{position:relative;isolation:isolate;min-height:620px;display:grid;align-items:center;padding:96px 0;background:linear-gradient(90deg,rgba(3,8,18,.98) 0%,rgba(3,8,18,.93) 48%,rgba(3,8,18,.28) 100%),url("HERO_IMAGE_URL") center right/cover no-repeat}
+#op9-home .op9-hero:after{content:"";position:absolute;z-index:-1;inset:auto 0 0;height:180px;background:linear-gradient(transparent,var(--op9-bg))}
+#op9-home .op9-hero-copy{max-width:900px}
+#op9-home .op9-ribbon{display:inline-flex;margin-bottom:18px;padding:7px 12px;border:1px solid rgba(191,98,240,.45);border-radius:999px;background:rgba(8,15,29,.78);color:var(--op9-accent-soft);font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+#op9-home .op9-hero-note{margin:24px 0 0;color:#d5dde9;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+
+/* ---------- 2. compact trust strip ---------- */
+#op9-home .op9-trustbar{padding:22px 0;border-top:1px solid var(--op9-line-soft);background:#080f1d}
+#op9-home .op9-trustbar ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 26px}
+#op9-home .op9-trustbar li{display:flex;align-items:flex-start;gap:10px;color:#dbe3ef;font-size:14px;font-weight:700;line-height:1.45}
+#op9-home .op9-trustbar svg{flex:none;width:19px;height:19px;margin-top:1px;color:var(--op9-accent);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- section headers ---------- */
+#op9-home .op9-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px}
+#op9-home .op9-section-head p{max-width:640px;margin:12px 0 0}
+
+/* ---------- 3. featured products ---------- */
+#op9-home .op9-product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+#op9-home .op9-product-card{position:relative;display:flex;height:100%;flex-direction:column;border:1px solid var(--op9-line);border-radius:14px;background:var(--op9-panel);overflow:hidden;transition:border-color .18s ease,transform .18s ease}
+#op9-home .op9-product-card:hover{border-color:var(--op9-accent);transform:translateY(-2px)}
+#op9-home .op9-product-card a{text-decoration:none}
+#op9-home .op9-product-image{width:100%;aspect-ratio:1/1;object-fit:cover;background:#091426;border-bottom:1px solid var(--op9-line-soft)}
+#op9-home .op9-product-body{display:flex;flex:1;flex-direction:column;padding:18px}
+#op9-home .op9-product-body h3{font-size:18px}
+#op9-home .op9-product-price{margin:10px 0 0;color:var(--op9-accent-soft);font-size:19px;font-weight:900;letter-spacing:-.01em}
+#op9-home .op9-product-note{display:inline-flex;align-self:flex-start;margin-top:10px;padding:4px 9px;border:1px solid rgba(148,163,184,.34);border-radius:999px;background:#091426;color:#d5dde9;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+#op9-home .op9-product-facts{margin:14px 0 0;display:grid;gap:7px}
+#op9-home .op9-product-facts li{color:var(--op9-muted);font-size:13.5px;line-height:1.5}
+#op9-home .op9-product-facts b{color:#fff;font-weight:850}
+#op9-home .op9-product-link{display:inline-flex;align-items:center;gap:7px;margin-top:auto;padding-top:18px;color:#dcbdf5;font-weight:850;text-decoration:none}
+#op9-home .op9-product-link:after{content:"";position:absolute;inset:0}
+#op9-home .op9-product-link:focus-visible{outline:3px solid var(--op9-accent-soft);outline-offset:4px}
+#op9-home .op9-product-card:hover .op9-product-link{color:#fff}
+
+/* ---------- 4. build your research bundle ---------- */
+#op9-home .op9-bundle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:stretch}
+#op9-home .op9-bundle-panel{display:flex;flex-direction:column;justify-content:center;padding:34px;border:1px solid var(--op9-line);border-radius:18px;background:linear-gradient(160deg,var(--op9-panel-2),var(--op9-panel))}
+#op9-home .op9-bundle-panel p{margin:14px 0 0}
+#op9-home .op9-sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0 0}
+#op9-home .op9-size{display:flex;height:100%;flex-direction:column;gap:4px;padding:15px 14px;border:1px solid var(--op9-line);border-radius:12px;background:#091426;text-decoration:none;transition:border-color .18s ease,transform .18s ease}
+#op9-home .op9-size:hover{border-color:var(--op9-accent);transform:translateY(-2px)}
+#op9-home .op9-size strong{color:#fff;font-size:17px;font-weight:900}
+#op9-home .op9-size span{color:var(--op9-accent-soft);font-size:13px;font-weight:850}
+#op9-home .op9-size small{color:var(--op9-muted);font-size:12px;line-height:1.45}
+#op9-home .op9-bundle-aside{display:flex;flex-direction:column;border:1px solid var(--op9-line);border-radius:18px;background:var(--op9-panel);overflow:hidden}
+#op9-home .op9-bundle-aside img{width:100%;aspect-ratio:5/2;object-fit:cover;border-bottom:1px solid var(--op9-line-soft)}
+#op9-home .op9-steps{display:grid;gap:16px;flex:1;padding:26px}
+#op9-home .op9-steps h3{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--op9-accent-soft)}
+#op9-home .op9-steps ol{display:grid;gap:14px;margin:0;padding:0;list-style:none;counter-reset:op9step}
+#op9-home .op9-steps li{display:flex;gap:13px;align-items:flex-start;color:var(--op9-muted);font-size:14.5px;line-height:1.55}
+#op9-home .op9-steps li:before{counter-increment:op9step;content:counter(op9step);flex:none;display:grid;place-items:center;width:27px;height:27px;border:1px solid rgba(191,98,240,.5);border-radius:999px;background:#12091f;color:var(--op9-accent-soft);font-size:13px;font-weight:900}
+#op9-home .op9-steps b{display:block;color:#fff;font-weight:850}
+
+/* ---------- 5. curated collections ---------- */
+#op9-home .op9-collection-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+#op9-home .op9-collection-card{position:relative;display:flex;height:100%;flex-direction:column;border:1px solid var(--op9-line);border-radius:14px;background:var(--op9-panel);overflow:hidden;transition:border-color .18s ease,transform .18s ease}
+#op9-home .op9-collection-card:hover{border-color:var(--op9-accent);transform:translateY(-2px)}
+#op9-home .op9-collection-card img{width:100%;aspect-ratio:8/5;object-fit:cover;border-bottom:1px solid var(--op9-line-soft)}
+#op9-home .op9-collection-body{display:flex;flex:1;flex-direction:column;padding:20px}
+#op9-home .op9-collection-body p{margin:9px 0 0;font-size:14px}
+#op9-home .op9-collection-includes{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--op9-line-soft);color:var(--op9-muted);font-size:13px;line-height:1.55}
+#op9-home .op9-collection-includes b{display:block;margin-bottom:4px;color:#fff;font-weight:850}
+#op9-home .op9-collection-cta{display:inline-flex;align-items:center;gap:7px;margin-top:auto;padding-top:18px;color:#dcbdf5;font-weight:850;text-decoration:none}
+#op9-home .op9-collection-cta:after{content:"";position:absolute;inset:0}
+#op9-home .op9-collection-card:hover .op9-collection-cta{color:#fff}
+#op9-home .op9-collection-cta:focus-visible{outline:3px solid var(--op9-accent-soft);outline-offset:4px}
+
+/* ---------- 6. why researchers choose oligopoly ---------- */
+#op9-home .op9-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+#op9-home .op9-card{display:flex;height:100%;flex-direction:column;padding:22px;border:1px solid var(--op9-line);border-radius:14px;background:var(--op9-panel)}
+#op9-home .op9-card svg{display:block;width:36px;height:36px;margin-bottom:16px;color:var(--op9-accent);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#op9-home .op9-card p{margin:9px 0 0;font-size:15px}
+
+/* ---------- 7. research access for every customer ---------- */
+#op9-home .op9-access-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+#op9-home .op9-access-card{display:flex;height:100%;flex-direction:column;padding:26px;border:1px solid var(--op9-line);border-radius:14px;background:linear-gradient(160deg,var(--op9-panel-2),var(--op9-panel))}
+#op9-home .op9-access-card p{margin:10px 0 0;font-size:15px}
+#op9-home .op9-access-card p:last-of-type{margin-bottom:22px}
+#op9-home .op9-access-card .op9-btn{margin-top:auto;align-self:flex-start}
+
+/* ---------- 8. RUO compliance band ---------- */
+#op9-home .op9-compliance{padding:36px 0;background:#080f1d;border-top:1px solid var(--op9-line)}
+#op9-home .op9-compliance strong{display:block;color:#fff;font-size:18px}
+#op9-home .op9-compliance p{max-width:960px;margin:8px 0 0;font-size:14px}
+
+/* ---------- responsive ---------- */
+@media(max-width:1180px){
+  #op9-home .op9-product-grid,#op9-home .op9-collection-grid,#op9-home .op9-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:980px){
+  #op9-home .op9-bundle-grid{grid-template-columns:1fr}
+  #op9-home .op9-access-grid{grid-template-columns:1fr}
+  #op9-home .op9-trustbar ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:768px){
+  #op9-home .screen-reader-text{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+#op9-home .op9-shell{width:min(100% - 32px,1180px)}
+  #op9-home .op9-section{padding:54px 0}
+  #op9-home .op9-hero{min-height:540px;padding:74px 0;background-position:62% center}
+  #op9-home .op9-hero:before{content:"";position:absolute;z-index:-1;inset:0;background:rgba(3,8,18,.3)}
+  #op9-home .op9-section-head{display:block}
+  #op9-home .op9-section-head .op9-btn{margin-top:20px}
+  #op9-home .op9-bundle-panel{padding:26px}
+  #op9-home .op9-steps{padding:22px}
+}
+@media(max-width:560px){
+  #op9-home .screen-reader-text{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+#op9-home .op9-shell{width:min(100% - 26px,1180px)}
+  #op9-home .op9-product-grid,#op9-home .op9-collection-grid,#op9-home .op9-grid-4{grid-template-columns:1fr}
+  #op9-home .op9-sizes{grid-template-columns:1fr}
+  #op9-home .op9-trustbar ul{grid-template-columns:1fr}
+  #op9-home .op9-actions{display:grid}
+  #op9-home .op9-btn{width:100%}
+  #op9-home .op9-access-card .op9-btn{align-self:stretch}
+}
+@media(prefers-reduced-motion:reduce){
+  #op9-home *{transition:none!important}
+  #op9-home .op9-btn:hover,#op9-home .op9-product-card:hover,#op9-home .op9-collection-card:hover,#op9-home .op9-size:hover{transform:none}
+}

@@ -55,6 +55,29 @@ wordpress/research-partner-program.form.html       application form
 wordpress/research-partner-program.analytics.html  analytics (FAQ schema is generated)
 ```
 
+## Homepage rebuild (staged, 2026-08-21)
+
+A repair-and-optimize pass over the homepage (page ID 381) and the site footer. **Staged, not
+published** — this session had no write access to WordPress.
+
+```sh
+node build-homepage.js
+```
+
+Regenerates from `wordpress/homepage.style.css` + `wordpress/homepage.sections.html`:
+
+- `wordpress/homepage.page.html` — single-line, wpautop-safe page content to paste into page 381
+- `preview/homepage-preview.html` — offline preview (uses `preview/assets/`) for visual QA
+
+`wordpress/footer.snippet.html` is the corrected drop-in for the `opl-footer-v2` snippet.
+
+- **[docs/HOMEPAGE-DEPLOY.md](docs/HOMEPAGE-DEPLOY.md)** — paste steps, the two snippet-owned
+  sections that still need a change, and the cache purges
+- **[docs/HOMEPAGE-CHANGELOG.md](docs/HOMEPAGE-CHANGELOG.md)** — what was broken and what changed
+- **[docs/HOMEPAGE-QA.md](docs/HOMEPAGE-QA.md)** — link, image, responsive and accessibility results
+
+Screenshots: `screenshots/homepage-{desktop,tablet,mobile,mobile-small}.png`.
+
 ## Ground rules this work respected
 
 No product data, cart, checkout, payment, shipping, tax, WooCommerce, customer-account,
