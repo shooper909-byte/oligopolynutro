@@ -1,0 +1,82 @@
+<!-- ==========================================================================
+     OligoPoly Laboratories site footer — corrected drop-in replacement for the
+     snippet that currently outputs <style id="opl-footer-v2-css"> plus
+     <footer class="op-footer opl-footer-v2">.
+
+     Changes against the live footer (audited 2026-08-21):
+       - Removed the small footer logo <img> (no replacement logo). The header
+         logo is untouched.
+       - Removed the whole obsolete nutraceutical "Shop" column: the Vitamins,
+         Longevity, Performance, Cognitive Support and Wellness product-category
+         links all returned HTTP 410 Gone. Replaced with the live research
+         product categories and the two purchasable collection paths.
+       - Removed "nutraceuticals" from the company blurb.
+       - /stacks/ replaced with its canonical target /research-stacks/ (was a
+         301 redirect).
+       - Spacing rebalanced after the logo removal.
+     Every href below returned HTTP 200 on 2026-08-21.
+     ========================================================================== -->
+<style id="opl-footer-v2-css">
+.opl-footer-v2,.opl-footer-v2 *{box-sizing:border-box}
+.opl-footer-v2{background:#030712;color:#a7b3c4;border-top:1px solid rgba(148,163,184,.18);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:54px 0 28px}
+.opl-footer-v2 .op-container{width:min(1180px,calc(100% - 40px));margin:0 auto}
+.opl-footer-v2-grid{display:grid;grid-template-columns:1.35fr repeat(3,minmax(0,1fr));gap:32px 28px}
+.opl-footer-v2-brand{margin:0 0 12px;color:#fff;font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.opl-footer-v2 p{margin:0;color:#b4c0d0;font-size:14px;line-height:1.7}
+.opl-footer-v2 address{margin-top:16px;color:#cbd5e1;font-style:normal;font-size:13px;line-height:1.8}
+.opl-footer-v2 h3{margin:0 0 14px;color:#fff;font-size:12px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}
+.opl-footer-v2 a{display:block;margin:0 0 9px;color:#a7b3c4;text-decoration:none;font-size:14px;line-height:1.45}
+.opl-footer-v2 address a{display:inline;margin:0;color:#d8e4f2}
+.opl-footer-v2 a:hover,.opl-footer-v2 a:focus-visible{color:#00F3FB}
+.opl-footer-v2 a:focus-visible{outline:2px solid #00F3FB;outline-offset:3px;border-radius:4px}
+.opl-footer-v2-ruo{margin-top:28px;padding-top:20px;border-top:1px solid rgba(148,163,184,.16);color:#cbd5e1;font-size:13px;font-weight:800}
+.opl-footer-v2-bottom{display:flex;justify-content:space-between;gap:18px;margin-top:16px;padding-top:20px;border-top:1px solid rgba(148,163,184,.16);color:#8593a8;font-size:13px}
+@media(max-width:900px){.opl-footer-v2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.opl-footer-v2{padding:40px 0 24px}.opl-footer-v2 .op-container{width:calc(100% - 32px)}.opl-footer-v2-grid{grid-template-columns:1fr}.opl-footer-v2-bottom{display:block}.opl-footer-v2-bottom span{display:block;margin-top:6px}}
+</style>
+<footer class="op-footer opl-footer-v2">
+<div class="op-container">
+<div class="opl-footer-v2-grid">
+<div>
+<p class="opl-footer-v2-brand">OligoPoly Laboratories</p>
+<p>Laboratory research compounds supplied for research use only. Research products are not for human consumption.</p>
+<address>
+OligoPoly P&#101;ptides LLC<br>
+Rosharon, TX &middot; Fulfillment: Houston, TX<br>
+<a href="mailto:labs@oligopolypeptides.com">labs@oligopolypeptides.com</a> &middot; <a href="tel:8327367490">832-736-7490</a>
+</address>
+</div>
+<nav aria-label="Shop footer links">
+<h3>Shop</h3>
+<a href="/research-catalog/">Research Catalog</a>
+<a href="/product-category/metabolic-research/">Metabolic Research</a>
+<a href="/product-category/cellular-research/">Cellular Research</a>
+<a href="/product-category/cognitive-research/">Cognitive Research</a>
+<a href="/product-category/longevity-research/">Longevity Research</a>
+<a href="/research-stacks/">Research Stacks</a>
+<a href="/build-your-research-bundle/">Build Your Research Bundle</a>
+</nav>
+<nav aria-label="Research footer links">
+<h3>Research</h3>
+<a href="/research-peptides-with-coa/">COA Verification</a>
+<a href="/quality-standards/">Quality Standards</a>
+<a href="/peptide-storage-handling-guide/">Storage &amp; Handling Guide</a>
+<a href="/peptide-finder/">Peptide Finder</a>
+<a href="/research-library/">Research Library</a>
+<a href="/research-use-only/">RUO Policy</a>
+</nav>
+<nav aria-label="Company footer links">
+<h3>Company</h3>
+<a href="/about/">About</a>
+<a href="/contact/">Contact</a>
+<a href="/institutional-purchasing/">Institutional Purchasing</a>
+<a href="/shipping/">Shipping</a>
+<a href="/privacy-policy/">Privacy Policy</a>
+<a href="/terms-of-use/">Terms of Use</a>
+<a href="/refund-policy/">Refund Policy</a>
+</nav>
+</div>
+<p class="opl-footer-v2-ruo">For Research Use Only. Not for Human or Veterinary Use.</p>
+<div class="opl-footer-v2-bottom"><span>&copy; 2026 OligoPoly Laboratories. All rights reserved.</span></div>
+</div>
+</footer>
