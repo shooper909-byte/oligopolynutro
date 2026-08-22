@@ -118,6 +118,26 @@ line, consistent with the research-use-only positioning used across the site.
 | GHK-Cu | **Copper-binding** tripeptide (Gly-His-Lys) · **Extracellular matrix** and **collagen** signaling studies · Research-use-only material |
 | Selank | Synthetic **tuftsin** analog heptapeptide · **GABAergic** and **BDNF** pathway studies · Research-use-only material |
 | Build Your Research Bundle | Self-selected **multi-compound** research collection · Volume-tiered **3 / 6 / 9 vial** configurations · Research-use-only materials |
+
+### Catalog research-division tiles
+
+The ten `.oligopoly-cat-card` tiles on `/research-catalog/` get two shorter
+bullets each (they are compact cards, not product cards):
+
+| Tile | Bullets |
+|------|---------|
+| Cellular Research | **Mitochondrial** and **redox** pathways · **Sirtuin** signaling studies |
+| Cognitive Research | **GABAergic** and **BDNF** pathways · **Neuropeptide** signaling studies |
+| Growth Hormone Research | **GH secretagogue** and **IGF-1** pathways · **Somatotropic axis** studies |
+| Immune Research | **Antimicrobial peptide** and **innate immune** pathways · **Host-defense** signaling studies |
+| Longevity Research | **Telomerase** and **cellular-aging** pathways · **Senescence** signaling studies |
+| Metabolic Research | **GIP** / **GLP-1** / **glucagon** receptors · **Incretin signaling** studies |
+| Recovery Research | **Tissue-repair** and **angiogenesis** pathways · **Extracellular matrix** signaling studies |
+| Research Blends | **Multi-compound** research formulations · Combined **pathway** study design |
+| Research Compounds | **Single-compound** research materials · Full **pathway** coverage |
+| Research Stacks | **Coordinated** multi-pathway collections · **Study-design** groupings |
+
+Screenshot: `screenshots/category-tile-facts.png`
 | Metabolic Pathways Stack | **GIP** / **GLP-1** / **glucagon** receptor coverage · Multi-compound **incretin** study design · Research-use-only materials |
 | Cellular Energy Stack | **Mitochondrial** and **redox cofactor** coverage · **Sirtuin** pathway study design · Research-use-only materials |
 | Neurocognitive Pathways Stack | **GABAergic** and **BDNF** pathway coverage · **Neuropeptide** study design · Research-use-only materials |

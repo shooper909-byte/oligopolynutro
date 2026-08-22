@@ -112,7 +112,7 @@ function opl_card_facts_html( $product_name ) {
 }
 
 function opl_card_facts_css() {
-	return '.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}.opl-facts li::marker{color:var(--violet,#bf62f0)}.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}';
+	return '.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}.opl-facts li::marker{color:var(--violet,#bf62f0)}.opl-facts-cat{margin:8px 0 0;gap:4px}.opl-facts-cat li{font-size:12.5px;line-height:1.7}.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}';
 }
 
 /** How many cards the current pass rewrote. */
@@ -166,6 +166,99 @@ function opl_card_facts_card( $matches ) {
 	return $out;
 }
 
+
+/** Bullet copy for the catalog's research-division tiles. */
+function opl_cat_facts_map() {
+	return array(
+		'cellular research' => array(
+			'<strong class="opl-key">Mitochondrial</strong> and <strong class="opl-key">redox</strong> pathways',
+			'<strong class="opl-key">Sirtuin</strong> signaling studies',
+		),
+		'cognitive research' => array(
+			'<strong class="opl-key">GABAergic</strong> and <strong class="opl-key">BDNF</strong> pathways',
+			'<strong class="opl-key">Neuropeptide</strong> signaling studies',
+		),
+		'growth hormone research' => array(
+			'<strong class="opl-key">GH secretagogue</strong> and <strong class="opl-key">IGF-1</strong> pathways',
+			'<strong class="opl-key">Somatotropic axis</strong> studies',
+		),
+		'immune research' => array(
+			'<strong class="opl-key">Antimicrobial peptide</strong> and <strong class="opl-key">innate immune</strong> pathways',
+			'<strong class="opl-key">Host-defense</strong> signaling studies',
+		),
+		'longevity research' => array(
+			'<strong class="opl-key">Telomerase</strong> and <strong class="opl-key">cellular-aging</strong> pathways',
+			'<strong class="opl-key">Senescence</strong> signaling studies',
+		),
+		'metabolic research' => array(
+			'<strong class="opl-key">GIP</strong> / <strong class="opl-key">GLP-1</strong> / <strong class="opl-key">glucagon</strong> receptors',
+			'<strong class="opl-key">Incretin signaling</strong> studies',
+		),
+		'recovery research' => array(
+			'<strong class="opl-key">Tissue-repair</strong> and <strong class="opl-key">angiogenesis</strong> pathways',
+			'<strong class="opl-key">Extracellular matrix</strong> signaling studies',
+		),
+		'research blends' => array(
+			'<strong class="opl-key">Multi-compound</strong> research formulations',
+			'Combined <strong class="opl-key">pathway</strong> study design',
+		),
+		'research stacks' => array(
+			'<strong class="opl-key">Coordinated</strong> multi-pathway collections',
+			'<strong class="opl-key">Study-design</strong> groupings',
+		),
+		'research compounds' => array(
+			'<strong class="opl-key">Single-compound</strong> research materials',
+			'Full <strong class="opl-key">pathway</strong> coverage',
+		),
+	);
+}
+
+/** Rewrite one .oligopoly-cat-card tile. */
+function opl_cat_facts_card( $matches ) {
+	$card = $matches[0];
+
+	if ( false !== strpos( $card, 'opl-facts' ) ) {
+		return $card;
+	}
+
+	if ( ! preg_match( '#<h3[^>]*class="[^"]*oligopoly-cat-name[^"]*"[^>]*>(.*?)</h3>#s', $card, $heading ) ) {
+		return $card;
+	}
+
+	$name  = strtolower( wp_strip_all_tags( $heading[1] ) );
+	$name  = preg_replace( '/[^a-z0-9]+/', '-', $name );
+	$lines = null;
+
+	foreach ( opl_cat_facts_map() as $key => $candidate ) {
+		if ( false !== strpos( $name, preg_replace( '/[^a-z0-9]+/', '-', $key ) ) ) {
+			$lines = $candidate;
+			break;
+		}
+	}
+
+	if ( null === $lines ) {
+		return $card;
+	}
+
+	$facts = '<ul class="opl-facts opl-facts-cat"><li>' . implode( '</li><li>', $lines ) . '</li></ul>';
+	$facts = str_replace( array( '\\', '$' ), array( '\\\\', '\$' ), $facts );
+
+	// Place it inside the tile body, after the product-count badge.
+	if ( preg_match( '#<span[^>]*class="[^"]*oligopoly-cat-count[^"]*"[^>]*>.*?</span>#s', $card ) ) {
+		$out = preg_replace( '#(<span[^>]*class="[^"]*oligopoly-cat-count[^"]*"[^>]*>.*?</span>)#s', '$1' . $facts, $card, 1 );
+	} else {
+		$out = preg_replace( '#</h3>#', '</h3>' . $facts, $card, 1 );
+	}
+
+	if ( null === $out ) {
+		return $card;
+	}
+
+	opl_card_facts_count();
+
+	return $out;
+}
+
 /**
  * Rewrite every product card in a chunk of HTML.
  * Returns null when there is nothing to do, so callers can bail cheaply.
@@ -173,11 +266,14 @@ function opl_card_facts_card( $matches ) {
 function opl_card_facts_apply( $html ) {
 	$card_classes = '(?:oplhub-product|op9-product-card|oprc-card)';
 
-	if ( ! is_string( $html ) || '' === $html || false === strpos( $html, '<article' ) ) {
+	if ( ! is_string( $html ) || '' === $html ) {
 		return null;
 	}
 
-	if ( ! preg_match( '#<article\b[^>]*class="[^"]*' . $card_classes . '#', $html ) ) {
+	$has_products = (bool) preg_match( '#<article\b[^>]*class="[^"]*' . $card_classes . '#', $html );
+	$has_cats     = ( false !== strpos( $html, 'oligopoly-cat-card' ) );
+
+	if ( ! $has_products && ! $has_cats ) {
 		return null;
 	}
 
@@ -188,7 +284,24 @@ function opl_card_facts_apply( $html ) {
 	);
 
 	// preg_* returns null if it hits the backtrack limit - fail safe.
-	if ( null === $out || $out === $html ) {
+	if ( null === $out ) {
+		$out = $html;
+	}
+
+	// Catalog research-division tiles use <a class="oligopoly-cat-card">, not <article>.
+	if ( false !== strpos( $out, 'oligopoly-cat-card' ) ) {
+		$cats = preg_replace_callback(
+			'#<a\b[^>]*class="[^"]*oligopoly-cat-card[^"]*"[^>]*>.*?</a>#s',
+			'opl_cat_facts_card',
+			$out
+		);
+
+		if ( null !== $cats ) {
+			$out = $cats;
+		}
+	}
+
+	if ( $out === $html ) {
 		return null;
 	}
 
