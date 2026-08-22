@@ -15,10 +15,17 @@
  * research-use-only line.
  */
 
-if ( ! function_exists( 'opl_card_facts_map' ) ) {
+/*
+ * Every function is suffixed `4`. An earlier build of this snippet guarded
+ * itself with function_exists() on unsuffixed names, so if a stale copy is
+ * still loaded anywhere - the other snippets plugin, a duplicate snippet - it
+ * defines those names first and silently skips the whole of a newer paste.
+ * Unique names make this build immune to that.
+ */
+if ( ! function_exists( 'opl_facts4_map' ) ) {
 
 /** Bullet copy. Keys match as substrings of the lowercased product name. */
-function opl_card_facts_map() {
+function opl_facts4_map() {
 	return array(
 		// Tirzepatide
 		'tirzepatide' => array(
@@ -96,12 +103,12 @@ function opl_card_facts_map() {
 }
 
 /** Build the <ul> for a product name, or '' when nothing matches. */
-function opl_card_facts_html( $product_name ) {
+function opl_facts4_html( $product_name ) {
 	// Slug-normalise so "GHK-Cu 50 mg" and "Metabolic Pathways Stack" both match.
 	$name = strtolower( wp_strip_all_tags( $product_name ) );
 	$name = preg_replace( '/[^a-z0-9]+/', '-', $name );
 
-	foreach ( opl_card_facts_map() as $key => $lines ) {
+	foreach ( opl_facts4_map() as $key => $lines ) {
 		if ( false !== strpos( $name, $key ) ) {
 			return '<ul class="opl-facts"><li>' . implode( '</li><li>', $lines ) . '</li></ul>';
 		}
@@ -110,12 +117,12 @@ function opl_card_facts_html( $product_name ) {
 	return '';
 }
 
-function opl_card_facts_css() {
+function opl_facts4_css() {
 	return '.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}.opl-facts li::marker{color:var(--violet,#bf62f0)}.opl-facts-cat{margin:8px 0 0;gap:4px}.opl-facts-cat li{font-size:12.5px;line-height:1.7}.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}';
 }
 
 /** How many cards the current pass rewrote. */
-function opl_card_facts_count( $reset = false ) {
+function opl_facts4_count( $reset = false ) {
 	static $n = 0;
 
 	if ( $reset ) {
@@ -127,7 +134,7 @@ function opl_card_facts_count( $reset = false ) {
 }
 
 /** Rewrite one product card. */
-function opl_card_facts_card( $matches ) {
+function opl_facts4_card( $matches ) {
 	$card = $matches[0];
 
 	// Already processed.
@@ -139,7 +146,7 @@ function opl_card_facts_card( $matches ) {
 		return $card;
 	}
 
-	$facts = opl_card_facts_html( $heading[1] );
+	$facts = opl_facts4_html( $heading[1] );
 
 	if ( '' === $facts ) {
 		return $card;
@@ -160,14 +167,14 @@ function opl_card_facts_card( $matches ) {
 		return $card;
 	}
 
-	opl_card_facts_count();
+	opl_facts4_count();
 
 	return $out;
 }
 
 
 /** Bullet copy for the catalog's research-division tiles. */
-function opl_cat_facts_map() {
+function opl_facts4_cat_map() {
 	return array(
 		'cellular research' => array(
 			'<strong class="opl-key">Mitochondrial</strong> and <strong class="opl-key">redox</strong> pathways',
@@ -213,7 +220,7 @@ function opl_cat_facts_map() {
 }
 
 /** Rewrite one .oligopoly-cat-card tile. */
-function opl_cat_facts_card( $matches ) {
+function opl_facts4_cat_card( $matches ) {
 	$card = $matches[0];
 
 	if ( false !== strpos( $card, 'opl-facts' ) ) {
@@ -228,7 +235,7 @@ function opl_cat_facts_card( $matches ) {
 	$name  = preg_replace( '/[^a-z0-9]+/', '-', $name );
 	$lines = null;
 
-	foreach ( opl_cat_facts_map() as $key => $candidate ) {
+	foreach ( opl_facts4_cat_map() as $key => $candidate ) {
 		if ( false !== strpos( $name, preg_replace( '/[^a-z0-9]+/', '-', $key ) ) ) {
 			$lines = $candidate;
 			break;
@@ -253,7 +260,7 @@ function opl_cat_facts_card( $matches ) {
 		return $card;
 	}
 
-	opl_card_facts_count();
+	opl_facts4_count();
 
 	return $out;
 }
@@ -262,7 +269,7 @@ function opl_cat_facts_card( $matches ) {
  * Rewrite every product card in a chunk of HTML.
  * Returns null when there is nothing to do, so callers can bail cheaply.
  */
-function opl_card_facts_apply( $html ) {
+function opl_facts4_apply( $html ) {
 	$card_classes = '(?:oplhub-product|op9-product-card|oprc-card)';
 
 	if ( ! is_string( $html ) || '' === $html ) {
@@ -278,7 +285,7 @@ function opl_card_facts_apply( $html ) {
 
 	$out = preg_replace_callback(
 		'#<article\b[^>]*class="[^"]*' . $card_classes . '[^"]*"[^>]*>.*?</article>#s',
-		'opl_card_facts_card',
+		'opl_facts4_card',
 		$html
 	);
 
@@ -291,7 +298,7 @@ function opl_card_facts_apply( $html ) {
 	if ( false !== strpos( $out, 'oligopoly-cat-card' ) ) {
 		$cats = preg_replace_callback(
 			'#<a\b[^>]*class="[^"]*oligopoly-cat-card[^"]*"[^>]*>.*?</a>#s',
-			'opl_cat_facts_card',
+			'opl_facts4_cat_card',
 			$out
 		);
 
@@ -307,30 +314,30 @@ function opl_card_facts_apply( $html ) {
 	return $out;
 }
 
-function opl_card_facts_style_tag() {
-	return '<style id="opl-card-facts-css">' . opl_card_facts_css() . '</style>';
+function opl_facts4_style_tag() {
+	return '<style id="opl-facts4-css">' . opl_facts4_css() . '</style>';
 }
 
 /*
  * Pass 1 - the_content. Handles the homepage grid and the /research/ cards.
  */
-add_filter( 'the_content', 'opl_card_facts_filter', PHP_INT_MAX );
+add_filter( 'the_content', 'opl_facts4_filter', PHP_INT_MAX );
 
-function opl_card_facts_filter( $content ) {
+function opl_facts4_filter( $content ) {
 	if ( is_admin() || is_feed() ) {
 		return $content;
 	}
 
-	opl_card_facts_count( true );
-	$out = opl_card_facts_apply( $content );
-	$GLOBALS['opl_facts_last'] = opl_card_facts_count() - 1;
+	opl_facts4_count( true );
+	$out = opl_facts4_apply( $content );
+	$GLOBALS['opl_facts_last'] = opl_facts4_count() - 1;
 
 	if ( null === $out ) {
 		return $content;
 	}
 
-	return opl_card_facts_style_tag() . $out
-		. '<!-- opl-facts v2 pass1 rewrote=' . $GLOBALS['opl_facts_last'] . ' -->';
+	return opl_facts4_style_tag() . $out
+		. '<!-- opl-facts v4 pass1 rewrote=' . $GLOBALS['opl_facts_last'] . ' -->';
 }
 
 /*
@@ -340,36 +347,36 @@ function opl_card_facts_filter( $content ) {
  * never sees those cards. This catches whatever is left in the finished page.
  * Idempotent - cards already handled by pass 1 are skipped.
  */
-add_action( 'template_redirect', 'opl_card_facts_buffer_start', PHP_INT_MAX );
+add_action( 'template_redirect', 'opl_facts4_buffer_start', PHP_INT_MAX );
 
-function opl_card_facts_buffer_start() {
+function opl_facts4_buffer_start() {
 	if ( is_admin() || is_feed() || is_robots() ) {
 		return;
 	}
 
-	ob_start( 'opl_card_facts_buffer' );
+	ob_start( 'opl_facts4_buffer' );
 }
 
-function opl_card_facts_buffer( $html ) {
+function opl_facts4_buffer( $html ) {
 	if ( ! is_string( $html ) || '' === $html ) {
 		return $html;
 	}
 
 	$seen = preg_match_all( '#<article\b[^>]*class="[^"]*(?:oplhub-product|op9-product-card|oprc-card)#', $html );
 
-	opl_card_facts_count( true );
-	$out = opl_card_facts_apply( $html );
-	$rewrote = opl_card_facts_count() - 1;
+	opl_facts4_count( true );
+	$out = opl_facts4_apply( $html );
+	$rewrote = opl_facts4_count() - 1;
 
-	$marker = '<!-- opl-facts v2 pass2 seen=' . (int) $seen . ' rewrote=' . $rewrote . ' -->';
+	$marker = '<!-- opl-facts v4 pass2 seen=' . (int) $seen . ' rewrote=' . $rewrote . ' -->';
 
 	if ( null === $out ) {
 		return $html . $marker;
 	}
 
 	// Pass 1 already inlined the stylesheet on most pages; add it only if absent.
-	if ( false === strpos( $out, 'opl-card-facts-css' ) ) {
-		$patched = preg_replace( '#</head>#i', opl_card_facts_style_tag() . '</head>', $out, 1 );
+	if ( false === strpos( $out, 'opl-facts4-css' ) ) {
+		$patched = preg_replace( '#</head>#i', opl_facts4_style_tag() . '</head>', $out, 1 );
 
 		if ( null !== $patched ) {
 			$out = $patched;
