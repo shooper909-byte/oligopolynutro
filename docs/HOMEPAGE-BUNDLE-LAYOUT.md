@@ -69,7 +69,18 @@ rendered page (`.op9-feature` children, x / width / height in px):
 Section height drops from 964px to 675px, and the two cards together span the
 full 1100px shell with the designed 26px gap.
 
-See `screenshots/homepage-bundle-before.png` and
-`screenshots/homepage-bundle-after.png`. The promo image renders as a broken-image
-placeholder in those captures because the local mirror does not serve
-`/wp-content/uploads/`; only the layout geometry is being demonstrated.
+Re-measured against the live page after the change was applied:
+
+| viewport | `.op9-feature-media` | `.op9-feature-copy` | injected `<p>` |
+|----------|----------------------|---------------------|----------------|
+| 1440px | x=170 w=671 h=530 | x=867 w=403 h=530 | hidden |
+| 1024px | x=132 w=760 h=305 | x=132 w=760 h=394 | hidden |
+| 520px | x=23 w=474 h=280 | x=23 w=474 h=575 | hidden |
+
+The 1024px and 520px rows are the intended single-column collapse from the
+existing `@media(max-width:1024px)` rule — unchanged by this fix. The
+`.op9-offers` grid shows exactly 3 tiles at every width, with no phantom 4th.
+
+`screenshots/homepage-bundle-before.png` is the broken layout (captured against a
+local mirror, so the promo image is a placeholder there).
+`screenshots/homepage-bundle-after.png` is the live section after the fix.

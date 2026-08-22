@@ -167,3 +167,31 @@ docs/ROLLBACK.md                                How to undo everything
 Run `node build.js` after editing any source file to regenerate the page content and the
 preview. The build validates the analytics JavaScript and checks the FAQ schema against the
 visible FAQ.
+
+---
+
+## 2026-08-22 — Homepage bundle section layout fix
+
+Separate from the Research Partner Program work. Page **381** (`home`, the front
+page) was updated to fix the blank right-hand column on the "Build Your Research
+Bundle" section.
+
+Two CSS rules were added to the page's existing inline
+`<style id="op9-home-direct-20260820">` block:
+
+```css
+#op9-home p:empty{display:none}
+#op9-home .op9-feature>br,#op9-home .op9-offers>br,#op9-home .op9-grid-4>br,#op9-home .op9-access-grid>br,#op9-home .op9-actions>br,#op9-home .op9-product-grid>br,#op9-home .op9-section-head>br{display:none}
+```
+
+They neutralise the empty `<p></p>` elements `wpautop()` injects into the page's
+hand-written markup, which were taking grid tracks and forcing the promo image
+and copy card to stack in the left column.
+
+Nothing else on page 381 changed — the stylesheet was verified byte-identical to
+the live version apart from those two lines, and the markup's visible text and
+URLs were verified unchanged. No product data, cart, checkout, WooCommerce, or
+theme setting was touched.
+
+Full write-up: [HOMEPAGE-BUNDLE-LAYOUT.md](HOMEPAGE-BUNDLE-LAYOUT.md)
+Page source of record: [`wordpress/home.page.html`](../wordpress/home.page.html)
