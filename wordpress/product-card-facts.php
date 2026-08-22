@@ -54,7 +54,7 @@ function opl_facts4_map() {
 		),
 		// NAD+
 		'nad' => array(
-			'<strong class="opl-key">Redox cofactor</strong> — nicotinamide adenine dinucleotide',
+			'<strong class="opl-key">Redox cofactor</strong> &mdash; nicotinamide adenine dinucleotide',
 			'<strong class="opl-key">Mitochondrial</strong> and <strong class="opl-key">sirtuin</strong> pathway studies',
 			'Research-use-only material',
 		),
