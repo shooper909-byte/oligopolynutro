@@ -1,0 +1,797 @@
+<?php
+/**
+ * OligoPoly - /research-stacks/ page
+ *
+ * Renders the whole page via the [opl_research_stacks] shortcode:
+ *   1. Build Your Own Research Stack hero
+ *   2. Three-step stack builder
+ *   3. Research-documentation trust strip
+ *   4. Curated Research Stacks grid
+ *   5. Final custom-bundle CTA
+ *
+ * COMMERCE
+ * The only approved bundle workflow on this site is WooCommerce Mix and Match.
+ * There are three fixed containers - 3, 6 and 9 vials - and each has
+ * min_container_size == max_container_size, so a bundle MUST contain exactly
+ * 3, 6 or 9 compounds. The builder enforces that and posts the selection to the
+ * matching container's own add-to-cart form, so MNM's server-side validation,
+ * pricing and stock handling all still apply. Nothing here bypasses it.
+ *
+ * DATA
+ * Names, strengths, prices, stock, images and permalinks are read from
+ * WooCommerce at render time. Nothing about a product is hard-coded. The child
+ * ID list is taken from the container itself; the constant below is only a
+ * fallback for when the MNM API shape differs, and even then every displayed
+ * value still comes from WooCommerce.
+ *
+ * COMPLIANCE
+ * Research-use-only positioning throughout. No treatment, prevention,
+ * weight-loss, bodybuilding, anti-aging, dosing, administration, safety,
+ * efficacy or synergy claims. Group descriptions are neutral statements of
+ * research focus.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/** Container slugs, in ascending size order. */
+function opl_rs_container_slugs() {
+	return array(
+		'build-your-research-bundle-3-vials',
+		'build-your-research-bundle-6-vials',
+		'build-your-research-bundle-9-vials',
+	);
+}
+
+/** Fallback eligibility list, used only if the container's children cannot be read. */
+function opl_rs_fallback_child_ids() {
+	return array( 39, 436, 63, 441, 3397, 447, 3395, 3396 );
+}
+
+/** Resolve the MNM containers that actually exist and are purchasable. */
+function opl_rs_get_containers() {
+	static $cache = null;
+
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache = array();
+
+	if ( ! function_exists( 'wc_get_product' ) || ! function_exists( 'get_page_by_path' ) ) {
+		return $cache;
+	}
+
+	foreach ( opl_rs_container_slugs() as $slug ) {
+		$post = get_page_by_path( $slug, OBJECT, 'product' );
+
+		if ( ! $post ) {
+			continue;
+		}
+
+		$product = wc_get_product( $post->ID );
+
+		if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+			continue;
+		}
+
+		$size = opl_rs_container_size( $product );
+
+		if ( $size < 1 ) {
+			continue;
+		}
+
+		$cache[ $size ] = array(
+			'id'        => $product->get_id(),
+			'size'      => $size,
+			'name'      => $product->get_name(),
+			'permalink' => get_permalink( $product->get_id() ),
+		);
+	}
+
+	ksort( $cache );
+
+	return $cache;
+}
+
+/** Exact container size. Returns 0 when the size is not fixed. */
+function opl_rs_container_size( $product ) {
+	$min = 0;
+	$max = 0;
+
+	if ( is_callable( array( $product, 'get_min_container_size' ) ) ) {
+		$min = (int) $product->get_min_container_size();
+	}
+
+	if ( is_callable( array( $product, 'get_max_container_size' ) ) ) {
+		$max = (int) $product->get_max_container_size();
+	}
+
+	if ( ! $min ) {
+		$min = (int) get_post_meta( $product->get_id(), '_mnm_min_size', true );
+	}
+
+	if ( ! $max ) {
+		$max = (int) get_post_meta( $product->get_id(), '_mnm_max_size', true );
+	}
+
+	return ( $min && $min === $max ) ? $min : 0;
+}
+
+/** Child product IDs a container accepts. */
+function opl_rs_container_child_ids( $container_id ) {
+	$ids     = array();
+	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $container_id ) : null;
+
+	if ( $product && is_callable( array( $product, 'get_child_items' ) ) ) {
+		foreach ( (array) $product->get_child_items() as $item ) {
+			if ( is_callable( array( $item, 'get_product_id' ) ) ) {
+				$ids[] = (int) $item->get_product_id();
+			}
+		}
+	}
+
+	if ( ! $ids && $product && is_callable( array( $product, 'get_children' ) ) ) {
+		foreach ( (array) $product->get_children() as $child ) {
+			$ids[] = (int) ( is_object( $child ) && is_callable( array( $child, 'get_id' ) ) ? $child->get_id() : $child );
+		}
+	}
+
+	$ids = array_values( array_unique( array_filter( $ids ) ) );
+
+	return $ids ? $ids : opl_rs_fallback_child_ids();
+}
+
+/**
+ * Eligible compounds, with every displayed value read live from WooCommerce.
+ * Products that are missing, unpublished or out of stock are dropped.
+ */
+function opl_rs_get_compounds() {
+	static $cache = null;
+
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache      = array();
+	$containers = opl_rs_get_containers();
+
+	if ( ! $containers || ! function_exists( 'wc_get_product' ) ) {
+		return $cache;
+	}
+
+	$first = reset( $containers );
+
+	foreach ( opl_rs_container_child_ids( $first['id'] ) as $child_id ) {
+		$child = wc_get_product( $child_id );
+
+		if ( ! $child || 'publish' !== get_post_status( $child_id ) || ! $child->is_in_stock() ) {
+			continue;
+		}
+
+		$image_id = $child->get_image_id();
+
+		$cache[] = array(
+			'id'        => $child_id,
+			'name'      => $child->get_name(),
+			'permalink' => get_permalink( $child_id ),
+			'price'     => $child->get_price(),
+			'stock'     => $child->get_stock_quantity(),
+			'image'     => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '',
+			'srcset'    => $image_id ? wp_get_attachment_image_srcset( $image_id, 'woocommerce_thumbnail' ) : '',
+			'alt'       => $image_id ? (string) get_post_meta( $image_id, '_wp_attachment_image_alt', true ) : '',
+		);
+	}
+
+	return $cache;
+}
+
+/** Curated stacks, resolved from their real products so nothing is invented. */
+function opl_rs_get_curated() {
+	$defined = array(
+		array(
+			'slug'     => 'metabolic-pathways-stack',
+			'title'    => 'Metabolic Systems',
+			'accent'   => 'violet',
+			'summary'  => 'Compounds grouped for metabolic pathway and compound-interaction research.',
+			'fallback' => 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/OP-STACK-METABOLIC.png',
+		),
+		array(
+			'slug'     => 'cellular-energy-stack',
+			'title'    => 'Cellular Energy',
+			'accent'   => 'cyan',
+			'summary'  => 'Compounds grouped for cellular energy and mitochondrial function research.',
+			'fallback' => 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/OP-STACK-CELLULAR.png',
+		),
+		array(
+			'slug'     => 'neurocognitive-pathways-stack',
+			'title'    => 'Neurocognitive Pathways',
+			'accent'   => 'magenta',
+			'summary'  => 'Compounds grouped for neurochemical signaling and cognitive pathway research.',
+			'fallback' => 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/OP-STACK-NEURO.png',
+		),
+		array(
+			'slug'     => 'regenerative-biology-stack',
+			'title'    => 'Regenerative Biology',
+			'accent'   => 'copper',
+			'summary'  => 'Compounds grouped for tissue-response and cellular-restoration research.',
+			'fallback' => 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/OP-STACK-REGEN.png',
+		),
+	);
+
+	$out = array();
+
+	foreach ( $defined as $stack ) {
+		$post = function_exists( 'get_page_by_path' ) ? get_page_by_path( $stack['slug'], OBJECT, 'product' ) : null;
+
+		if ( ! $post ) {
+			continue;
+		}
+
+		$product = function_exists( 'wc_get_product' ) ? wc_get_product( $post->ID ) : null;
+
+		if ( ! $product || 'publish' !== get_post_status( $post->ID ) ) {
+			continue;
+		}
+
+		$image_id = $product->get_image_id();
+
+		$stack['id']        = $post->ID;
+		$stack['name']      = $product->get_name();
+		$stack['permalink'] = get_permalink( $post->ID );
+		$stack['in_stock']  = $product->is_in_stock();
+		$stack['image']     = $image_id ? wp_get_attachment_image_url( $image_id, 'large' ) : $stack['fallback'];
+		$stack['alt']       = $image_id ? (string) get_post_meta( $image_id, '_wp_attachment_image_alt', true ) : $stack['title'] . ' research stack';
+		$stack['compounds'] = opl_rs_stack_compounds( $post->ID );
+
+		$out[] = $stack;
+	}
+
+	return $out;
+}
+
+/** Included compounds for a curated stack, read from its MNM contents when present. */
+function opl_rs_stack_compounds( $product_id ) {
+	$names   = array();
+	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+
+	if ( ! $product ) {
+		return $names;
+	}
+
+	if ( is_callable( array( $product, 'get_child_items' ) ) ) {
+		foreach ( (array) $product->get_child_items() as $item ) {
+			if ( ! is_callable( array( $item, 'get_product' ) ) ) {
+				continue;
+			}
+
+			$child = $item->get_product();
+
+			if ( $child ) {
+				$names[] = $child->get_name();
+			}
+		}
+	}
+
+	return array_values( array_unique( array_filter( $names ) ) );
+}
+
+/** Scoped stylesheet. Inlined once, no external libraries. */
+function opl_rs_css() {
+	return <<<CSS
+#oplrs{--v:#8b5cf6;--v2:#bf62f0;--cy:#22d3ee;--mg:#f04fa8;--cu:#d08a4a;--ag:#cfd6e6;
+--bg:#05040c;--pan:#0d0a1a;--pan2:#141029;--line:#2c2547;--tx:#f6f4fb;--mut:#b9b2cf;
+background:var(--bg);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+line-height:1.6;overflow-x:hidden}
+#oplrs *{box-sizing:border-box}
+#oplrs img{display:block;max-width:100%;height:auto}
+#oplrs p:empty{display:none}
+#oplrs [hidden]{display:none!important}
+#oplrs .oplrs-shell{width:min(1240px,calc(100% - 40px));margin-inline:auto}
+#oplrs h1,#oplrs h2,#oplrs h3{color:#fff;margin:0;line-height:1.1;letter-spacing:-.02em}
+#oplrs h1{font-size:clamp(30px,3.9vw,50px);text-transform:uppercase;font-weight:900}
+#oplrs h1 .oplrs-h1b{display:block;background:linear-gradient(90deg,var(--v2),var(--cy));
+-webkit-background-clip:text;background-clip:text;color:transparent}
+#oplrs h2{font-size:clamp(24px,3vw,36px);font-weight:850}
+#oplrs h3{font-size:18px;font-weight:800}
+#oplrs .oplrs-eyebrow{margin:0 0 10px;color:var(--cy);font-size:12px;font-weight:900;
+letter-spacing:.16em;text-transform:uppercase}
+#oplrs .oplrs-sec{padding:56px 0;position:relative}
+#oplrs .oplrs-ruo{margin:14px 0 0;color:#ffd7a8;font-size:13px;font-weight:700}
+/* buttons */
+#oplrs .oplrs-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+min-height:52px;min-width:44px;padding:14px 26px;border-radius:999px;border:1px solid transparent;
+font-weight:900;font-size:15px;text-decoration:none;cursor:pointer;
+transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease}
+#oplrs .oplrs-btn-1{background:linear-gradient(135deg,var(--v),var(--v2));color:#fff;
+box-shadow:0 10px 30px rgba(139,92,246,.35)}
+#oplrs .oplrs-btn-1:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(139,92,246,.5)}
+#oplrs .oplrs-btn-2{background:rgba(13,10,26,.7);border-color:var(--cy);color:#bff3fb}
+#oplrs .oplrs-btn-2:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(34,211,238,.28)}
+#oplrs .oplrs-btn[disabled],#oplrs .oplrs-btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed;
+transform:none;box-shadow:none}
+#oplrs a:focus-visible,#oplrs button:focus-visible,#oplrs input:focus-visible{
+outline:3px solid var(--cy);outline-offset:3px;border-radius:8px}
+/* hero */
+#oplrs .oplrs-hero{position:relative;isolation:isolate;padding:44px 0 40px;
+background:radial-gradient(1100px 520px at 78% 18%,rgba(139,92,246,.30),transparent 62%),
+radial-gradient(760px 420px at 12% 82%,rgba(34,211,238,.15),transparent 66%),var(--bg)}
+#oplrs .oplrs-hero:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.5;
+background-image:linear-gradient(rgba(148,163,184,.09) 1px,transparent 1px),
+linear-gradient(90deg,rgba(148,163,184,.09) 1px,transparent 1px);background-size:64px 64px;
+-webkit-mask-image:radial-gradient(circle at 50% 40%,#000 55%,transparent 100%);
+mask-image:radial-gradient(circle at 50% 40%,#000 55%,transparent 100%)}
+#oplrs .oplrs-hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+gap:34px;align-items:center}
+#oplrs .oplrs-lead{margin:16px 0 0;max-width:52ch;font-size:clamp(16px,1.5vw,19px);color:var(--mut)}
+#oplrs .oplrs-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px}
+#oplrs .oplrs-marks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:24px 0 0;padding:0;list-style:none}
+#oplrs .oplrs-marks li{font-size:12.5px;color:var(--mut)}
+#oplrs .oplrs-marks b{display:block;color:#fff;font-size:13px;font-weight:850}
+#oplrs .oplrs-orbit{position:relative;border-radius:22px;overflow:hidden;aspect-ratio:16/10;
+border:1px solid var(--line);background:linear-gradient(160deg,var(--pan2),var(--pan))}
+#oplrs .oplrs-orbit img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#oplrs .oplrs-orbit:after{content:"";position:absolute;inset:-30%;pointer-events:none;
+background:conic-gradient(from 0deg,transparent 0deg,rgba(34,211,238,.16) 60deg,
+transparent 130deg,rgba(191,98,240,.20) 220deg,transparent 300deg);
+animation:oplrs-spin 44s linear infinite}
+@keyframes oplrs-spin{to{transform:rotate(360deg)}}
+/* builder */
+#oplrs .oplrs-build{background:linear-gradient(180deg,#07050f,#05040c)}
+#oplrs .oplrs-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 26px;
+padding:0;list-style:none;counter-reset:s}
+#oplrs .oplrs-steps li{display:flex;gap:12px;align-items:center;padding:16px 18px;border-radius:14px;
+border:1px solid var(--line);background:rgba(20,16,41,.6)}
+#oplrs .oplrs-steps li[data-on="1"]{border-color:var(--v2);box-shadow:0 0 0 1px rgba(191,98,240,.35) inset}
+#oplrs .oplrs-steps .n{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;
+border-radius:50%;background:rgba(139,92,246,.18);color:#e6d6ff;font-weight:900}
+#oplrs .oplrs-steps li[data-on="1"] .n{background:linear-gradient(135deg,var(--v),var(--v2));color:#fff}
+#oplrs .oplrs-steps b{display:block;font-size:14px;color:#fff}
+#oplrs .oplrs-steps span{font-size:12px;color:var(--mut)}
+#oplrs .oplrs-cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr);gap:22px;align-items:start}
+#oplrs .oplrs-panel{border:1px solid var(--line);border-radius:18px;padding:22px;
+background:linear-gradient(160deg,rgba(20,16,41,.9),rgba(13,10,26,.9))}
+#oplrs .oplrs-tiers{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 20px;padding:0;list-style:none}
+#oplrs .oplrs-tier{padding:9px 15px;border-radius:999px;border:1px solid var(--line);
+background:#0a0716;font-size:13px;color:var(--mut);font-weight:800}
+#oplrs .oplrs-tier[data-on="1"]{border-color:var(--cy);color:#bff3fb;background:rgba(34,211,238,.10)}
+#oplrs .oplrs-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px;
+margin:0;padding:0;border:0}
+#oplrs .oplrs-card{position:relative;margin:0}
+#oplrs .oplrs-card input{position:absolute;opacity:0;width:44px;height:44px;top:8px;left:8px;margin:0;cursor:pointer}
+#oplrs .oplrs-card .box{display:block;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+background:#0a0716;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+#oplrs .oplrs-card:hover .box{transform:translateY(-2px);border-color:rgba(191,98,240,.55)}
+#oplrs .oplrs-card input:checked + .box{border-color:var(--cy);
+box-shadow:0 0 0 1px var(--cy) inset,0 10px 28px rgba(34,211,238,.22);transform:translateY(-2px)}
+#oplrs .oplrs-card input:focus-visible + .box{outline:3px solid var(--cy);outline-offset:3px}
+#oplrs .oplrs-card .pic{display:block;position:relative;background:#05040c;aspect-ratio:1/1}
+#oplrs .oplrs-card .pic img{width:100%;height:100%;object-fit:cover}
+#oplrs .oplrs-card .tick{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;
+display:grid;place-items:center;background:rgba(5,4,12,.8);border:1px solid var(--line);
+color:transparent;font-weight:900;font-size:15px}
+#oplrs .oplrs-card input:checked + .box .tick{background:var(--cy);border-color:var(--cy);color:#04222a}
+#oplrs .oplrs-card .meta{display:block;padding:12px 13px 14px}
+#oplrs .oplrs-card .nm{display:block;color:#fff;font-weight:850;font-size:13.5px;line-height:1.35}
+#oplrs .oplrs-card .pr{display:block;margin-top:5px;color:#e6d6ff;font-weight:800;font-size:13px}
+#oplrs .oplrs-card .state{display:block;margin-top:6px;font-size:11.5px;font-weight:800;
+letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+#oplrs .oplrs-card input:checked + .box .state{color:var(--cy)}
+#oplrs .oplrs-card .doc{display:inline-block;margin-top:8px;font-size:12px;color:#9fe8f5;
+text-decoration:underline;position:relative;z-index:2}
+/* summary */
+#oplrs .oplrs-sum{position:sticky;top:96px}
+#oplrs .oplrs-sum h3{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#oplrs .oplrs-count{padding:5px 11px;border-radius:999px;background:rgba(139,92,246,.2);
+border:1px solid var(--line);font-size:12px;font-weight:900;color:#e6d6ff}
+#oplrs .oplrs-picked{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 0;padding:0;list-style:none}
+#oplrs .oplrs-picked li{border:1px solid var(--line);border-radius:12px;padding:8px;background:#0a0716;text-align:center}
+#oplrs .oplrs-picked img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px}
+#oplrs .oplrs-picked .t{display:block;margin-top:6px;font-size:11px;color:#fff;font-weight:800;line-height:1.3}
+#oplrs .oplrs-picked button{margin-top:6px;min-height:32px;padding:4px 10px;border-radius:8px;
+border:1px solid var(--line);background:#120d22;color:#ffb4c8;font-size:11px;font-weight:800;cursor:pointer}
+#oplrs .oplrs-picked button:hover{border-color:#ff7ba5}
+#oplrs .oplrs-empty{margin:16px 0 0;padding:18px;border:1px dashed var(--line);border-radius:12px;
+color:var(--mut);font-size:13.5px;text-align:center}
+#oplrs .oplrs-note{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;padding:13px;
+border:1px solid var(--line);border-radius:12px;background:#0a0716;font-size:12.5px;color:var(--mut)}
+#oplrs .oplrs-msg{margin:14px 0 0;font-size:13px;font-weight:800;color:#ffd7a8;min-height:1.2em}
+#oplrs .oplrs-actions{display:grid;gap:10px;margin-top:16px}
+#oplrs .oplrs-clear{background:none;border:0;color:var(--mut);font-size:12.5px;font-weight:800;
+text-decoration:underline;cursor:pointer;min-height:44px}
+/* trust */
+#oplrs .oplrs-trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+#oplrs .oplrs-trust div{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--pan)}
+#oplrs .oplrs-trust b{display:block;color:#fff;font-size:14px;font-weight:850}
+#oplrs .oplrs-trust span{display:block;margin-top:5px;font-size:12.5px;color:var(--mut)}
+/* curated */
+#oplrs .oplrs-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+#oplrs .oplrs-stack{position:relative;display:flex;flex-direction:column;border:1px solid var(--line);
+border-radius:18px;overflow:hidden;background:var(--pan);opacity:0;transform:translateY(14px);
+animation:oplrs-rise .55s ease forwards}
+@keyframes oplrs-rise{to{opacity:1;transform:none}}
+#oplrs .oplrs-stack:nth-child(2){animation-delay:.08s}
+#oplrs .oplrs-stack:nth-child(3){animation-delay:.16s}
+#oplrs .oplrs-stack:nth-child(4){animation-delay:.24s}
+#oplrs .oplrs-stack img{width:100%;aspect-ratio:8/5;object-fit:cover}
+#oplrs .oplrs-stack .body{display:flex;flex-direction:column;flex:1;padding:18px}
+#oplrs .oplrs-stack p{margin:8px 0 0;font-size:13.5px;color:var(--mut)}
+#oplrs .oplrs-stack .inc{margin:12px 0 0;font-size:12px;color:#cfc6e6}
+#oplrs .oplrs-stack .go{margin-top:auto;padding-top:16px}
+#oplrs .oplrs-stack[data-a="violet"]{box-shadow:inset 0 3px 0 var(--v2)}
+#oplrs .oplrs-stack[data-a="cyan"]{box-shadow:inset 0 3px 0 var(--cy)}
+#oplrs .oplrs-stack[data-a="magenta"]{box-shadow:inset 0 3px 0 var(--mg)}
+#oplrs .oplrs-stack[data-a="copper"]{box-shadow:inset 0 3px 0 var(--cu)}
+#oplrs .oplrs-stack:hover{transform:translateY(-3px);border-color:rgba(191,98,240,.5)}
+/* final cta */
+#oplrs .oplrs-final{position:relative;overflow:hidden;border-radius:22px;padding:46px 28px;text-align:center;
+border:1px solid var(--line);
+background:radial-gradient(700px 300px at 50% 0%,rgba(139,92,246,.34),transparent 70%),var(--pan2)}
+#oplrs .oplrs-final p{margin:12px auto 0;max-width:62ch;color:var(--mut)}
+#oplrs .oplrs-final .oplrs-cta{justify-content:center}
+/* responsive */
+@media(max-width:1024px){
+#oplrs .oplrs-hero-grid,#oplrs .oplrs-cols{grid-template-columns:1fr}
+#oplrs .oplrs-grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+#oplrs .oplrs-trust{grid-template-columns:repeat(2,minmax(0,1fr))}
+#oplrs .oplrs-sum{position:static}
+#oplrs .oplrs-hero-media{order:2}
+}
+@media(max-width:640px){
+#oplrs .oplrs-shell{width:calc(100% - 28px)}
+#oplrs .oplrs-marks{grid-template-columns:1fr}
+#oplrs .oplrs-sec{padding:40px 0}
+#oplrs .oplrs-steps{grid-template-columns:1fr}
+#oplrs .oplrs-grid4,#oplrs .oplrs-trust{grid-template-columns:1fr}
+#oplrs .oplrs-cta .oplrs-btn{width:100%}
+#oplrs .oplrs-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+#oplrs .oplrs-sum{padding-bottom:88px}
+#oplrs .oplrs-dock{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:10px 14px;
+background:rgba(5,4,12,.96);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+#oplrs .oplrs-dock .oplrs-btn{flex:1;min-height:48px}
+}
+@media(min-width:641px){#oplrs .oplrs-dock{display:none}}
+@media(prefers-reduced-motion:reduce){
+#oplrs *,#oplrs *:before,#oplrs *:after{animation:none!important;transition:none!important}
+#oplrs .oplrs-stack{opacity:1;transform:none}
+#oplrs .oplrs-btn:hover,#oplrs .oplrs-card:hover .box,#oplrs .oplrs-stack:hover{transform:none}
+}
+CSS;
+}
+
+/** The page. */
+function opl_rs_render() {
+	$containers = opl_rs_get_containers();
+	$compounds  = opl_rs_get_compounds();
+	$curated    = opl_rs_get_curated();
+	$sizes      = array_keys( $containers );
+	$ruo        = 'For laboratory research only. Not for human consumption.';
+
+	ob_start();
+	?>
+<div id="oplrs">
+<style id="oplrs-css"><?php echo opl_rs_css(); ?></style>
+
+<section class="oplrs-hero" aria-labelledby="oplrs-h1">
+	<div class="oplrs-shell oplrs-hero-grid">
+		<div>
+			<p class="oplrs-eyebrow">OligoPoly Laboratories</p>
+			<h1 id="oplrs-h1">Build Your Own <span class="oplrs-h1b">Research Stack</span></h1>
+			<p class="oplrs-lead">Configure a research bundle from independently labeled compounds.</p>
+			<div class="oplrs-cta">
+				<a class="oplrs-btn oplrs-btn-1" href="#oplrs-builder" data-jump>Start Building</a>
+				<a class="oplrs-btn oplrs-btn-2" href="#oplrs-curated">View Curated Stacks</a>
+			</div>
+			<ul class="oplrs-marks">
+				<li><b>Precision Compounds</b>Independently labeled research compounds.</li>
+				<li><b>Curated Combinations</b>Groupings organized by research focus.</li>
+				<li><b>Research Focused</b>For laboratory research and discovery only.</li>
+			</ul>
+			<p class="oplrs-ruo"><?php echo esc_html( $ruo ); ?></p>
+		</div>
+		<div class="oplrs-orbit oplrs-hero-media">
+			<img src="https://www.oligopolypeptides.com/wp-content/uploads/2026/08/BUNDLE-BUILDER-HERO.png"
+				width="2000" height="800" fetchpriority="high" decoding="async"
+				alt="A group of OligoPoly Laboratories research vials, each with an independent product label.">
+		</div>
+	</div>
+</section>
+
+<section class="oplrs-sec oplrs-build" id="oplrs-builder" aria-labelledby="oplrs-builder-h">
+	<div class="oplrs-shell">
+		<p class="oplrs-eyebrow">Custom Configuration</p>
+		<h2 id="oplrs-builder-h">Configure Your Research Stack</h2>
+		<ol class="oplrs-steps">
+			<li data-step="1" data-on="1"><span class="n" aria-hidden="true">1</span><span><b>Select Compounds</b><span>Choose compounds to include.</span></span></li>
+			<li data-step="2"><span class="n" aria-hidden="true">2</span><span><b>Review Your Stack</b><span>Confirm selections and quantity.</span></span></li>
+			<li data-step="3"><span class="n" aria-hidden="true">3</span><span><b>Submit Bundle Request</b><span>Continue to the approved bundle.</span></span></li>
+		</ol>
+
+		<?php if ( ! $containers || ! $compounds ) : ?>
+			<div class="oplrs-panel">
+				<h3>Bundle configuration is temporarily unavailable</h3>
+				<p class="oplrs-lead">The bundle products cannot be read right now. Please use the
+					<a href="https://www.oligopolypeptides.com/build-your-research-bundle/">Build Your Research Bundle</a> page.</p>
+			</div>
+		<?php else : ?>
+
+		<div class="oplrs-cols">
+			<div class="oplrs-panel">
+				<h3 id="oplrs-choose">Available Compounds</h3>
+				<p class="oplrs-lead" style="font-size:14px">Bundles are supplied in fixed sizes. Select exactly
+					<?php echo esc_html( implode( ', ', array_slice( $sizes, 0, -1 ) ) . ' or ' . end( $sizes ) ); ?> compounds.</p>
+				<ul class="oplrs-tiers" aria-label="Available bundle sizes">
+					<?php foreach ( $containers as $size => $c ) : ?>
+						<li class="oplrs-tier" data-tier="<?php echo esc_attr( $size ); ?>"><?php echo esc_html( $size ); ?> vials</li>
+					<?php endforeach; ?>
+				</ul>
+
+				<fieldset class="oplrs-cards" id="oplrs-cards">
+					<legend class="screen-reader-text">Select compounds to include in your research stack</legend>
+					<?php foreach ( $compounds as $c ) :
+						$cid = 'oplrs-c-' . (int) $c['id'];
+						$alt = $c['alt'] ? $c['alt'] : $c['name'] . ' research vial';
+						?>
+						<div class="oplrs-card">
+							<input type="checkbox" id="<?php echo esc_attr( $cid ); ?>"
+								data-id="<?php echo esc_attr( $c['id'] ); ?>"
+								data-name="<?php echo esc_attr( $c['name'] ); ?>"
+								data-img="<?php echo esc_attr( $c['image'] ); ?>">
+							<label class="box" for="<?php echo esc_attr( $cid ); ?>">
+								<span class="pic">
+									<?php if ( $c['image'] ) : ?>
+										<img src="<?php echo esc_url( $c['image'] ); ?>"
+											<?php if ( $c['srcset'] ) : ?>srcset="<?php echo esc_attr( $c['srcset'] ); ?>" sizes="(max-width:640px) 45vw, 180px"<?php endif; ?>
+											width="300" height="300" loading="lazy" decoding="async"
+											alt="<?php echo esc_attr( $alt ); ?>">
+									<?php else : ?>
+										<span class="pic" role="img" aria-label="<?php echo esc_attr( $alt ); ?>"></span>
+									<?php endif; ?>
+									<span class="tick" aria-hidden="true">&#10003;</span>
+								</span>
+								<span class="meta">
+									<span class="nm"><?php echo esc_html( $c['name'] ); ?></span>
+									<?php if ( '' !== $c['price'] && function_exists( 'wc_price' ) ) : ?>
+										<span class="pr"><?php echo wp_kses_post( wc_price( $c['price'] ) ); ?></span>
+									<?php endif; ?>
+									<span class="state" data-state>Not selected</span>
+								</span>
+							</label>
+							<a class="doc" href="<?php echo esc_url( $c['permalink'] ); ?>">Product record and documentation</a>
+						</div>
+					<?php endforeach; ?>
+				</fieldset>
+				<p class="oplrs-ruo"><?php echo esc_html( $ruo ); ?></p>
+			</div>
+
+			<aside class="oplrs-panel oplrs-sum" aria-labelledby="oplrs-sum-h">
+				<h3 id="oplrs-sum-h">Your Research Stack <span class="oplrs-count" data-count>0 items</span></h3>
+
+				<div id="oplrs-live" role="status" aria-live="polite" class="screen-reader-text"></div>
+
+				<p class="oplrs-empty" data-empty>No compounds selected yet. Choose compounds to begin.</p>
+				<ul class="oplrs-picked" data-picked hidden></ul>
+
+				<p class="oplrs-note">
+					<span aria-hidden="true">&#128196;</span>
+					<span>Each compound is independently labeled. Documentation, where available, is linked from each product record.</span>
+				</p>
+
+				<p class="oplrs-msg" data-msg role="status" aria-live="polite"></p>
+
+				<form method="post" enctype="multipart/form-data" data-form action="">
+					<div class="oplrs-actions">
+						<button type="submit" class="oplrs-btn oplrs-btn-1" data-submit aria-disabled="true">Add Bundle to Cart</button>
+						<button type="button" class="oplrs-clear" data-clear hidden>Clear all selections</button>
+					</div>
+				</form>
+
+				<p class="oplrs-ruo"><?php echo esc_html( $ruo ); ?></p>
+
+				<noscript>
+					<p class="oplrs-lead" style="font-size:13px">Choose a bundle size to configure it directly:
+						<?php foreach ( $containers as $size => $c ) : ?>
+							<a href="<?php echo esc_url( $c['permalink'] ); ?>"><?php echo esc_html( $size ); ?> vials</a>&nbsp;
+						<?php endforeach; ?>
+					</p>
+				</noscript>
+			</aside>
+		</div>
+
+		<div class="oplrs-dock" data-dock hidden>
+			<span class="oplrs-count" data-count>0 items</span>
+			<button type="button" class="oplrs-btn oplrs-btn-1" data-dockgo>Review Stack</button>
+		</div>
+		<?php endif; ?>
+	</div>
+</section>
+
+<section class="oplrs-sec" aria-labelledby="oplrs-trust-h">
+	<div class="oplrs-shell">
+		<h2 id="oplrs-trust-h" class="screen-reader-text">Research documentation standards</h2>
+		<div class="oplrs-trust">
+			<div><b>Independently Labeled</b><span>Each compound is independently labeled for research use.</span></div>
+			<div><b>Lot Documentation</b><span>Lot records are maintained for released materials.</span></div>
+			<div><b>COA Access</b><span>Certificates are provided where available, via each product record.</span></div>
+			<div><b>Research Use Only</b><span>For laboratory research only. Not for human consumption.</span></div>
+		</div>
+	</div>
+</section>
+
+<section class="oplrs-sec" id="oplrs-curated" aria-labelledby="oplrs-curated-h">
+	<div class="oplrs-shell">
+		<p class="oplrs-eyebrow">Curated Collections</p>
+		<h2 id="oplrs-curated-h">Curated Research Stacks</h2>
+		<p class="oplrs-lead">Compound combinations organized by research focus.</p>
+		<div class="oplrs-grid4" style="margin-top:24px">
+			<?php foreach ( $curated as $s ) : ?>
+				<article class="oplrs-stack" data-a="<?php echo esc_attr( $s['accent'] ); ?>">
+					<img src="<?php echo esc_url( $s['image'] ); ?>" width="1600" height="1000" loading="lazy"
+						decoding="async" alt="<?php echo esc_attr( $s['alt'] ); ?>">
+					<div class="body">
+						<h3><?php echo esc_html( $s['title'] ); ?></h3>
+						<p><?php echo esc_html( $s['summary'] ); ?></p>
+						<?php if ( $s['compounds'] ) : ?>
+							<p class="inc"><strong>Included:</strong> <?php echo esc_html( implode( ', ', $s['compounds'] ) ); ?></p>
+						<?php endif; ?>
+						<p class="go">
+							<a class="oplrs-btn oplrs-btn-2" href="<?php echo esc_url( $s['permalink'] ); ?>">
+								View Stack<span class="screen-reader-text">: <?php echo esc_html( $s['name'] ); ?></span></a>
+						</p>
+					</div>
+				</article>
+			<?php endforeach; ?>
+		</div>
+	</div>
+</section>
+
+<section class="oplrs-sec" aria-labelledby="oplrs-final-h">
+	<div class="oplrs-shell">
+		<div class="oplrs-final">
+			<h2 id="oplrs-final-h">Build a Custom Research Bundle</h2>
+			<p>Select independently labeled compounds and organize a bundle around your laboratory&#8217;s research requirements.</p>
+			<div class="oplrs-cta"><a class="oplrs-btn oplrs-btn-1" href="#oplrs-builder" data-jump>Start Building Now</a></div>
+			<p class="oplrs-ruo"><?php echo esc_html( $ruo ); ?></p>
+		</div>
+	</div>
+</section>
+
+<script id="oplrs-js"><?php echo opl_rs_js( $containers ); ?></script>
+</div>
+	<?php
+	return ob_get_clean();
+}
+
+/** Builder behaviour. Vanilla JS, no dependencies. */
+function opl_rs_js( $containers ) {
+	$map = array();
+
+	foreach ( $containers as $size => $c ) {
+		$map[ (string) $size ] = $c['permalink'];
+	}
+
+	$json = wp_json_encode( $map );
+
+	return <<<JS
+(function(){
+var root=document.getElementById('oplrs');if(!root)return;
+var TIERS={$json};
+var sizes=Object.keys(TIERS).map(Number).sort(function(a,b){return a-b;});
+var boxes=[].slice.call(root.querySelectorAll('#oplrs-cards input[type=checkbox]'));
+if(!boxes.length)return;
+var picked=root.querySelector('[data-picked]'),empty=root.querySelector('[data-empty]'),
+msg=root.querySelector('[data-msg]'),live=document.getElementById('oplrs-live'),
+form=root.querySelector('[data-form]'),submit=root.querySelector('[data-submit]'),
+clear=root.querySelector('[data-clear]'),dock=root.querySelector('[data-dock]'),
+counts=[].slice.call(root.querySelectorAll('[data-count]')),
+tiers=[].slice.call(root.querySelectorAll('.oplrs-tier')),
+steps=[].slice.call(root.querySelectorAll('.oplrs-steps li'));
+
+function chosen(){return boxes.filter(function(b){return b.checked;});}
+
+function setStep(n){steps.forEach(function(li){
+  li.setAttribute('data-on', Number(li.getAttribute('data-step'))<=n?'1':'0');});}
+
+function label(n){return n+' item'+(n===1?'':'s');}
+
+function render(){
+  var sel=chosen(),n=sel.length,exact=TIERS[String(n)];
+
+  boxes.forEach(function(b){
+    var s=b.parentNode.querySelector('[data-state]');
+    if(s)s.textContent=b.checked?'Selected':'Not selected';});
+
+  counts.forEach(function(c){c.textContent=label(n);});
+  tiers.forEach(function(t){t.setAttribute('data-on',Number(t.getAttribute('data-tier'))===n?'1':'0');});
+
+  picked.innerHTML='';
+  sel.forEach(function(b){
+    var li=document.createElement('li');
+    var img=b.getAttribute('data-img'),nm=b.getAttribute('data-name');
+    if(img){var i=new Image();i.src=img;i.alt='';i.width=90;i.height=90;i.loading='lazy';li.appendChild(i);}
+    var t=document.createElement('span');t.className='t';t.textContent=nm;li.appendChild(t);
+    var rm=document.createElement('button');rm.type='button';rm.textContent='Remove';
+    rm.setAttribute('aria-label','Remove '+nm+' from your research stack');
+    rm.addEventListener('click',function(){b.checked=false;render();b.focus();});
+    li.appendChild(rm);picked.appendChild(li);});
+
+  picked.hidden=n===0;empty.hidden=n>0;clear.hidden=n===0;
+  if(dock)dock.hidden=n===0;
+
+  if(n===0){msg.textContent='';setStep(1);}
+  else if(exact){msg.textContent='Ready: '+n+'-vial bundle.';setStep(3);}
+  else{
+    var next=sizes.filter(function(s){return s>n;})[0];
+    msg.textContent=next?('Select '+(next-n)+' more to reach a '+next+'-vial bundle.')
+      :('Bundles hold '+sizes.join(', ')+' compounds. Remove '+(n-sizes[sizes.length-1])+' to continue.');
+    setStep(2);}
+
+  submit.setAttribute('aria-disabled',exact?'false':'true');
+  live.textContent=label(n)+' selected. '+msg.textContent;
+}
+
+boxes.forEach(function(b){b.addEventListener('change',render);});
+
+clear.addEventListener('click',function(){
+  boxes.forEach(function(b){b.checked=false;});render();
+  var f=root.querySelector('#oplrs-cards input');if(f)f.focus();});
+
+form.addEventListener('submit',function(e){
+  var sel=chosen(),n=sel.length,url=TIERS[String(n)];
+  if(!url){e.preventDefault();msg.textContent=(msg.textContent||'Select a valid bundle size to continue.');
+    live.textContent=msg.textContent;
+    var f=root.querySelector('#oplrs-cards input');if(f)f.focus();return;}
+  [].slice.call(form.querySelectorAll('[data-gen]')).forEach(function(el){el.remove();});
+  var add=document.createElement('input');add.type='hidden';add.name='add-to-cart';
+  add.value=url.replace(/\\/$/,'').split('/').pop();add.setAttribute('data-gen','1');
+  sel.forEach(function(b){
+    var i=document.createElement('input');i.type='hidden';
+    i.name='mnm_quantity['+b.getAttribute('data-id')+']';i.value='1';i.setAttribute('data-gen','1');
+    form.appendChild(i);});
+  form.action=url;
+  var cid=document.createElement('input');cid.type='hidden';cid.name='oplrs_size';cid.value=String(n);
+  cid.setAttribute('data-gen','1');form.appendChild(cid);
+  submit.textContent='Adding\\u2026';
+});
+
+[].slice.call(root.querySelectorAll('[data-jump]')).forEach(function(a){
+  a.addEventListener('click',function(e){
+    e.preventDefault();
+    var t=document.getElementById('oplrs-builder');if(!t)return;
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    t.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+    var first=root.querySelector('#oplrs-cards input');
+    if(first)setTimeout(function(){first.focus({preventScroll:true});},reduce?0:420);});});
+
+if(dock){var go=dock.querySelector('[data-dockgo]');
+  if(go)go.addEventListener('click',function(){
+    var s=root.querySelector('.oplrs-sum');if(s)s.scrollIntoView({block:'start'});
+    if(submit)submit.focus({preventScroll:true});});}
+
+render();
+})();
+JS;
+}
+
+/**
+ * The container's add-to-cart handler expects the container id in `add-to-cart`.
+ * The JS derives it from the permalink slug, which is not reliable, so map the
+ * posted size back to the real container id server-side before WooCommerce runs.
+ */
+function opl_rs_fix_add_to_cart() {
+	if ( empty( $_POST['oplrs_size'] ) || empty( $_POST['mnm_quantity'] ) ) {
+		return;
+	}
+
+	$containers = opl_rs_get_containers();
+	$size       = (int) $_POST['oplrs_size'];
+
+	if ( isset( $containers[ $size ] ) ) {
+		$_POST['add-to-cart']    = $containers[ $size ]['id'];
+		$_REQUEST['add-to-cart'] = $containers[ $size ]['id'];
+	}
+}
+add_action( 'wp_loaded', 'opl_rs_fix_add_to_cart', 5 );
+
+add_shortcode( 'opl_research_stacks', 'opl_rs_render' );
