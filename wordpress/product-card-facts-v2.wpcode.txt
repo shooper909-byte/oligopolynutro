@@ -114,6 +114,18 @@ function opl_card_facts_css() {
 	return '.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}.opl-facts li::marker{color:var(--violet,#bf62f0)}.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}';
 }
 
+/** How many cards the current pass rewrote. */
+function opl_card_facts_count( $reset = false ) {
+	static $n = 0;
+
+	if ( $reset ) {
+		$n = 0;
+		return 0;
+	}
+
+	return ++$n;
+}
+
 /** Rewrite one product card. */
 function opl_card_facts_card( $matches ) {
 	$card = $matches[0];
@@ -144,7 +156,13 @@ function opl_card_facts_card( $matches ) {
 		$out = preg_replace( '#</h3>#', '</h3>' . $replacement, $card, 1 );
 	}
 
-	return ( null === $out ) ? $card : $out;
+	if ( null === $out ) {
+		return $card;
+	}
+
+	opl_card_facts_count();
+
+	return $out;
 }
 
 /**
@@ -190,13 +208,16 @@ function opl_card_facts_filter( $content ) {
 		return $content;
 	}
 
+	opl_card_facts_count( true );
 	$out = opl_card_facts_apply( $content );
+	$GLOBALS['opl_facts_last'] = opl_card_facts_count() - 1;
 
 	if ( null === $out ) {
 		return $content;
 	}
 
-	return opl_card_facts_style_tag() . $out;
+	return opl_card_facts_style_tag() . $out
+		. '<!-- opl-facts v2 pass1 rewrote=' . $GLOBALS['opl_facts_last'] . ' -->';
 }
 
 /*
@@ -217,10 +238,20 @@ function opl_card_facts_buffer_start() {
 }
 
 function opl_card_facts_buffer( $html ) {
+	if ( ! is_string( $html ) || '' === $html ) {
+		return $html;
+	}
+
+	$seen = preg_match_all( '#<article\b[^>]*class="[^"]*(?:oplhub-product|op9-product-card|oprc-card)#', $html );
+
+	opl_card_facts_count( true );
 	$out = opl_card_facts_apply( $html );
+	$rewrote = opl_card_facts_count() - 1;
+
+	$marker = '<!-- opl-facts v2 pass2 seen=' . (int) $seen . ' rewrote=' . $rewrote . ' -->';
 
 	if ( null === $out ) {
-		return $html;
+		return $html . $marker;
 	}
 
 	// Pass 1 already inlined the stylesheet on most pages; add it only if absent.
@@ -232,7 +263,7 @@ function opl_card_facts_buffer( $html ) {
 		}
 	}
 
-	return $out;
+	return $out . $marker;
 }
 
 }
