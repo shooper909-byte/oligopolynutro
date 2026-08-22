@@ -1,0 +1,28 @@
+/*
+ * Homepage (page ID 381) — wpautop layout guard.
+ *
+ * WordPress runs wpautop() over this page's content on output. Because the
+ * source markup is indented, hand-written HTML, wpautop inserts empty <p></p>
+ * elements (and stray <br>) between the block-level tags. Those injected
+ * elements become real children of the CSS Grid / Flex containers below, so
+ * they consume grid tracks that were meant for the actual content.
+ *
+ * Most visibly: .op9-feature is a two-column grid
+ * (minmax(0,1.25fr) minmax(320px,.75fr)). Two injected empty <p> elements took
+ * column 2 in rows 1 and 2, which pushed .op9-feature-media and
+ * .op9-feature-copy into column 1 stacked on top of each other and left the
+ * entire right-hand column blank on the "Build Your Research Bundle" section.
+ *
+ * Measured at a 1440px viewport, 1100px shell:
+ *   before  media x=170 w=671 (row 1) / copy x=170 w=671 (row 2), col 2 empty
+ *   after   media x=170 w=671        / copy x=867 w=403, both h=530
+ *
+ * The same injection also added a phantom 4th item to the .op9-offers grid and
+ * a stray <br> to .op9-actions.
+ *
+ * These rules neutralise the injected elements without touching the markup, so
+ * the layout survives future edits and re-saves in the WordPress editor.
+ */
+
+#op9-home p:empty{display:none}
+#op9-home .op9-feature>br,#op9-home .op9-offers>br,#op9-home .op9-grid-4>br,#op9-home .op9-access-grid>br,#op9-home .op9-actions>br,#op9-home .op9-product-grid>br,#op9-home .op9-section-head>br{display:none}
