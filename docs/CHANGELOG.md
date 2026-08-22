@@ -195,3 +195,43 @@ theme setting was touched.
 
 Full write-up: [HOMEPAGE-BUNDLE-LAYOUT.md](HOMEPAGE-BUNDLE-LAYOUT.md)
 Page source of record: [`wordpress/home.page.html`](../wordpress/home.page.html)
+
+---
+
+## 2026-08-22 — Homepage card grids and product-card fact bullets
+
+### Applied live (page 381)
+
+The Research Stacks and Research Access grids were both shredded by `wpautop()`.
+Each card was an `<a class="...-card">` wrapping block-level children (`<h3>`, and
+a `<span>` containing an `<h3>`). `wpautop` inserts `<p>`/`<br>` around those
+blocks, which places block elements inside an anchor — a formatting element — so
+the HTML parser's adoption agency algorithm cloned the `<a>` and split each card
+across sibling nodes.
+
+The Research Stacks grid rendered **8 children instead of 4**: one partial card
+plus loose `<p>`/`<h3>` fragments each carrying a duplicated `.op9-stack-card`
+anchor, and every card had lost its "Explore the stack" link. Research Access
+broke identically.
+
+Both grids were rebuilt as block containers, with the anchor wrapping only the
+title text and a stretched `::after` keeping the whole card clickable. Verified
+live: 4 and 3 clean grid children respectively at 1440px, 1024px and 520px, all
+titles and CTAs present, whole-card click targets confirmed at every corner.
+
+`wordpress/wpautop_sim.py` was added — a port of WordPress's `wpautop()` used to
+verify the fix offline before touching the live page. It reproduces the previous
+live output exactly and confirms the new markup survives intact.
+
+### Delivered, not applied
+
+Fact bullets with highlighted keywords for every product and stack card:
+`wordpress/product-card-facts.{php,html,css}`.
+
+These could not be applied. No product grid on the site is stored in page
+content — `/research/`'s cards come from a PHP snippet that overrides page 3038's
+stored content, and the homepage and catalog grids are PHP/WooCommerce. The
+WordPress connection used here reaches pages, posts and media only.
+
+Full write-up, including where each grid lives:
+[PRODUCT-CARD-FACTS.md](PRODUCT-CARD-FACTS.md)
