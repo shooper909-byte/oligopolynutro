@@ -2,8 +2,18 @@
 
 Page **3487**, canonical URL `/research-stacks/` — unchanged.
 
-**Status: built and validated, not yet deployed.** Deployment is two steps and
-they must happen in order (see [Deployment](#deployment)).
+**Status: deployed 2026-08-22 and verified live.**
+
+The snippet was installed in WPCode, then page 3487's content was replaced with
+`<!-- wp:shortcode -->[opl_research_stacks]<!-- /wp:shortcode -->` and its
+`_elementor_page_settings` meta set to `{"hide_title":"yes"}` so the theme's
+"Research Stacks" title no longer emits a second H1.
+
+Verified against the live page: no raw shortcode, exactly one H1 reading
+"Build Your Own Research Stack", 8 compound controls, 4 curated cards, 4 trust
+items, zero PHP errors. `wordpress/research-stacks-page.livetest.js` re-runs the
+functional suite against a mirror of the live page — 15/15, including a
+selection posting to the real 3-vial container with three `mnm_quantity` fields.
 
 ---
 
