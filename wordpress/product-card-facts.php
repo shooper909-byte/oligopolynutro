@@ -1,98 +1,178 @@
 <?php
 /**
- * Fact bullets for OligoPoly product and stack cards.
+ * OligoPoly - product-card fact bullets
  *
- * Paste into the Code Snippets / WPCode snippet that renders the cards, then
- * call oplhub_product_facts( $product_name ) where the card's <ul> is built.
+ * Self-contained. Adds a short bulleted description, with highlighted keywords,
+ * to every product card on the site - the /research/ featured cards, the
+ * homepage launch grid, and the research catalog - without editing the snippets
+ * that render them.
  *
- * Keys are matched as substrings against the lowercased product name, so
- * "Tirzepatide 10 mg" and "Tirzepatide 10 mg - 6 Vial Research Kit" both hit
- * the 'tirzepatide' entry. Returns '' when nothing matches, so a card for an
- * unlisted product simply keeps whatever it renders today.
+ * It filters the finished HTML on `the_content` at priority 999, so it runs
+ * after those snippets and after shortcodes. A card whose product name matches
+ * nothing in the map is left exactly as it is.
  *
- * Copy is mechanism/target descriptors only - no human-use, dosing, therapeutic
- * or outcome claims - and every entry keeps its research-use-only line.
- *
- * Pair with wordpress/product-card-facts.css for the .oplhub-key highlight.
+ * Copy is molecular class, receptor target and pathway descriptors only - no
+ * human-use, dosing, therapeutic or outcome claims - and every card keeps its
+ * research-use-only line.
  */
-function oplhub_product_facts( $product_name ) {
-	$facts = array(
+
+if ( ! function_exists( 'opl_card_facts_map' ) ) {
+
+/** Bullet copy. Keys match as substrings of the lowercased product name. */
+function opl_card_facts_map() {
+	return array(
 		// Tirzepatide
 		'tirzepatide' => array(
-			'Dual <strong class="oplhub-key">GIP</strong> / <strong class="oplhub-key">GLP-1</strong> receptor agonist',
-			'<strong class="oplhub-key">Incretin signaling</strong> pathway studies',
+			'Dual <strong class="opl-key">GIP</strong> / <strong class="opl-key">GLP-1</strong> receptor agonist',
+			'<strong class="opl-key">Incretin signaling</strong> pathway studies',
 			'Research-use-only material',
 		),
 		// Semaglutide
 		'semaglutide' => array(
-			'Selective <strong class="oplhub-key">GLP-1</strong> receptor agonist',
-			'<strong class="oplhub-key">Incretin signaling</strong> and receptor-selectivity studies',
+			'Selective <strong class="opl-key">GLP-1</strong> receptor agonist',
+			'<strong class="opl-key">Incretin signaling</strong> and receptor-selectivity studies',
 			'Research-use-only material',
 		),
 		// Retatrutide
 		'retatrutide' => array(
-			'Triple <strong class="oplhub-key">GIP</strong> / <strong class="oplhub-key">GLP-1</strong> / <strong class="oplhub-key">glucagon</strong> receptor agonist',
-			'Multi-receptor <strong class="oplhub-key">incretin pathway</strong> studies',
+			'Triple <strong class="opl-key">GIP</strong> / <strong class="opl-key">GLP-1</strong> / <strong class="opl-key">glucagon</strong> receptor agonist',
+			'Multi-receptor <strong class="opl-key">incretin pathway</strong> studies',
 			'Research-use-only material',
 		),
 		// Cagrilintide
 		'cagrilintide' => array(
-			'Long-acting <strong class="oplhub-key">amylin</strong> receptor analog',
-			'<strong class="oplhub-key">Amylin</strong> and <strong class="oplhub-key">calcitonin receptor</strong> signaling studies',
+			'Long-acting <strong class="opl-key">amylin</strong> receptor analog',
+			'<strong class="opl-key">Amylin</strong> and <strong class="opl-key">calcitonin receptor</strong> signaling studies',
 			'Research-use-only material',
 		),
 		// NAD+
 		'nad' => array(
-			'<strong class="oplhub-key">Redox cofactor</strong> — nicotinamide adenine dinucleotide',
-			'<strong class="oplhub-key">Mitochondrial</strong> and <strong class="oplhub-key">sirtuin</strong> pathway studies',
+			'<strong class="opl-key">Redox cofactor</strong> — nicotinamide adenine dinucleotide',
+			'<strong class="opl-key">Mitochondrial</strong> and <strong class="opl-key">sirtuin</strong> pathway studies',
 			'Research-use-only material',
 		),
 		// GHK-Cu
 		'ghk-cu' => array(
-			'<strong class="oplhub-key">Copper-binding</strong> tripeptide (Gly-His-Lys)',
-			'<strong class="oplhub-key">Extracellular matrix</strong> and <strong class="oplhub-key">collagen</strong> signaling studies',
+			'<strong class="opl-key">Copper-binding</strong> tripeptide (Gly-His-Lys)',
+			'<strong class="opl-key">Extracellular matrix</strong> and <strong class="opl-key">collagen</strong> signaling studies',
 			'Research-use-only material',
 		),
 		// Selank
 		'selank' => array(
-			'Synthetic <strong class="oplhub-key">tuftsin</strong> analog heptapeptide',
-			'<strong class="oplhub-key">GABAergic</strong> and <strong class="oplhub-key">BDNF</strong> pathway studies',
+			'Synthetic <strong class="opl-key">tuftsin</strong> analog heptapeptide',
+			'<strong class="opl-key">GABAergic</strong> and <strong class="opl-key">BDNF</strong> pathway studies',
 			'Research-use-only material',
 		),
-
 		// Metabolic Pathways Stack
 		'metabolic-pathways' => array(
-			'<strong class="oplhub-key">GIP</strong> / <strong class="oplhub-key">GLP-1</strong> / <strong class="oplhub-key">glucagon</strong> receptor coverage',
-			'Multi-compound <strong class="oplhub-key">incretin</strong> study design',
+			'<strong class="opl-key">GIP</strong> / <strong class="opl-key">GLP-1</strong> / <strong class="opl-key">glucagon</strong> receptor coverage',
+			'Multi-compound <strong class="opl-key">incretin</strong> study design',
 			'Research-use-only materials',
 		),
 		// Cellular Energy Stack
 		'cellular-energy' => array(
-			'<strong class="oplhub-key">Mitochondrial</strong> and <strong class="oplhub-key">redox cofactor</strong> coverage',
-			'<strong class="oplhub-key">Sirtuin</strong> pathway study design',
+			'<strong class="opl-key">Mitochondrial</strong> and <strong class="opl-key">redox cofactor</strong> coverage',
+			'<strong class="opl-key">Sirtuin</strong> pathway study design',
 			'Research-use-only materials',
 		),
 		// Neurocognitive Pathways Stack
 		'neurocognitive-pathways' => array(
-			'<strong class="oplhub-key">GABAergic</strong> and <strong class="oplhub-key">BDNF</strong> pathway coverage',
-			'<strong class="oplhub-key">Neuropeptide</strong> study design',
+			'<strong class="opl-key">GABAergic</strong> and <strong class="opl-key">BDNF</strong> pathway coverage',
+			'<strong class="opl-key">Neuropeptide</strong> study design',
 			'Research-use-only materials',
 		),
 		// Regenerative Biology Stack
 		'regenerative-biology' => array(
-			'<strong class="oplhub-key">Extracellular matrix</strong> and <strong class="oplhub-key">collagen</strong> signaling coverage',
-			'<strong class="oplhub-key">Tissue-repair</strong> pathway study design',
+			'<strong class="opl-key">Extracellular matrix</strong> and <strong class="opl-key">collagen</strong> signaling coverage',
+			'<strong class="opl-key">Tissue-repair</strong> pathway study design',
+			'Research-use-only materials',
+		),
+		// Build Your Research Bundle
+		'build-your-research-bundle' => array(
+			'Self-selected <strong class="opl-key">multi-compound</strong> research collection',
+			'Volume-tiered <strong class="opl-key">3 / 6 / 9 vial</strong> configurations',
 			'Research-use-only materials',
 		),
 	);
+}
 
-	$needle = strtolower( $product_name );
+/** Build the <ul> for a product name, or '' when nothing matches. */
+function opl_card_facts_html( $product_name ) {
+	// Slug-normalise so "GHK-Cu 50 mg" and "Metabolic Pathways Stack" both match.
+	$name = strtolower( wp_strip_all_tags( $product_name ) );
+	$name = preg_replace( '/[^a-z0-9]+/', '-', $name );
 
-	foreach ( $facts as $key => $lines ) {
-		if ( false !== strpos( $needle, $key ) ) {
-			return '<ul class="oplhub-facts"><li>' . implode( '</li><li>', $lines ) . '</li></ul>';
+	foreach ( opl_card_facts_map() as $key => $lines ) {
+		if ( false !== strpos( $name, $key ) ) {
+			return '<ul class="opl-facts"><li>' . implode( '</li><li>', $lines ) . '</li></ul>';
 		}
 	}
 
 	return '';
+}
+
+function opl_card_facts_css() {
+	return '.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}.opl-facts li::marker{color:var(--violet,#bf62f0)}.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}';
+}
+
+/** Rewrite one product card. */
+function opl_card_facts_card( $matches ) {
+	$card = $matches[0];
+
+	// Already processed.
+	if ( false !== strpos( $card, 'opl-facts' ) ) {
+		return $card;
+	}
+
+	if ( ! preg_match( '#<h3\b[^>]*>(.*?)</h3>#s', $card, $heading ) ) {
+		return $card;
+	}
+
+	$facts = opl_card_facts_html( $heading[1] );
+
+	if ( '' === $facts ) {
+		return $card;
+	}
+
+	// Neutralise backreference syntax in the replacement.
+	$replacement = str_replace( array( '\\', '$' ), array( '\\\\', '\$' ), $facts );
+
+	if ( preg_match( '#<ul\b[^>]*>.*?</ul>#s', $card ) ) {
+		// Card already has a placeholder list - swap it.
+		$out = preg_replace( '#<ul\b[^>]*>.*?</ul>#s', $replacement, $card, 1 );
+	} else {
+		// No list - insert one straight after the product title.
+		$out = preg_replace( '#</h3>#', '</h3>' . $replacement, $card, 1 );
+	}
+
+	return ( null === $out ) ? $card : $out;
+}
+
+add_filter( 'the_content', 'opl_card_facts_filter', 999 );
+
+function opl_card_facts_filter( $content ) {
+	if ( is_admin() || is_feed() || ! is_string( $content ) || '' === $content ) {
+		return $content;
+	}
+
+	$card_classes = '(?:oplhub-product|op9-product-card|oprc-card)';
+
+	if ( false === strpos( $content, '<article' ) || ! preg_match( '#<article\b[^>]*class="[^"]*' . $card_classes . '#', $content ) ) {
+		return $content;
+	}
+
+	$out = preg_replace_callback(
+		'#<article\b[^>]*class="[^"]*' . $card_classes . '[^"]*"[^>]*>.*?</article>#s',
+		'opl_card_facts_card',
+		$content
+	);
+
+	// preg_* returns null if it hits the backtrack limit - fail safe.
+	if ( null === $out || $out === $content ) {
+		return $content;
+	}
+
+	return '<style id="opl-card-facts-css">' . opl_card_facts_css() . '</style>' . $out;
+}
+
 }

@@ -1,8 +1,5 @@
-/* Product-card fact bullets with highlighted keywords.
-   Palette matches the existing .oplhub tokens (--violet / --muted). */
-.oplhub-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px}
-.oplhub-facts li{color:var(--muted);font-size:14px;line-height:1.85}
-.oplhub-facts li::marker{color:var(--violet)}
-.oplhub-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);
-  border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;
-  white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+/* Product-card fact bullets. Inlined by product-card-facts.php; kept here for reference. */
+.opl-facts{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;list-style:disc}
+.opl-facts li{color:var(--muted,#b8c3d5);font-size:14px;line-height:1.85}
+.opl-facts li::marker{color:var(--violet,#bf62f0)}
+.opl-key{color:#f3dcff;font-weight:900;background:rgba(194,79,239,.18);border:1px solid rgba(194,79,239,.28);border-radius:5px;padding:1px 5px;white-space:nowrap;-webkit-box-decoration-break:clone;box-decoration-break:clone}

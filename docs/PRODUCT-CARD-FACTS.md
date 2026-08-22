@@ -7,9 +7,10 @@ product cards across the site.
 
 | File | What it is |
 |------|-----------|
-| [`wordpress/product-card-facts.php`](../wordpress/product-card-facts.php) | `oplhub_product_facts( $product_name )` — drop into the snippet that renders the cards |
+| [`wordpress/product-card-facts.php`](../wordpress/product-card-facts.php) | **The one to paste.** Self-contained; adds bullets to all three grids on its own |
 | [`wordpress/product-card-facts.html`](../wordpress/product-card-facts.html) | The same bullets as plain `<ul>` blocks, for hand-written card markup |
-| [`wordpress/product-card-facts.css`](../wordpress/product-card-facts.css) | `.oplhub-facts` / `.oplhub-key` — the bullet list and the keyword highlight |
+| [`wordpress/product-card-facts.test.php`](../wordpress/product-card-facts.test.php) | Runs the snippet against saved copies of the three live pages |
+| [`wordpress/product-card-facts.css`](../wordpress/product-card-facts.css) | `.opl-facts` / `.opl-key` styling, for reference — the PHP inlines it |
 
 Preview: `screenshots/product-card-facts-preview.png`
 
@@ -34,24 +35,64 @@ Page 3038's stored content still holds an older two-card version using
 `oplhub-static-20260815`. That content is dead — the snippet replaces it on
 output — so editing the page in WordPress will not change the live page.
 
-## Applying it
+## Applying it — paste one snippet into WPCode
 
-1. Paste `product-card-facts.php` into the snippet that renders the cards.
-2. Where the card currently builds its `<ul>`, call:
+`wordpress/product-card-facts.php` is **self-contained**. It filters the finished
+HTML on `the_content` at priority 999 — after the snippets that build the cards
+and after shortcodes — so nothing else has to be edited. It covers all three
+grids at once.
 
-   ```php
-   echo oplhub_product_facts( $product_name );
-   ```
+Both **Code Snippets** and **WPCode Lite** are active and their admin menus look
+alike. WPCode's menu is **Code Snippets**; the other plugin's is **Snippets**.
+Either will run this, but the steps below are WPCode's.
 
-   Keys match as substrings of the lowercased product name, so both
-   `Tirzepatide 10 mg` and `Tirzepatide 10 mg – 6 Vial Research Kit` resolve to
-   the same entry. An unmatched product returns `''` and keeps whatever it
-   renders today.
-3. Add `product-card-facts.css` to the same snippet's stylesheet (or any
-   sitewide CSS). It uses the existing `--violet` / `--muted` tokens.
+1. WP Admin → **Code Snippets** → **+ Add Snippet**
+2. Choose **Add Your Custom Code (New Snippet)** → **Use snippet**
+3. Title it something like `OligoPoly — Product Card Fact Bullets`
+4. Set **Code Type** to **PHP Snippet**
+5. Paste the contents of `wordpress/product-card-facts.php`, **omitting the
+   opening `<?php` line** — WPCode adds it
+6. Under **Insertion**, leave **Auto Insert** with location **Run Everywhere**
+7. Flip the toggle at the top right from **Inactive** to **Active**
+8. **Save Snippet**
 
-The same `<ul>` markup works unchanged in the homepage and catalog grids; only
-the surrounding class names differ.
+Then reload `/research/`, the homepage, and `/research-catalog/`.
+
+**To roll back:** toggle the snippet Inactive. It changes nothing in the
+database and nothing in any other snippet.
+
+**If nothing appears:** that page renders its cards outside `the_content`, so the
+filter never sees them. Say so and it can be switched to an output-buffer hook.
+
+### What it does to each card
+
+- Card already has a placeholder `<ul>` (the `/research/` cards) → the list is
+  **replaced**.
+- Card has no list (homepage, catalog) → one is **inserted** right after the
+  product title.
+- Product name matches nothing in the map → the card is left **exactly** as-is.
+- Runs twice → no duplication; it skips cards it has already handled.
+
+### Verification
+
+`wordpress/product-card-facts.test.php` runs the snippet against saved copies of
+the three live pages with minimal WordPress stubs:
+
+```sh
+php wordpress/product-card-facts.test.php
+```
+
+Result at time of writing — **27/27 cards**, each matched to the right compound:
+
+| Page | Cards | With bullets |
+|------|-------|--------------|
+| `/research/` | 4 | 4 |
+| Homepage | 8 | 8 |
+| `/research-catalog/` | 15 | 15 |
+
+Screenshots: `screenshots/product-card-facts-preview.png` (`/research/`) and
+`screenshots/product-card-facts-homepage.png` (homepage grid, prices and
+"View Product" links intact).
 
 ## The copy
 
@@ -68,6 +109,7 @@ line, consistent with the research-use-only positioning used across the site.
 | NAD+ | **Redox cofactor** — nicotinamide adenine dinucleotide · **Mitochondrial** and **sirtuin** pathway studies · Research-use-only material |
 | GHK-Cu | **Copper-binding** tripeptide (Gly-His-Lys) · **Extracellular matrix** and **collagen** signaling studies · Research-use-only material |
 | Selank | Synthetic **tuftsin** analog heptapeptide · **GABAergic** and **BDNF** pathway studies · Research-use-only material |
+| Build Your Research Bundle | Self-selected **multi-compound** research collection · Volume-tiered **3 / 6 / 9 vial** configurations · Research-use-only materials |
 | Metabolic Pathways Stack | **GIP** / **GLP-1** / **glucagon** receptor coverage · Multi-compound **incretin** study design · Research-use-only materials |
 | Cellular Energy Stack | **Mitochondrial** and **redox cofactor** coverage · **Sirtuin** pathway study design · Research-use-only materials |
 | Neurocognitive Pathways Stack | **GABAergic** and **BDNF** pathway coverage · **Neuropeptide** study design · Research-use-only materials |
