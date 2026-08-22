@@ -33,7 +33,25 @@ function opl_flogo_height() {
 	return 96;
 }
 
-/** Resolve the replacement attachment. Returns array(url, width, height) or null. */
+/**
+ * Known-good URL for the uploaded file, used if the lookup below finds nothing.
+ * Leave empty to rely on the lookup alone.
+ */
+function opl_flogo_fallback_url() {
+	return 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/oligopolyfooterlogo-1.webp';
+}
+
+/**
+ * Compare names with every separator removed, so `oligopoly-footer-logo`,
+ * `oligopolyfooterlogo` and `oligopoly_footer_logo-1` all match. Browsers and
+ * operating systems rewrite filenames on download, and WordPress appends -1 to
+ * duplicates, so an exact-name match is not dependable.
+ */
+function opl_flogo_norm( $s ) {
+	return preg_replace( '/[^a-z0-9]/', '', strtolower( (string) $s ) );
+}
+
+/** Resolve the replacement attachment. Returns array(url, w, h, how) or null. */
 function opl_flogo_asset() {
 	static $cache = false;
 
@@ -41,58 +59,78 @@ function opl_flogo_asset() {
 		return $cache;
 	}
 
-	$cache = null;
+	$cache  = null;
+	$target = opl_flogo_norm( opl_flogo_slug() );
+	$id     = 0;
+	$how    = '';
 
-	if ( ! function_exists( 'get_posts' ) ) {
-		return $cache;
-	}
-
-	$base = array(
-		'post_type'        => 'attachment',
-		'post_status'      => 'inherit',
-		'numberposts'      => 1,
-		'fields'           => 'ids',
-		'suppress_filters' => false,
-	);
-
-	// Exact slug first.
-	$ids = get_posts( $base + array( 'name' => opl_flogo_slug() ) );
-
-	// WordPress appends -1, -2 ... when a filename is already taken, so fall
-	// back to a search. Newest wins, which is the most recently uploaded file.
-	if ( ! $ids ) {
-		$ids = get_posts(
-			$base + array(
-				's'       => opl_flogo_slug(),
-				'orderby' => 'date',
-				'order'   => 'DESC',
+	if ( function_exists( 'get_posts' ) ) {
+		// Pull a bounded set of image attachments whose filename mentions a
+		// logo, then normalise-compare. Cheap, and immune to separators.
+		$candidates = get_posts(
+			array(
+				'post_type'        => 'attachment',
+				'post_status'      => 'inherit',
+				'post_mime_type'   => array( 'image/webp', 'image/png', 'image/jpeg' ),
+				'numberposts'      => 60,
+				'orderby'          => 'date',
+				'order'            => 'DESC',
+				'fields'           => 'ids',
+				'suppress_filters' => false,
+				'meta_query'       => array(
+					'relation' => 'OR',
+					array(
+						'key'     => '_wp_attached_file',
+						'value'   => 'logo',
+						'compare' => 'LIKE',
+					),
+				),
 			)
 		);
+
+		foreach ( (array) $candidates as $candidate ) {
+			$file = get_post_meta( $candidate, '_wp_attached_file', true );
+			$base = $file ? pathinfo( $file, PATHINFO_FILENAME ) : '';
+			$norm = opl_flogo_norm( $base );
+
+			// Tolerate the -1 / -2 suffix WordPress adds to duplicates.
+			$norm = preg_replace( '/[0-9]+$/', '', $norm );
+
+			if ( $norm === $target ) {
+				$id  = (int) $candidate;
+				$how = 'name';
+				break;
+			}
+		}
 	}
 
-	if ( ! $ids ) {
-		return $cache;
-	}
+	$url = $id ? wp_get_attachment_url( $id ) : '';
 
-	$url = wp_get_attachment_url( $ids[0] );
+	if ( ! $url ) {
+		$url = opl_flogo_fallback_url();
+		$how = $url ? 'fallback-url' : '';
+	}
 
 	if ( ! $url ) {
 		return $cache;
 	}
 
-	$meta   = wp_get_attachment_metadata( $ids[0] );
-	$width  = isset( $meta['width'] ) ? (int) $meta['width'] : 0;
-	$height = isset( $meta['height'] ) ? (int) $meta['height'] : 0;
-
-	// Scale the intrinsic size down to the displayed height so width/height
-	// stay in the correct ratio and nothing shifts while loading.
 	$h = opl_flogo_height();
-	$w = ( $width && $height ) ? (int) round( $width * $h / $height ) : 0;
+	$w = 0;
+
+	if ( $id ) {
+		$meta = wp_get_attachment_metadata( $id );
+
+		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+			$w = (int) round( $meta['width'] * $h / $meta['height'] );
+		}
+	}
 
 	$cache = array(
 		'url' => $url,
 		'w'   => $w,
 		'h'   => $h,
+		'how' => $how,
 	);
 
 	return $cache;
@@ -104,10 +142,11 @@ function opl_flogo_rewrite( $html ) {
 		return $html;
 	}
 
-	$asset = opl_flogo_asset();
+	$asset  = opl_flogo_asset();
+	$marker = '<!-- opl-footer-logo v2 found=' . ( $asset ? $asset['how'] : 'none' ) . ' -->';
 
 	if ( ! $asset ) {
-		return $html;
+		return $html . $marker;
 	}
 
 	$out = preg_replace_callback(
@@ -117,7 +156,7 @@ function opl_flogo_rewrite( $html ) {
 	);
 
 	if ( null === $out || $out === $html ) {
-		return $html;
+		return $html . $marker;
 	}
 
 	$css = '<style id="opl-footer-logo-css">.opl-footer-v2-logo{height:'
@@ -128,7 +167,7 @@ function opl_flogo_rewrite( $html ) {
 
 	$patched = preg_replace( '#</head>#i', $css . '</head>', $out, 1 );
 
-	return ( null === $patched ) ? $out : $patched;
+	return ( ( null === $patched ) ? $out : $patched ) . $marker;
 }
 
 /** Rebuild one <img> tag, preserving its alt text. */
