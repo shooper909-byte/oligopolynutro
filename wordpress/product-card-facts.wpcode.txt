@@ -147,31 +147,92 @@ function opl_card_facts_card( $matches ) {
 	return ( null === $out ) ? $card : $out;
 }
 
-add_filter( 'the_content', 'opl_card_facts_filter', 999 );
-
-function opl_card_facts_filter( $content ) {
-	if ( is_admin() || is_feed() || ! is_string( $content ) || '' === $content ) {
-		return $content;
-	}
-
+/**
+ * Rewrite every product card in a chunk of HTML.
+ * Returns null when there is nothing to do, so callers can bail cheaply.
+ */
+function opl_card_facts_apply( $html ) {
 	$card_classes = '(?:oplhub-product|op9-product-card|oprc-card)';
 
-	if ( false === strpos( $content, '<article' ) || ! preg_match( '#<article\b[^>]*class="[^"]*' . $card_classes . '#', $content ) ) {
-		return $content;
+	if ( ! is_string( $html ) || '' === $html || false === strpos( $html, '<article' ) ) {
+		return null;
+	}
+
+	if ( ! preg_match( '#<article\b[^>]*class="[^"]*' . $card_classes . '#', $html ) ) {
+		return null;
 	}
 
 	$out = preg_replace_callback(
 		'#<article\b[^>]*class="[^"]*' . $card_classes . '[^"]*"[^>]*>.*?</article>#s',
 		'opl_card_facts_card',
-		$content
+		$html
 	);
 
 	// preg_* returns null if it hits the backtrack limit - fail safe.
-	if ( null === $out || $out === $content ) {
+	if ( null === $out || $out === $html ) {
+		return null;
+	}
+
+	return $out;
+}
+
+function opl_card_facts_style_tag() {
+	return '<style id="opl-card-facts-css">' . opl_card_facts_css() . '</style>';
+}
+
+/*
+ * Pass 1 - the_content. Handles the homepage grid and the /research/ cards.
+ */
+add_filter( 'the_content', 'opl_card_facts_filter', PHP_INT_MAX );
+
+function opl_card_facts_filter( $content ) {
+	if ( is_admin() || is_feed() ) {
 		return $content;
 	}
 
-	return '<style id="opl-card-facts-css">' . opl_card_facts_css() . '</style>' . $out;
+	$out = opl_card_facts_apply( $content );
+
+	if ( null === $out ) {
+		return $content;
+	}
+
+	return opl_card_facts_style_tag() . $out;
+}
+
+/*
+ * Pass 2 - final output sweep.
+ *
+ * The research catalog rebuilds its grid after the_content has run, so pass 1
+ * never sees those cards. This catches whatever is left in the finished page.
+ * Idempotent - cards already handled by pass 1 are skipped.
+ */
+add_action( 'template_redirect', 'opl_card_facts_buffer_start', PHP_INT_MAX );
+
+function opl_card_facts_buffer_start() {
+	if ( is_admin() || is_feed() || is_robots() ) {
+		return;
+	}
+
+	ob_start( 'opl_card_facts_buffer' );
+}
+
+function opl_card_facts_buffer( $html ) {
+	$out = opl_card_facts_apply( $html );
+
+	if ( null === $out ) {
+		return $html;
+	}
+
+	// Pass 1 already inlined the stylesheet on most pages; add it only if absent.
+	if ( false === strpos( $out, 'opl-card-facts-css' ) ) {
+		$patched = preg_replace( '#</head>#i', opl_card_facts_style_tag() . '</head>', $out, 1 );
+
+		if ( null !== $patched ) {
+			$out = $patched;
+		}
+	}
+
+	return $out;
 }
 
 }

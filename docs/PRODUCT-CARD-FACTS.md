@@ -37,10 +37,17 @@ output — so editing the page in WordPress will not change the live page.
 
 ## Applying it — paste one snippet into WPCode
 
-`wordpress/product-card-facts.php` is **self-contained**. It filters the finished
-HTML on `the_content` at priority 999 — after the snippets that build the cards
-and after shortcodes — so nothing else has to be edited. It covers all three
-grids at once.
+`wordpress/product-card-facts.php` is **self-contained** — nothing else has to be
+edited. It works in two passes:
+
+1. **`the_content` at `PHP_INT_MAX`** — catches the homepage grid and the
+   `/research/` cards.
+2. **An output-buffer sweep on `template_redirect`** — catches whatever pass 1
+   missed. The research catalog rebuilds its grid *after* `the_content` has run,
+   so pass 1 never sees those cards; this pass reads the finished page instead.
+
+The passes are idempotent: pass 2 skips cards pass 1 already handled, and the
+stylesheet is inlined exactly once per page.
 
 Both **Code Snippets** and **WPCode Lite** are active and their admin menus look
 alike. WPCode's menu is **Code Snippets**; the other plugin's is **Snippets**.
@@ -61,8 +68,9 @@ Then reload `/research/`, the homepage, and `/research-catalog/`.
 **To roll back:** toggle the snippet Inactive. It changes nothing in the
 database and nothing in any other snippet.
 
-**If nothing appears:** that page renders its cards outside `the_content`, so the
-filter never sees them. Say so and it can be switched to an output-buffer hook.
+**If nothing appears:** say which page — the two passes cover `the_content` and
+the finished page, so a miss would mean the cards are being written by
+JavaScript in the browser rather than by PHP.
 
 ### What it does to each card
 
