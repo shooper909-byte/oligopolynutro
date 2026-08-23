@@ -40,8 +40,11 @@
  *
  * SAFETY
  * ------
- *   - Terms are APPENDED. No existing category is ever removed from any
- *     product, so this cannot lose an assignment someone made deliberately.
+ *   - Terms are APPENDED, with exactly one exception: "Uncategorized" is
+ *     removed from a product that just gained a real category in the same run,
+ *     because all 15 containers currently carry it and would otherwise be filed
+ *     in two places at once. Never removed if it would leave the product with
+ *     no category. Every removal is recorded in the log.
  *   - Products themselves are untouched: no name, price, stock, description,
  *     SKU or meta is written.
  *   - It runs ONCE, guarded by an option, and records what it did so the change
@@ -208,10 +211,38 @@ function opl_pcat_run() {
 			continue;
 		}
 
+		// Now that the product has real categories, drop "Uncategorized" - all
+		// 15 containers currently carry it. Leaving it would file every product
+		// in two places at once and print "Uncategorized" on the product page
+		// next to the correct category.
+		//
+		// This is the one removal in the file, and it is deliberately narrow:
+		// only from a product that just gained a real category in this same
+		// run, and only the default term. It is recorded in the log so it can
+		// be put back.
+		$dropped = array();
+		$default = get_term_by( 'slug', 'uncategorized', 'product_cat' );
+
+		if ( $default && ! is_wp_error( $default ) ) {
+			$current = wp_get_object_terms( $id, 'product_cat', array( 'fields' => 'ids' ) );
+
+			if ( ! is_wp_error( $current ) && in_array( (int) $default->term_id, array_map( 'intval', $current ), true ) ) {
+				$keep = array_values( array_diff( array_map( 'intval', $current ), array( (int) $default->term_id ) ) );
+
+				// Never leave a product with no category at all.
+				if ( ! empty( $keep ) ) {
+					wp_set_object_terms( $id, $keep, 'product_cat', false );
+					$dropped[] = (int) $default->term_id;
+					$touch[]   = (int) $default->term_id;
+				}
+			}
+		}
+
 		$log[ $id ] = array(
-			'name'  => $product->get_name(),
-			'added' => $term_ids,
-			'slugs' => $missing,
+			'name'    => $product->get_name(),
+			'added'   => $term_ids,
+			'slugs'   => $missing,
+			'dropped' => $dropped,
 		);
 
 		$touch = array_merge( $touch, $term_ids );
