@@ -288,3 +288,13 @@ batch match, was rebuilt from scratch as
 back to no figure at all rather than to 3544, so a missed lookup cannot
 reinstate the original. Attachment 3544 is left in the library, just unreferenced
 by this page.
+
+**DEPLOYED 2026-08-23.** Snippet installed, page 1652 content replaced with the
+shortcode block, figure uploaded as attachment 3546. Live check found two
+defects that only appear alongside the site's other snippets: a site-wide FAQ
+schema still describing the three questions the redesign removed (now stripped
+on this page only), and three BreadcrumbList graphs, two sharing an `@id` with
+conflicting names, plus duplicate robots/canonical tags on `?batch=` lookups.
+The page now emits no schema of its own and routes noindex through Rank Math's
+filters. Verified live: one H1, zero wpautop mangling, 0 PHP errors, no overflow
+at 320/390/1440, `/coa/` redirect intact.

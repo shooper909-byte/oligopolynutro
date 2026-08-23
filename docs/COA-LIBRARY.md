@@ -3,9 +3,21 @@
 Page **1652**. URL, slug and canonical unchanged. QR codes already in the field
 keep working.
 
-**Status: built and tested. NOT deployed.** The brief asks for a staged version
-reviewed before production, and there is an open compliance question (§9) that
-is the owner's to answer.
+**Status: DEPLOYED 2026-08-23 and verified live.**
+
+Snippet installed in WPCode; page 1652's content replaced with
+`<!-- wp:shortcode -->[opl_coa_library]<!-- /wp:shortcode -->`. The rebuilt
+figure is attachment **3546** (`batchmatchdiagram.webp` — WordPress stripped the
+hyphens on upload, which the name lookup absorbs).
+
+Verified on the live page: no raw shortcode, **zero** `wpautop` mangling (0 empty
+`<p>`, 0 `<br />`), exactly one H1 reading "Find Your Batch Certificate", correct
+title and canonical, 0 PHP errors, `/coa/` still 301s here, and the figure
+serving as WebP with no reference to the old artwork. At 1440 / 390 / 320 px:
+zero horizontal overflow, no body text under 16px, Verify button 52px tall and
+full width on mobile, 5 specimens, 8 accordions, 3 steps, no JavaScript errors.
+
+Two defects were found by that live check and fixed — see §11.
 
 ---
 
@@ -423,3 +435,46 @@ Not done. When approved:
 Note that `?batch=` responses are marked `noindex,follow` with the canonical
 pinned to the clean path, so batch lookups cannot spawn indexable duplicates.
 Library filters never alter the URL at all.
+
+
+---
+
+## 11. Found on the live page after deployment
+
+Both were invisible offline: they only appear when the page runs alongside the
+site's other snippets and Rank Math.
+
+### 11a. FAQ schema describing content that no longer exists
+
+`opb-phase3-faq-schema`, a site-wide snippet, hard-codes three questions for
+this URL — "What is a COA?", "Do COAs change product intent?", "Where can I find
+product documentation?". They were on the old page. They are not on the new one,
+so the markup described content no visitor could see. That breaks Google's rule
+that FAQ markup must correspond to visible content, and contradicts the brief's
+"add structured data only when accurate".
+
+Rather than change a site-wide snippet's behaviour everywhere, the block is
+stripped from the finished HTML of **page 1652 only**, via an output buffer
+scoped with `opl_cl_is_page()`. Checked: that schema does not appear on any other
+page anyway, so nothing else is affected.
+
+### 11b. Duplicate, conflicting breadcrumb and robots tags
+
+The deployed page carried **three** BreadcrumbList graphs: Rank Math's,
+`opb-phase3-breadcrumb-schema`, and the one this file emitted. Worse, two of
+them claimed the same `@id` (`<url>#breadcrumb`) while disagreeing on the trail
+name — "Certificate Library" against "Certificates & Documentation". That is a
+real conflict, not a harmless duplicate.
+
+This page now emits **no schema of its own**. `opl_cl_schema()` is kept as an
+empty function so the decision is recorded rather than silently absent.
+
+The same pattern applied to `?batch=` lookups: the page printed its own
+`noindex,follow` next to Rank Math's `follow, index`, plus a second canonical.
+A crawler resolves that in favour of the restrictive directive, but relying on
+that is careless. Noindex now goes through `rank_math/frontend/robots`, and the
+canonical through `rank_math/frontend/canonical`, so exactly one of each is
+emitted. The raw `wp_head` fallback only fires when Rank Math is absent.
+
+**Verified after the fix:** one robots tag reading `noindex,follow` on a lookup,
+one canonical pinned to the clean path, one BreadcrumbList, no FAQPage.

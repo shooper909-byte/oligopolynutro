@@ -1044,34 +1044,65 @@ function opl_cl_notice() {
 	return $out;
 }
 
-/** Breadcrumb schema only. No Product, Review, rating or certification markup. */
+/**
+ * No schema of our own.
+ *
+ * The brief allows breadcrumb markup, and an earlier revision of this file
+ * emitted a BreadcrumbList. Checked against the deployed page, that was a
+ * mistake: the site already emits two breadcrumb graphs - one from Rank Math
+ * and one from the `opb-phase3-breadcrumb-schema` snippet - and the latter uses
+ * the SAME `@id` (`<url>#breadcrumb`). Two nodes sharing an `@id` while
+ * disagreeing on the trail name ("Certificate Library" vs "Certificates &
+ * Documentation") is a genuine conflict, not a harmless duplicate.
+ *
+ * Adding a third graph would make that worse, so this page contributes none and
+ * leaves the site's existing markup alone. Kept as a function so the decision is
+ * recorded rather than silently absent.
+ */
 function opl_cl_schema() {
-	$home = home_url( '/' );
-	$here = home_url( opl_cl_path() );
+	return '';
+}
 
-	$data = array(
-		'@context'        => 'https://schema.org',
-		'@type'           => 'BreadcrumbList',
-		'@id'             => $here . '#breadcrumb',
-		'itemListElement' => array(
-			array(
-				'@type'    => 'ListItem',
-				'position' => 1,
-				'name'     => 'Home',
-				'item'     => $home,
-			),
-			array(
-				'@type'    => 'ListItem',
-				'position' => 2,
-				'name'     => 'Certificate Library',
-				'item'     => $here,
-			),
-		),
+/**
+ * Drop the site-wide FAQ schema on this page only.
+ *
+ * `opb-phase3-faq-schema` hard-codes three questions ("What is a COA?", "Do
+ * COAs change product intent?", "Where can I find product documentation?") that
+ * lived on the old version of this page. They are not on the redesigned page,
+ * so the markup now describes content no visitor can see - which breaks
+ * Google's rule that FAQ markup must correspond to visible content, and
+ * contradicts the brief's "add structured data only when accurate".
+ *
+ * The snippet that emits it is site-wide and not in this repository, so rather
+ * than change its behaviour everywhere, the block is removed from the finished
+ * HTML of page 1652 alone. Every other page keeps it exactly as before.
+ *
+ * If those FAQs are wanted back here, the answer is to put the questions on the
+ * page and let the schema describe them again - not to re-add the markup.
+ */
+add_action( 'template_redirect', 'opl_cl_buffer_start', PHP_INT_MAX );
+
+function opl_cl_buffer_start() {
+	if ( is_admin() || is_feed() || is_robots() || ! opl_cl_is_page() ) {
+		return;
+	}
+
+	ob_start( 'opl_cl_strip_stale_faq' );
+}
+
+function opl_cl_strip_stale_faq( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, 'opb-phase3-faq-schema' ) ) {
+		return $html;
+	}
+
+	$out = preg_replace(
+		'#<script[^>]*id="opb-phase3-faq-schema"[^>]*>.*?</script>#is',
+		'<!-- opl-cl: page-scoped removal of FAQ schema whose questions are not on this page -->',
+		$html,
+		1
 	);
 
-	return '<script type="application/ld+json">'
-		. wp_json_encode( $data, JSON_UNESCAPED_SLASHES )
-		. '</script>';
+	return ( null === $out ) ? $html : $out;
 }
 
 /* -------------------------------------------------------------------------
@@ -1578,15 +1609,51 @@ function opl_cl_description( $description ) {
  * per batch. The canonical stays on the clean path, so link equity and existing
  * QR codes are unaffected. Library filters never touch the URL at all.
  */
+/** True when this request is a batch lookup rather than the page itself. */
+function opl_cl_is_lookup() {
+	return ( opl_cl_is_page() && isset( $_GET['batch'] ) );
+}
+
+/**
+ * Ask Rank Math for noindex on a lookup, rather than printing a second tag.
+ *
+ * Rank Math already emits `robots` and `canonical` on this page. Echoing our
+ * own produced two of each - `noindex,follow` next to `follow, index` - and
+ * while a crawler resolves that conflict in favour of the restrictive one, it
+ * is not something to rely on. Going through the plugin's own filters means
+ * exactly one of each tag is emitted, saying the right thing.
+ */
+add_filter( 'rank_math/frontend/robots', 'opl_cl_rm_robots', 99 );
+
+function opl_cl_rm_robots( $robots ) {
+	if ( ! opl_cl_is_lookup() ) {
+		return $robots;
+	}
+
+	if ( ! is_array( $robots ) ) {
+		$robots = array();
+	}
+
+	$robots['index']  = 'noindex';
+	$robots['follow'] = 'follow';
+
+	return $robots;
+}
+
+/**
+ * Fallback for a site without Rank Math.
+ *
+ * Only prints when nothing else has claimed the robots tag, so it cannot
+ * reintroduce the duplicate it was written to remove.
+ */
 add_action( 'wp_head', 'opl_cl_robots', 1 );
 
 function opl_cl_robots() {
-	if ( ! opl_cl_is_page() || ! isset( $_GET['batch'] ) ) {
+	if ( ! opl_cl_is_lookup() || class_exists( 'RankMath' ) ) {
 		return;
 	}
 
 	echo '<meta name="robots" content="noindex,follow">' . "\n";
-	echo '<link rel="canonical" href="' . esc_url( home_url( opl_cl_path() ) ) . '">' . "\n";
 }
 
 add_filter( 'rank_math/frontend/canonical', 'opl_cl_canonical', 99 );

@@ -221,6 +221,9 @@ function is_page( $id ) {
 	return true;
 }
 
+function is_admin() { return false; }
+function is_feed() { return false; }
+function is_robots() { return false; }
 function add_shortcode( $tag, $cb ) {}
 function add_filter( $tag, $cb, $priority = 10, $args = 1 ) {}
 function add_action( $tag, $cb, $priority = 10, $args = 1 ) {}

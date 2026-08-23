@@ -153,11 +153,10 @@ const contrast = (a, b) => {
     ok('RUO notice', (await page.locator('.oplcl-ruo-head').innerText())
       === 'For Research Use Only — Not for Human Consumption');
 
-    ok('breadcrumb schema only', await page.evaluate(() => {
-      const s = [...document.querySelectorAll('script[type="application/ld+json"]')]
-        .map((n) => JSON.parse(n.textContent));
-      return s.length === 1 && s[0]['@type'] === 'BreadcrumbList';
-    }));
+    /* The page contributes no schema of its own: the site already emits two
+       breadcrumb graphs, one of which claims the same @id. See opl_cl_schema. */
+    ok('page emits no schema of its own', await page.evaluate(() =>
+      document.querySelectorAll('script[type="application/ld+json"]').length === 0));
     ok('no product/review schema', !(await page.content()).match(/"@type"\s*:\s*"(Product|Review|AggregateRating|Certification)"/));
 
     ok('title tag', (await page.title())
