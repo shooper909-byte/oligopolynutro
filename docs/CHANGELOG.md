@@ -298,3 +298,37 @@ conflicting names, plus duplicate robots/canonical tags on `?batch=` lookups.
 The page now emits no schema of its own and routes noindex through Rank Math's
 filters. Verified live: one H1, zero wpautop mangling, 0 PHP errors, no overflow
 at 320/390/1440, `/coa/` redirect intact.
+
+---
+
+## 2026-08-23 — Purchase controls on product cards
+
+**Built and tested (37/37). Not deployed — one WPCode paste.** See
+`docs/PRODUCT-CART-BUTTONS.md`.
+
+"Add to cart on all products" turned out to be constrained by a deliberate
+setting, not missing data. The 10 individual compounds carry Mix and Match's
+"not sold separately" flag: they are priced ($64.99–$123.49) but WooCommerce
+refuses to sell them alone, and their product pages render no add-to-cart form.
+Verified by posting `?add-to-cart=447` — the cart stayed empty.
+
+So the rule is: sell from the card when exactly one valid configuration exists,
+send the customer to configure when it does not, never render a control that
+would fail.
+
+- 8 single-compound kits (1 child, min=max=6) → real one-click **Add to Cart**
+- 4 stacks + 3 build-your-own bundles → **Select Options** to the product page
+- 10 compounds → **Available in Kits**, linking to that compound's own kit
+
+Controls are plain form POSTs — no JavaScript, so nothing can be half-wired.
+Each card is matched by its own permalink via `url_to_postid()`, and the suite
+re-parses the output to prove no control lands on the wrong product.
+
+Note: I first read the Store API's empty prices as "no pricing set". That was
+wrong — the API withholds prices from guests. A real cart returned $294.47.
+
+Also found, not fixed: category archive pages render no products at all
+(`woocommerce-no-products-found`), and one homepage card links to
+`?post_type=product&p=447` instead of its permalink.
+
+- `wordpress/product-cart-buttons.php` / `.wpcode.txt` / `.test.php`
