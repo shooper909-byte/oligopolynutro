@@ -264,5 +264,13 @@ the current records support. Captioned and switchable, but it needs a decision �
 
 - `wordpress/coa-library-page.php` — the build, `[opl_coa_library]`
 - `wordpress/coa-library-page.wpcode.txt` — paste-ready
-- `wordpress/coa-library-page.test.js` — 125/125 passing, lowest contrast 8.42:1
+- `wordpress/coa-library-page.test.js` — 138/138 passing, lowest contrast 8.42:1
 - `wordpress/backup/page-1652-*.BEFORE.html` — rollback
+
+**Update, same day —** rather than leave the library bare, added two blocks
+built from symbols rather than data: a batch-ID shape guide (`OP-######-XXX`)
+under the search box, and five specimen cards (one per document status,
+doubling as the status legend) whose every field is a placeholder symbol
+(`Compound name`, `## mg`, `DD Month YYYY`). Banded SPECIMEN — NOT A RECORD,
+linked to nothing, outside the searchable record set, and self-removing once a
+real record is published. `opl_cl_specimens()` switches them off.

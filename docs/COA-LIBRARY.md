@@ -49,6 +49,32 @@ renders whatever is actually there. With the post type empty:
 
 The moment real records are published they appear here with no code change.
 
+### Symbols instead of sample records
+
+Rather than leave the library bare, two blocks use **symbols standing in for
+fields** — nothing that could be read as data:
+
+**A batch-ID shape guide** under the search box: `OP–######–XXX`, captioned
+"two letters, six digits, then a short compound code, joined by hyphens". It
+helps someone transcribing a worn label check they have every character, which
+is the commonest reason a scan-and-search fails. It deliberately says nothing
+about what the segments *mean* — that is not established anywhere on the site.
+
+**Five specimen cards** headed "What a record will look like", one per document
+status, so the block doubles as the status legend. Every field is a symbol:
+`Compound name`, `## mg`, `OP-######-XXX`, `DD Month YYYY`. Each card carries a
+standing **SPECIMEN — NOT A RECORD** band, dashed edges and a hatched
+background, links to nothing, and names no laboratory.
+
+They are display-only. They live outside `opl_cl_records()` entirely, so
+`opl_cl_lookup()` can never return one and no search can match one. They
+disappear automatically the first time a real record is published. Set
+`opl_cl_specimens()` to `false` to switch them off.
+
+Tests assert all of this: no digit run of 4+ anywhere in the block, no month
+name, no link, every card banded, all five statuses covered, unsearchable, and
+absent once records exist.
+
 ### Search
 
 - Case-insensitive and separator-insensitive: `test-000005-eee`,
@@ -81,9 +107,9 @@ carries an icon and the word, so status is never colour alone.
 | File | Role |
 |---|---|
 | `wordpress/coa-library-page.php` | The build. Registers `[opl_coa_library]` |
-| `wordpress/coa-library-page.wpcode.txt` | Paste-ready copy, no `<?php`, pure ASCII, 1424 lines |
+| `wordpress/coa-library-page.wpcode.txt` | Paste-ready copy, no `<?php`, pure ASCII, 1540 lines |
 | `wordpress/coa-library-page.stub.php` | WordPress stubs + test fixtures for offline rendering |
-| `wordpress/coa-library-page.test.js` | 125-assertion Playwright suite |
+| `wordpress/coa-library-page.test.js` | 138-assertion Playwright suite |
 | `wordpress/backup/page-1652-research-peptides-with-coa.BEFORE.html` | Exact stored content, for rollback |
 | `wordpress/backup/page-1652-rendered.BEFORE.html` | Rendered page, for reference |
 | `screenshots/coa-before-*.png`, `screenshots/cl-*.png` | Before / after |
@@ -120,8 +146,9 @@ notice.
 
 Screenshots: `screenshots/coa-before-desktop.png`, `-mobile.png`;
 `screenshots/cl-empty-desktop.png`, `cl-empty-mobile.png` (**what will actually
-ship**), `cl-populated-*.png` and `cl-result-*.png` (fixtures, showing the
-layout once records exist), `cl-noresult-mobile.png`.
+ship**), `cl-hero-mask.png` (the batch-ID shape guide), `cl-specimens.png` (the
+five specimen cards), `cl-populated-*.png` and `cl-result-*.png` (fixtures,
+showing the layout once records exist), `cl-noresult-mobile.png`.
 
 ---
 
@@ -159,7 +186,7 @@ Two adjacent problems worth fixing separately:
 
 ## 6. Test results
 
-`node wordpress/coa-library-page.test.js` — **125/125 passing.**
+`node wordpress/coa-library-page.test.js` — **138/138 passing.**
 
 **Search:** exact match; lowercase input; leading/trailing whitespace; invalid
 batch; duplicate batch ID → both records listed, neither auto-selected; partial
@@ -190,7 +217,7 @@ input; `aria-live="polite"` on results; 8 accordions keyboard-operable via
 Enter; filters keyboard-operable; visible focus ring; all decorative SVG
 `aria-hidden`; alt text present; "View Report" links carry their batch ID so
 they are distinguishable; **WCAG AA contrast verified across 115 text/background
-pairs, lowest 8.42:1 against a 4.5:1 requirement** (translucent layers
+pairs, lowest 8.42:1 against a 4.5:1 requirement** (121 pairs including the specimen block; translucent layers
 composited down to the page ground, not read as opaque).
 
 **Responsive** at 320 / 375 / 390 / 430 / 768 / 1440: no horizontal scroll at

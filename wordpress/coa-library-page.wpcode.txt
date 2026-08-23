@@ -98,6 +98,26 @@ function opl_cl_page_size() {
 	return 6;
 }
 
+/**
+ * Show specimen cards while the library holds no real records.
+ *
+ * These are NOT placeholder records. Every value in them is a symbol, not a
+ * value: the batch reads `OP-######-XXX`, the product reads "Compound name",
+ * dates read "DD Month YYYY". There is no date, no laboratory, no result and no
+ * document link to mistake for real data, and they carry a SPECIMEN band.
+ *
+ * They exist so the page demonstrates its own layout and, more usefully, so a
+ * customer can see what each document status means before they search. One card
+ * per status doubles as the status legend.
+ *
+ * They are display-only: they are not in the record set, so a search can never
+ * match one, and they disappear on their own the moment a real record is
+ * published. Return false to switch them off.
+ */
+function opl_cl_specimens() {
+	return true;
+}
+
 /* -------------------------------------------------------------------------
  * Data layer
  * ---------------------------------------------------------------------- */
@@ -563,6 +583,18 @@ function opl_cl_hero( $batch ) {
 	$out .= '</form>';
 	$out .= '<p class="oplcl-help" id="oplcl-help">Use the complete batch ID, including letters and hyphens.</p>';
 
+	// A transcription aid, not a record. It shows the SHAPE of the ID printed
+	// on the card so a customer can check they have copied every character,
+	// which is the commonest reason a scan-and-search fails. Deliberately says
+	// nothing about what the segments mean - that is not established here.
+	$out .= '<p class="oplcl-mask">'
+		. '<span class="oplcl-mask-label">Batch IDs look like</span>'
+		. '<code class="oplcl-mask-code">'
+		. '<b>OP</b><i>&ndash;</i><b>######</b><i>&ndash;</i><b>XXX</b>'
+		. '</code>'
+		. '<span class="oplcl-mask-note">two letters, six digits, then a short compound code, '
+		. 'joined by hyphens</span></p>';
+
 	$out .= '<ul class="oplcl-signals">';
 	$out .= '<li>' . opl_cl_icon( 'shield' ) . '<b>Batch-specific records</b><span>Documentation is filed per batch, not per product family.</span></li>';
 	$out .= '<li>' . opl_cl_icon( 'flask' ) . '<b>Laboratory documentation</b><span>Certificates and supporting analytical reports, where available.</span></li>';
@@ -694,6 +726,55 @@ function opl_cl_figure() {
 	return $out;
 }
 
+/**
+ * Specimen cards shown only while the library is empty.
+ *
+ * Every field is a symbol. There is no batch number, no date, no laboratory, no
+ * result and no link. Each card demonstrates one document status, so the block
+ * reads as the status legend as well as a layout preview.
+ *
+ * These are not records and are not searchable - they live outside
+ * opl_cl_records() entirely, so opl_cl_lookup() can never return one.
+ */
+function opl_cl_specimen_block() {
+	if ( ! opl_cl_specimens() ) {
+		return '';
+	}
+
+	$specimens = array(
+		array( 'Documents Available', 'A certificate is published for this exact batch.' ),
+		array( 'Partial Documentation', 'Some documents are published; others are still in review.' ),
+		array( 'Pending', 'The batch is logged, but no document is published yet.' ),
+		array( 'Superseded', 'A corrected document has replaced this one. Both stay available.' ),
+		array( 'Archived', 'An older batch, kept on file rather than removed.' ),
+	);
+
+	$out = '<div class="oplcl-spec-wrap">';
+	$out .= '<h3 class="oplcl-spec-title">What a record will look like</h3>';
+	$out .= '<p class="oplcl-spec-intro">These are layout specimens, not records. Every value below '
+		. 'is a symbol standing in for a field &mdash; there is no batch, date, laboratory or '
+		. 'document behind them. They show how each document status is displayed.</p>';
+	$out .= '<ul class="oplcl-spec-grid">';
+
+	foreach ( $specimens as $specimen ) {
+		list( $status, $meaning ) = $specimen;
+		$tone = opl_cl_status_tone( $status );
+
+		$out .= '<li class="oplcl-spec" aria-label="Specimen card, status ' . esc_attr( $status ) . '">';
+		$out .= '<span class="oplcl-spec-band">Specimen &mdash; not a record</span>';
+		$out .= '<p class="oplcl-spec-name">Compound name <span class="oplcl-spec-sym">## mg</span></p>';
+		$out .= '<p class="oplcl-spec-line">Batch ID: <code>OP-######-XXX</code></p>';
+		$out .= '<p class="oplcl-spec-line">Report date: <code>DD Month YYYY</code></p>';
+		$out .= opl_cl_badge( $status, $tone );
+		$out .= '<p class="oplcl-spec-meaning">' . esc_html( $meaning ) . '</p>';
+		$out .= '</li>';
+	}
+
+	$out .= '</ul></div>';
+
+	return $out;
+}
+
 /** Browse / filter / paginate the published records. */
 function opl_cl_library() {
 	$records = opl_cl_records();
@@ -712,7 +793,10 @@ function opl_cl_library() {
 		$out .= '<p>If you have a vial or verification card in hand, Quality Support can locate '
 			. 'the documentation for your batch.</p>';
 		$out .= '<a class="oplcl-btn oplcl-btn-primary" href="' . esc_url( opl_cl_support_url() ) . '">Contact Quality Support</a>';
-		$out .= '</div></div></section>';
+		$out .= '</div>';
+
+		$out .= opl_cl_specimen_block();
+		$out .= '</div></section>';
 
 		return $out;
 	}
@@ -995,6 +1079,18 @@ function opl_cl_css() {
 	. '.oplcl-verify{flex:0 0 auto}'
 	. '.oplcl-help{max-width:760px;margin:10px auto 0;color:var(--mut);font-size:14px}'
 
+	// Batch ID shape guide.
+	. '.oplcl-mask{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;'
+	. 'gap:6px 12px;max-width:760px;margin:14px auto 0}'
+	. '.oplcl-mask-label{color:var(--mut);font-size:15px}'
+	. '.oplcl-mask-code{display:inline-flex;align-items:center;gap:3px;padding:6px 12px;'
+	. 'border:1px dashed var(--line);border-radius:9px;background:var(--s1);'
+	. 'font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;'
+	. 'letter-spacing:.06em}'
+	. '.oplcl-mask-code b{color:var(--acc);font-weight:700}'
+	. '.oplcl-mask-code i{color:var(--mut);font-style:normal}'
+	. '.oplcl-mask-note{flex:1 1 100%;color:var(--mut);font-size:15px}'
+
 	// Signals.
 	. '.oplcl-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;'
 	. 'max-width:960px;margin:26px auto 0;padding:0;list-style:none}'
@@ -1054,6 +1150,26 @@ function opl_cl_css() {
 	. '.oplcl-empty p{max-width:620px;margin:0 auto 12px;color:var(--mut)}'
 	. '.oplcl-empty .oplcl-btn{margin-top:8px}'
 	. '.oplcl-empty-lib{margin-top:8px}'
+
+	// Specimen cards. Visibly not records: dashed edges, muted, a standing band.
+	. '.oplcl-spec-wrap{margin-top:30px;padding-top:26px;border-top:1px solid var(--line2)}'
+	. '.oplcl-spec-title{font-size:20px;font-weight:900}'
+	. '.oplcl-spec-intro{max-width:760px;margin:0 0 18px;color:var(--mut)}'
+	. '.oplcl-spec-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;'
+	. 'margin:0;padding:0;list-style:none}'
+	. '.oplcl-spec{position:relative;padding:18px;border:1px dashed var(--line2);'
+	. 'border-radius:14px;background:repeating-linear-gradient(135deg,var(--s1),var(--s1) 12px,'
+	. 'rgba(190,198,214,.035) 12px,rgba(190,198,214,.035) 24px)}'
+	. '.oplcl-spec-band{display:inline-block;margin-bottom:11px;padding:4px 10px;border-radius:999px;'
+	. 'border:1px solid var(--line2);background:var(--bg);color:var(--mut);font-size:12px;'
+	. 'font-weight:800;letter-spacing:.09em;text-transform:uppercase}'
+	. '.oplcl-spec-name{margin:0 0 6px;color:var(--mut);font-size:17px;font-weight:800}'
+	. '.oplcl-spec-sym{color:#7C8598;font-weight:700}'
+	. '.oplcl-spec-line{margin:0 0 5px;color:var(--mut);font-size:15px}'
+	. '.oplcl-spec-line code{padding:1px 6px;border-radius:5px;background:rgba(190,198,214,.08);'
+	. 'color:#8F98AB;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px}'
+	. '.oplcl-spec .oplcl-badge{margin-top:8px;opacity:.85}'
+	. '.oplcl-spec-meaning{margin:10px 0 0;color:var(--mut);font-size:15px;line-height:1.5}'
 
 	// Figure.
 	. '.oplcl-figwrap{padding:26px 0}'
@@ -1141,7 +1257,7 @@ function opl_cl_css() {
 
 	// Tablet.
 	. '@media(max-width:980px){'
-	. '.oplcl-grid,.oplcl-steps{grid-template-columns:repeat(2,minmax(0,1fr))}'
+	. '.oplcl-grid,.oplcl-steps,.oplcl-spec-grid{grid-template-columns:repeat(2,minmax(0,1fr))}'
 	. '.oplcl-learn-grid{grid-template-columns:1fr}'
 	. '}'
 
@@ -1156,7 +1272,7 @@ function opl_cl_css() {
 	. '.oplcl-signals li{flex-direction:row;align-items:flex-start;text-align:left;'
 	. 'display:grid;grid-template-columns:24px 1fr;gap:4px 12px}'
 	. '.oplcl-signals .oplcl-i{grid-row:1/3;margin:0}'
-	. '.oplcl-grid,.oplcl-steps{grid-template-columns:1fr}'
+	. '.oplcl-grid,.oplcl-steps,.oplcl-spec-grid{grid-template-columns:1fr}'
 	. '.oplcl-result{padding:18px}'
 	. '.oplcl-result-head{flex-direction:column;gap:10px}'
 	. '.oplcl-facts{grid-template-columns:1fr;gap:11px}'

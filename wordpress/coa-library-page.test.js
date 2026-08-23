@@ -273,6 +273,49 @@ const contrast = (a, b) => {
     ok('no mockup batch IDs shipped', !/OP-2507\d\d-[A-Z]/.test(body));
     ok('no invented lab names', !/OligoPoly Laboratories\b.*(tested|assayed)/i.test(body));
     ok('page still routes to support', (await page.locator('a[href="/contact/"]').count()) >= 2);
+
+    /* specimen cards: symbols only, never mistakable for records */
+    ok('five specimens, one per status', (await page.locator('.oplcl-spec').count()) === 5);
+    ok('every specimen is banded', await page.evaluate(() =>
+      [...document.querySelectorAll('.oplcl-spec')].every((s) =>
+        /specimen/i.test(s.querySelector('.oplcl-spec-band').textContent)
+        && /not a record/i.test(s.querySelector('.oplcl-spec-band').textContent))));
+    ok('specimens cover all five statuses', await page.evaluate(() => {
+      const got = [...document.querySelectorAll('.oplcl-spec .oplcl-badge span')]
+        .map((s) => s.textContent.trim()).sort();
+      return got.join('|') === ['Archived', 'Documents Available', 'Partial Documentation',
+        'Pending', 'Superseded'].sort().join('|');
+    }));
+
+    const specText = await page.locator('.oplcl-spec-wrap').innerText();
+    ok('specimens carry no digits that could read as a batch', !/\b\d{4,}\b/.test(specText),
+      (specText.match(/\b\d{4,}\b/) || [''])[0]);
+    ok('specimens carry no real date', !/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d/.test(specText));
+    ok('specimens use a masked batch symbol', specText.includes('OP-######-XXX'));
+    ok('specimens name no laboratory', !/laborator(y|ies)\s*:/i.test(specText));
+    ok('specimens link to nothing', (await page.locator('.oplcl-spec a').count()) === 0);
+    ok('specimen block is introduced as not-records',
+      /not records/i.test(await page.locator('.oplcl-spec-intro').innerText()));
+
+    /* the masked ID is a shape guide, not a claim about segment meaning */
+    const mask = await page.locator('.oplcl-mask').innerText();
+    ok('batch shape guide present', mask.includes('OP') && mask.includes('######'));
+    ok('shape guide claims no segment semantics', !/date|lot|year|month/i.test(mask), mask);
+
+    await page.close();
+  }
+
+  /* specimens must be display-only: unsearchable, and gone once records exist */
+  {
+    const page = await open('emptysearch.html');
+    ok('a specimen can never be returned by a search',
+      (await page.locator('#oplcl-state .oplcl-result').count()) === 0);
+    await page.close();
+  }
+  {
+    const page = await open('idle.html');
+    ok('specimens disappear once real records exist',
+      (await page.locator('.oplcl-spec').count()) === 0);
     await page.close();
   }
   {
