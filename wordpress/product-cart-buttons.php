@@ -418,6 +418,47 @@ function opl_pcb_css() {
  * ---------------------------------------------------------------------- */
 
 /**
+ * Rewrite raw `?post_type=product&p=N` hrefs to the product's real permalink.
+ *
+ * One homepage card links to `?post_type=product&#038;p=447` instead of
+ * `/products/selank-5mg-research-peptide/`. It resolves, but it is inconsistent
+ * with the other nine cards, bypasses the canonical URL, and is the kind of
+ * link that breaks if permalink settings change.
+ *
+ * The snippet that renders the card is not in this repository, so the link is
+ * corrected in the finished HTML. Only URLs that resolve to a published product
+ * are touched; anything else is left exactly as it is.
+ */
+function opl_pcb_fix_raw_product_links( $html ) {
+	if ( false === strpos( $html, 'post_type=product' ) ) {
+		return $html;
+	}
+
+	// `~` delimits the pattern: the ampersand in these URLs is HTML-encoded as
+	// `&#038;`, and a `#` delimiter would end the pattern inside it.
+	return preg_replace_callback(
+		'~href="([^"]*post_type=product[^"]*)"~',
+		function ( $m ) {
+			// The id arrives as p=447 after either a literal `&`, `&amp;` or
+			// `&#038;`, so match the parameter rather than the separator.
+			if ( ! preg_match( '~(?:^|[?&;])p=(\d+)~', html_entity_decode( $m[1] ), $p ) ) {
+				return $m[0];
+			}
+
+			$id      = (int) $p[1];
+			$product = wc_get_product( $id );
+
+			if ( ! $product || 'publish' !== get_post_status( $id ) ) {
+				return $m[0];
+			}
+
+			return 'href="' . esc_url( $product->get_permalink() ) . '"';
+		},
+		$html
+	);
+}
+
+/**
  * Insert a control into every product card in the finished page.
  *
  * Both card grids are produced by other snippets that are not in this
@@ -436,6 +477,8 @@ function opl_pcb_rewrite( $html ) {
 	}
 
 	$added = 0;
+
+	$html = opl_pcb_fix_raw_product_links( $html );
 
 	// --- /research-catalog/ cards: prepend inside the existing action row.
 	$html = preg_replace_callback(

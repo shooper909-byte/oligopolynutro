@@ -3,7 +3,7 @@
 Adds a cart control to every product card on the site — the homepage
 `op9-product-card` grid and the `oprc-card` grid on `/research-catalog/`.
 
-**Status: built and tested (37/37). Not yet deployed — one WPCode paste.**
+**Status: built and tested (40/40). Not yet deployed — one WPCode paste.**
 
 ---
 
@@ -56,8 +56,8 @@ page. This is computed from the live MNM API at render time, never hard-coded.
 | File | Role |
 |---|---|
 | `wordpress/product-cart-buttons.php` | The build |
-| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 495 lines |
-| `wordpress/product-cart-buttons.test.php` | 37-assertion suite, run against real captured pages |
+| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 538 lines |
+| `wordpress/product-cart-buttons.test.php` | 40-assertion suite, run against real captured pages |
 | `screenshots/cart-btn-catalog-card.png`, `cart-btn-home-card.png` | Result |
 
 ---
@@ -87,7 +87,7 @@ every render.
 ## Test results
 
 `php wordpress/product-cart-buttons.test.php <home.html> <catalog.html>` —
-**37/37 passing**, run against HTML captured from the live site.
+**40/40 passing**, run against HTML captured from the live site.
 
 **Control selection:** each of the four product groups resolves to the right
 control; a kit whose only child is out of stock degrades to "Select Options"
@@ -116,22 +116,40 @@ Rendered: buttons are 48px tall, screen-reader text correctly clipped to 1×1px,
 - No live click-through of the deployed buttons yet — the POST payloads were
   verified directly against the live cart, but the rendered buttons have not
   been clicked in a browser on the deployed site.
-- Category archive pages are **not** covered, because they currently render no
-  products at all (see below).
+- Category archive pages are not rewritten by this file. Once
+  `product-category-repair.php` has run they list products through
+  WooCommerce's own loop, which already carries WooCommerce's add-to-cart
+  markup — a second control there would duplicate it.
 
 ---
 
-## Two things worth fixing separately
+## Two follow-ups — both now fixed
 
-1. **Category archives are empty.** `/product-category/metabolic-research/` and
-   the other category pages return WooCommerce's `woocommerce-no-products-found`.
-   No products are listed, so there is nothing for this file to add a button to.
-   Products are reachable via `/research-catalog/` and the homepage, so the
-   store works, but the category navigation currently leads nowhere.
+### 1. Category archives were empty — see `docs/PRODUCT-CATEGORIES.md`
 
-2. **A malformed product link on the homepage.** One card links to
-   `?post_type=product&p=447` instead of the pretty permalink. It resolves, but
-   it is inconsistent with the other nine and bypasses the canonical URL.
+Not a broken query. **14 of the 15 sellable containers had no product category
+at all**, so they appeared only under `/product-category/uncategorized/`.
+Meanwhile the 10 compounds that *do* carry categories are excluded from
+catalogue listings because they are not sold separately — correctly, since
+listing them would be a dead end.
+
+The result: categories contained the products that must not be listed and
+excluded the ones that can be bought. Fixed by
+`wordpress/product-category-repair.php`, a one-time additive migration.
+
+### 2. Malformed homepage product link — fixed here
+
+One card linked to `?post_type=product&#038;p=447` instead of its permalink.
+`opl_pcb_fix_raw_product_links()` rewrites any such href to the real permalink,
+but only when the id resolves to a published product; anything else is left
+alone.
+
+This also *gained a control*: with the link repaired the card resolves to a
+product, so the homepage went from 7 controls to 8.
+
+The pattern uses `~` as its delimiter, not `#` — the ampersand in these URLs is
+HTML-encoded as `&#038;`, and a `#` delimiter ends the pattern inside it. That
+mistake was made and caught by the suite.
 
 ---
 

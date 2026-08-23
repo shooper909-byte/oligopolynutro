@@ -332,3 +332,25 @@ Also found, not fixed: category archive pages render no products at all
 `?post_type=product&p=447` instead of its permalink.
 
 - `wordpress/product-cart-buttons.php` / `.wpcode.txt` / `.test.php`
+
+**Update, same day —** both follow-ups fixed.
+
+*Category archives.* Diagnosed and it was not what it looked like: not a broken
+query, not stale term counts. 14 of the 15 sellable containers had **no product
+category at all**, so they showed only under Uncategorized; meanwhile the 10
+compounds that do carry categories are correctly excluded from listings because
+they are not sold separately. Categories held the products that must not be
+listed and excluded the ones that can be bought. Confirmed by the API split:
+`wp/v2/product?product_cat=198` returns 7, the archive returns 0.
+`wordpress/product-category-repair.php` is a one-time additive migration giving
+each container the categories its contents justify — kits inherit from the
+compound inside them, named stacks take their stated area (the neurocognitive
+and regenerative stacks contain the *same* three compounds, so contents cannot
+tell them apart), build-your-own bundles get umbrella only. 51/51 tests.
+Previously-empty categories gain 6/4/3/2 products.
+
+*Malformed homepage link.* `?post_type=product&#038;p=447` now rewrites to the
+real permalink, but only when the id resolves to a published product. This also
+gained a control — the homepage went 7 → 8, because the repaired link resolves.
+The first regex used `#` as its delimiter, which the `&#038;` entity terminated;
+caught by the suite. Cart-button suite now 40/40.

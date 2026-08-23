@@ -1,0 +1,230 @@
+/**
+ * OligoPoly - one-time product category repair
+ *
+ * THE PROBLEM
+ * -----------
+ * Category navigation leads nowhere. `/product-category/metabolic-research/`
+ * and every other research category return WooCommerce's "no products found".
+ *
+ * It is not a broken query and not a visibility bug. Audited 2026-08-23:
+ *
+ *   - 14 of the 15 sellable containers (kits, stacks, build-your-own bundles)
+ *     have NO product category at all. Only 3454 has one. They therefore appear
+ *     solely under /product-category/uncategorized/, which lists all 15.
+ *
+ *   - The 10 individual compounds DO carry categories - 7 of them are in
+ *     `metabolic-research` - but they are flagged "not sold separately", which
+ *     excludes them from catalogue listings by design. That is correct: they
+ *     cannot be bought alone, so listing them in a shop category would be a
+ *     dead end.
+ *
+ * The result is a catalogue whose categories contain the products that must not
+ * be listed, and exclude the ones that can actually be bought.
+ *
+ * THE FIX
+ * -------
+ * Give each container the categories its own contents justify. Nothing is
+ * invented: a kit inherits the research categories of the compound inside it,
+ * read live from WooCommerce.
+ *
+ * Named stacks are the one exception. `Neurocognitive Pathways Stack` and
+ * `Regenerative Biology Stack` contain the SAME three compounds (NAD+, GHK-Cu,
+ * Selank), so contents cannot tell them apart - inheriting the union would file
+ * the neurocognitive stack under Metabolic Research. Their own names state the
+ * research area, so that is used instead, via an explicit map below.
+ *
+ * Build-your-own bundles span every area by design, so they get the umbrella
+ * categories only. Filing them under all four research areas would put the same
+ * three bundles at the top of every category page.
+ *
+ * SAFETY
+ * ------
+ *   - Terms are APPENDED. No existing category is ever removed from any
+ *     product, so this cannot lose an assignment someone made deliberately.
+ *   - Products themselves are untouched: no name, price, stock, description,
+ *     SKU or meta is written.
+ *   - It runs ONCE, guarded by an option, and records what it did so the change
+ *     is auditable and reversible.
+ *   - Nothing runs on a front-end request. It fires on `admin_init` only.
+ *
+ * TO REVERSE
+ * ----------
+ * The option `opl_pcat_log` holds every product ID and the exact term IDs added
+ * to it. Remove those terms in WooCommerce > Products, or delete the option and
+ * re-run after editing the map.
+ *
+ * AFTER IT RUNS
+ * -------------
+ * Deactivate and delete this snippet. It is a migration, not a feature.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/** Categories every sellable container should carry. */
+function opl_pcat_umbrella() {
+	return array( 'research-compounds', 'research-products' );
+}
+
+/**
+ * Research area by stack name, where contents cannot distinguish them.
+ *
+ * Keyed by a lowercase substring of the product name.
+ */
+function opl_pcat_stack_map() {
+	return array(
+		'metabolic pathways'      => array( 'metabolic-research' ),
+		'cellular energy'         => array( 'cellular-research' ),
+		'neurocognitive pathways' => array( 'cognitive-research' ),
+		'regenerative biology'    => array( 'cellular-research', 'longevity-research' ),
+	);
+}
+
+/** Research categories that describe an area of study, not a catalogue shelf. */
+function opl_pcat_research_slugs() {
+	return array( 'metabolic-research', 'cellular-research', 'longevity-research', 'cognitive-research' );
+}
+
+/** Work out the right categories for one container. */
+function opl_pcat_plan_for( $product ) {
+	$name = strtolower( $product->get_name() );
+
+	// Build-your-own bundles span everything; umbrella only.
+	if ( false !== strpos( $name, 'build your research bundle' ) ) {
+		return opl_pcat_umbrella();
+	}
+
+	// A named stack states its own area.
+	foreach ( opl_pcat_stack_map() as $needle => $slugs ) {
+		if ( false !== strpos( $name, $needle ) ) {
+			return array_merge( $slugs, opl_pcat_umbrella() );
+		}
+	}
+
+	// Everything else inherits from what is actually inside it.
+	$research = opl_pcat_research_slugs();
+	$found    = array();
+
+	if ( is_callable( array( $product, 'get_child_items' ) ) ) {
+		foreach ( $product->get_child_items() as $item ) {
+			$child = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : null;
+
+			if ( ! $child ) {
+				continue;
+			}
+
+			$terms = wp_get_object_terms( $child->get_id(), 'product_cat', array( 'fields' => 'slugs' ) );
+
+			if ( is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			foreach ( $terms as $slug ) {
+				if ( in_array( $slug, $research, true ) ) {
+					$found[ $slug ] = true;
+				}
+			}
+		}
+	}
+
+	return array_merge( array_keys( $found ), opl_pcat_umbrella() );
+}
+
+add_action( 'admin_init', 'opl_pcat_run' );
+
+function opl_pcat_run() {
+	if ( get_option( 'opl_pcat_done' ) ) {
+		return;
+	}
+
+	if ( ! function_exists( 'wc_get_product' ) || ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+
+	$containers = get_posts(
+		array(
+			'post_type'        => 'product',
+			'post_status'      => 'publish',
+			'numberposts'      => 200,
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+			'tax_query'        => array(
+				array(
+					'taxonomy' => 'product_type',
+					'field'    => 'slug',
+					'terms'    => 'mix-and-match',
+				),
+			),
+		)
+	);
+
+	$log   = array();
+	$touch = array();
+
+	foreach ( (array) $containers as $id ) {
+		$product = wc_get_product( $id );
+
+		if ( ! $product ) {
+			continue;
+		}
+
+		$want = opl_pcat_plan_for( $product );
+
+		if ( empty( $want ) ) {
+			continue;
+		}
+
+		$have = wp_get_object_terms( $id, 'product_cat', array( 'fields' => 'slugs' ) );
+		$have = is_wp_error( $have ) ? array() : $have;
+
+		$missing = array_values( array_diff( $want, $have ) );
+
+		if ( empty( $missing ) ) {
+			continue;
+		}
+
+		// Resolve slugs to IDs; skip any slug that does not exist rather than
+		// creating a category nobody asked for.
+		$term_ids = array();
+
+		foreach ( $missing as $slug ) {
+			$term = get_term_by( 'slug', $slug, 'product_cat' );
+
+			if ( $term && ! is_wp_error( $term ) ) {
+				$term_ids[] = (int) $term->term_id;
+			}
+		}
+
+		if ( empty( $term_ids ) ) {
+			continue;
+		}
+
+		// APPEND. The final `true` is what makes this non-destructive.
+		$result = wp_set_object_terms( $id, $term_ids, 'product_cat', true );
+
+		if ( is_wp_error( $result ) ) {
+			continue;
+		}
+
+		$log[ $id ] = array(
+			'name'  => $product->get_name(),
+			'added' => $term_ids,
+			'slugs' => $missing,
+		);
+
+		$touch = array_merge( $touch, $term_ids );
+	}
+
+	// Term counts drive the category listings, so refresh the ones we changed.
+	foreach ( array_unique( $touch ) as $term_id ) {
+		wp_update_term_count_now( array( $term_id ), 'product_cat' );
+	}
+
+	if ( function_exists( 'wc_delete_product_transients' ) ) {
+		wc_delete_product_transients();
+	}
+
+	update_option( 'opl_pcat_log', $log, false );
+	update_option( 'opl_pcat_done', gmdate( 'c' ), false );
+}

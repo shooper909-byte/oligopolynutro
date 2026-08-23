@@ -344,6 +344,20 @@ if ( $home ) {
 	ok( 'home: the curated stack got a configure link',
 		false !== strpos( $out, 'opl-pcb-configure' ) );
 
+	// The malformed product link must become a real permalink.
+	ok( 'home: raw ?post_type=product link rewritten',
+		false === strpos( $out, 'post_type=product' ),
+		'raw link survived' );
+
+	ok( 'home: rewritten link points at the right product',
+		false !== strpos( $out, '/products/selank-5mg-research-peptide/' ),
+		'permalink missing' );
+
+	// A raw link to something that is not a published product stays untouched.
+	$fake = '<a href="https://x.test/?post_type=product&#038;p=99999">x</a>';
+	ok( 'unknown product id left alone',
+		opl_pcb_fix_raw_product_links( $fake ) === $fake );
+
 	preg_match( '/<!-- opl-pcb controls=(\d+) -->/', $out, $m );
 	echo '  home controls: ' . ( $m[1] ?? 0 ) . "\n";
 }
