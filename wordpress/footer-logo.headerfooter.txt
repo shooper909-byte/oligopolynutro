@@ -1,0 +1,13 @@
+<style id="opl-footer-logo-css">
+.opl-footer-v2-logo{
+  content:url("https://www.oligopolypeptides.com/wp-content/uploads/2026/08/oligopolyfooterlogo-1.webp") !important;
+  height:96px !important;
+  width:auto !important;
+  max-width:100%;
+  display:block;
+  margin-bottom:16px;
+}
+@media (max-width:640px){
+  .opl-footer-v2-logo{ height:75px !important; }
+}
+</style>
