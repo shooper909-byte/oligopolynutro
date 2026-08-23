@@ -60,3 +60,42 @@ Confirmed unchanged throughout this work, so none of it needs reverting:
 - Existing email automations (Brevo, Klaviyo, cart-abandonment)
 - Plugin activation states — no plugin was installed, activated, deactivated, or updated
 - Theme files — no child theme was created and no theme file was edited
+
+---
+
+## Page cache serves stale copies after a snippet change
+
+**Symptom:** a change that is verified live one minute is missing the next, on
+some pages but not others. Reported once as "my footer is gone".
+
+WordPress.com puts a page cache (batcache) in front of the site. Each URL is
+cached independently, and entries generated before a snippet was installed keep
+being served until they expire. On 2026-08-23 a plain fetch of `/research/`
+returned a copy that predated **both** the card-facts snippet and the COA
+figure, while `/` and `/research-catalog/` were current.
+
+This matters more than it sounds, because the site's custom CSS hides the
+theme's own footer:
+
+```css
+body.wp-theme-hello-elementor #site-header,
+body.wp-theme-hello-elementor #site-footer { display: none !important; }
+```
+
+A cached page old enough to predate the `opl-footer-v2` markup therefore
+renders with **no footer at all** — the theme's is hidden and the replacement
+is not in the HTML yet.
+
+**How to tell it apart from a real regression**
+
+```sh
+curl -s "https://www.oligopolypeptides.com/research/" | grep -c '<footer'
+curl -s "https://www.oligopolypeptides.com/research/?nocache=$(date +%s)" | grep -c '<footer'
+```
+
+A query string bypasses the cached entry and forces a fresh render. If the
+cache-busted fetch is correct and the plain one is not, nothing is broken —
+wait for the entry to expire, or hard-refresh (Ctrl/Cmd+Shift+R).
+
+Always compare cache-busted fetches before concluding a snippet stopped
+running.
