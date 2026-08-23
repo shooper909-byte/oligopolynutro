@@ -139,10 +139,19 @@ if ( getenv( 'OPL_CL_FIXTURES' ) !== '0' ) {
 }
 
 function get_posts( $args ) {
+	// The figure lookup queries attachments; everything else queries records.
+	if ( isset( $args['post_type'] ) && 'attachment' === $args['post_type'] ) {
+		return array( 4101 );
+	}
+
 	return array_keys( $GLOBALS['opl_cl_posts'] );
 }
 
 function get_post_meta( $id, $key, $single = false ) {
+	if ( 4101 === $id && '_wp_attached_file' === $key ) {
+		return '2026/08/batch-match-diagram.webp';
+	}
+
 	$post = isset( $GLOBALS['opl_cl_posts'][ $id ] ) ? $GLOBALS['opl_cl_posts'][ $id ] : null;
 
 	if ( ! $post || ! isset( $post['meta'][ $key ] ) ) {
@@ -221,11 +230,12 @@ function wp_get_attachment_image( $id, $size, $icon, $attrs ) {
 	$base = 'https://www.oligopolypeptides.com/wp-content/uploads/2026/08/';
 
 	return '<img class="' . esc_attr( $attrs['class'] ) . '"'
-		. ' src="' . $base . '5113-1024x683.png"'
-		. ' srcset="' . $base . '5113-300x200.png 300w, ' . $base . '5113-768x512.png 768w, '
-		. $base . '5113-1024x683.png 1024w"'
+		. ' src="' . $base . 'batch-match-diagram-1024x438.webp"'
+		. ' srcset="' . $base . 'batch-match-diagram-768x329.webp 768w, '
+		. $base . 'batch-match-diagram-1024x438.webp 1024w, '
+		. $base . 'batch-match-diagram.webp 1600w"'
 		. ' sizes="(max-width:1180px) 100vw, 1136px"'
-		. ' width="1024" height="683"'
+		. ' width="1024" height="438"'
 		. ' alt="' . esc_attr( $attrs['alt'] ) . '"'
 		. ' loading="' . esc_attr( $attrs['loading'] ) . '"'
 		. ' decoding="' . esc_attr( $attrs['decoding'] ) . '">';

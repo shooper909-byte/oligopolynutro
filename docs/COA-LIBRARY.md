@@ -107,12 +107,15 @@ carries an icon and the word, so status is never colour alone.
 | File | Role |
 |---|---|
 | `wordpress/coa-library-page.php` | The build. Registers `[opl_coa_library]` |
-| `wordpress/coa-library-page.wpcode.txt` | Paste-ready copy, no `<?php`, pure ASCII, 1540 lines |
+| `wordpress/coa-library-page.wpcode.txt` | Paste-ready copy, no `<?php`, pure ASCII, 1600 lines |
 | `wordpress/coa-library-page.stub.php` | WordPress stubs + test fixtures for offline rendering |
-| `wordpress/coa-library-page.test.js` | 138-assertion Playwright suite |
+| `wordpress/coa-library-page.test.js` | 143-assertion Playwright suite |
 | `wordpress/backup/page-1652-research-peptides-with-coa.BEFORE.html` | Exact stored content, for rollback |
 | `wordpress/backup/page-1652-rendered.BEFORE.html` | Rendered page, for reference |
-| `screenshots/coa-before-*.png`, `screenshots/cl-*.png` | Before / after |
+| `assets/coa-figure/batch-match-diagram.html` | Source of the rebuilt figure |
+| `assets/coa-figure/render.js` | Renders it to PNG at 2x |
+| `assets/coa-figure/batch-match-diagram.webp` | **Upload this to the media library** (55 KB) |
+| `screenshots/coa-before-*.png`, `screenshots/cl-*.png`, `coa-figure-*.png` | Before / after |
 
 Nothing else is touched: no header, nav, footer, checkout, product data, URLs,
 redirects, analytics, other pages, or the age gate. The `/coa/` → this page 301
@@ -186,7 +189,7 @@ Two adjacent problems worth fixing separately:
 
 ## 6. Test results
 
-`node wordpress/coa-library-page.test.js` — **138/138 passing.**
+`node wordpress/coa-library-page.test.js` — **143/143 passing.**
 
 **Search:** exact match; lowercase input; leading/trailing whitespace; invalid
 batch; duplicate batch ID → both records listed, neither auto-selected; partial
@@ -251,19 +254,19 @@ elements.
 No libraries. One inline `<style>`, one inline `<script>` (~130 lines), zero
 extra requests.
 
-The illustration is the only image. It is served through
-`wp_get_attachment_image()` at the `large` derivative (1024×683) with a
-`srcset`, **not** the 1,976,348-byte full-size original — a ~92% reduction for a
-phone. It is `loading="lazy"` and `decoding="async"` (it sits below the fold;
-nothing above the fold is lazy-loaded), and carries explicit `width`/`height` so
-it cannot shift layout.
+The illustration is the only image, and it is now a **55 KB WebP** rather than
+the 1,930 KB PNG it replaces — a 97% reduction. It is served through
+`wp_get_attachment_image()` at the `large` derivative with a `srcset`, is
+`loading="lazy"` and `decoding="async"` (it sits below the fold; nothing above
+the fold is lazy-loaded), and carries explicit `width`/`height` so it cannot
+shift layout.
 
 The library renders server-side and pages 6 at a time in the DOM. No PDF is
 fetched on load — only when a customer clicks a specific document.
 
-Uploading a WebP/AVIF derivative of attachment 3544 would improve this further;
-the site already runs an image-optimizer plugin, so check whether it is already
-serving WebP before adding a duplicate asset.
+The figure ships as WebP already. The site also runs an image-optimizer plugin,
+which may generate further derivatives on upload — harmless, but worth a look so
+the same file is not optimised twice.
 
 ---
 
@@ -271,7 +274,9 @@ serving WebP before adding a duplicate asset.
 
 Three independent levers, in increasing order of scope:
 
-1. **Remove the figure only** — set `opl_cl_figure_id()` to `0`. One line.
+1. **Remove the figure only** — delete `batch-match-diagram.webp` from the
+   media library, or point `opl_cl_figure_slug()` at nothing. The figure section
+   disappears; the rest of the page is unaffected.
 2. **Disable the page build** — toggle the snippet Inactive in WPCode. The page
    falls back to whatever its content holds.
 3. **Restore the old page** — paste
@@ -288,45 +293,80 @@ None of them touches anything else on the site. The URL, slug, canonical and the
 
 **These need answers before this goes live.**
 
-### 9a. The verification graphic contradicts the brief's own constraints
+### 9a. The verification graphic was replaced &mdash; RESOLVED
 
-The brief asks for the "MATCH. VERIFY. REVIEW." graphic below the batch result,
-and it is placed there. But read the artwork itself (attachment 3544) — baked
-into the pixels are:
+**Decision taken 2026-08-23: rebuild the diagram (option 2).**
 
-- a specimen Certificate of Analysis with a batch number (**OP-250718-TIRZ**),
-  purity figures, "Meets Specification" results, a report date (**07/21/2025**)
-  and **a signature over "Quality Assurance"**;
+The brief asked for the "MATCH. VERIFY. REVIEW." graphic, attachment **3544**
+(`5113.png`). Reading the artwork itself, baked into the pixels were:
+
+- a specimen Certificate of Analysis with batch **OP-250718-TIRZ**, purity
+  figures (99.32% HPLC, 99.11% peptide content, 0.28% single impurity), a
+  conclusion reading "approved for release", a report date **07/21/2025** and
+  **a signature over "Quality Assurance"**;
 - the badges **"TESTED 3RD-PARTY"**, **"VERIFIED FOR PURITY"**, **"TRUSTED FOR
   SAFETY"**;
-- **"3RD-PARTY TESTED — Independently tested for purity and safety"**;
-- **"All products are 3rd-party tested. All results are transparent. Every batch
-  can be traced."**;
-- **"View real test results anytime, anywhere."**
+- **"Every product is 3rd-party tested and traceable to its Certificate of
+  Analysis."**;
+- **"All products are 3rd-party tested. All results are transparent. Every
+  batch can be traced."**;
+- **"Independently tested for purity and safety"** and **"View real test
+  results anytime, anywhere."**
 
 The same brief prohibits publishing invented batch numbers, dates, signatures,
 purity results and certificates; prohibits claiming every product is
 independently tested unless the records prove it; and prohibits safety claims.
-With zero published records, none of the above is currently substantiated, and
-"view real test results anytime" is not currently true.
+With zero published records none of it was substantiated, and "view real test
+results anytime" was not true.
 
-Mitigations applied: the figure is not a link and is not presented as a result;
-the caption disclaims the values **and** the statements inside the artwork; a
-one-line switch (`opl_cl_figure_id() → 0`) removes it entirely.
+**Cropping could not fix it.** The claims are not confined to a strip &mdash;
+the fabricated results table is the centre of the composition, and the strap
+lines run along the top headline, the certificate footer, a bottom banner, a
+bottom-right trio and inside callout 2. Patching six regions and re-lettering a
+sentence ending would have produced something visibly doctored.
 
-**Decision needed:** ship as-is, ship a version of the artwork with the claim
-strap lines removed, or drop the figure. A caption cannot fully neutralise a
-claim rendered as an image.
+So the useful half &mdash; the vial-to-certificate batch match &mdash; was
+rebuilt from scratch:
 
-### 9b. The graphic shows Tirzepatide, not BPC-157
+| | Before (3544) | After |
+|---|---|---|
+| Source | marketing render, no editable source | `assets/coa-figure/batch-match-diagram.html`, rebuilt by `render.js` |
+| Batch numbers | `OP-250718-TIRZ` | `OP-######-XXX`, the page's masked symbol |
+| Test results | 8 rows of invented figures | none |
+| Conclusion / signature / dates | present | none |
+| Testing claims | 6 separate strap lines | none |
+| Compound named | Tirzepatide | none &mdash; "Compound name" |
+| File | 1,930 KB PNG | **55 KB WebP** (-97%) |
 
-The brief specifies BPC-157 alt text. Attachment 3544 depicts a **Tirzepatide
-10 mg** vial (its own stored alt text says so, and the label in the artwork reads
-Tirzepatide). Labelling it BPC-157 would be a factual error on a page whose whole
-purpose is matching labels to documents, so the alt text describes it
-generically: *"Example showing how to match a research vial batch ID with its
-supporting Certificate of Analysis."* Upload a BPC-157 version and set
-`opl_cl_figure_id()` to it if the mockup's version is wanted.
+It keeps what actually earned its place: a certificate and a vial side by side,
+both batch fields highlighted, joined by a rule marked "These must match", and
+three numbered steps. Nothing in it is a record.
+
+`screenshots/coa-figure-before.png` and `coa-figure-after.png` are the two
+side by side; `cl-figure-in-page.png` shows it in context.
+
+**Upload step:** put `assets/coa-figure/batch-match-diagram.webp` in the media
+library. The snippet finds it **by filename** (`opl_cl_figure_slug()`), with
+separators stripped, so the attachment ID does not matter and re-uploading
+cannot break it.
+
+If the upload is missing the figure section is **omitted entirely** &mdash;
+`opl_cl_figure_id()` returns 0 and falls back to nothing, deliberately not to
+3544, so a missed lookup can never silently reinstate the claim-carrying
+artwork. Verified: figure id 0, no `<figure>` emitted, no reference to 5113,
+rest of the page intact.
+
+Attachment 3544 is **left in the media library untouched** &mdash; the brief
+says not to remove existing files. It is simply no longer referenced by this
+page. (It is still used by `/research/`, which is outside this task's scope and
+carries its own example-framing caption; worth a separate look.)
+
+### 9b. No BPC-157 artwork exists &mdash; RESOLVED
+
+The brief specified BPC-157 alt text. Attachment 3544 depicted **Tirzepatide**,
+so that alt text would have been wrong. The rebuilt diagram names no compound at
+all, and its alt text describes what is actually drawn, including that both IDs
+are placeholders.
 
 ### 9c. The record schema is a best guess
 

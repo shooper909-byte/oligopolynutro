@@ -1,0 +1,187 @@
+<!doctype html>
+<!--
+  Source for the certificate library's verification figure.
+
+  Replaces attachment 3544 ("5113.png"), the marketing render, whose artwork
+  carries a specimen COA with invented purity results, a conclusion, a
+  signature and a date, plus the strap lines "All products are 3rd-party
+  tested", "Independently tested for purity and safety", "TRUSTED FOR SAFETY"
+  and "View real test results anytime, anywhere". None of those are supported
+  by any record on the site.
+
+  Those claims could not be cropped out - the fabricated results table is the
+  centre of the composition - so the useful half, the vial-to-certificate batch
+  match, is rebuilt here with nothing invented in it:
+
+    - batch IDs are the masked symbol OP-######-XXX, matching the convention
+      already used on the page, so no batch number is asserted
+    - no test, result, specification, method, purity figure or date
+    - no laboratory, issuer, signature or approval
+    - no claim about what is tested, by whom, or how often
+
+  Render with assets/coa-figure/render.js -> batch-match-diagram.png
+-->
+<meta charset="utf-8">
+<title>Batch match diagram</title>
+<style>
+  :root{
+    --bg:#03040A; --s1:#090D18; --s2:#0D1321;
+    --v:#9A4DFF; --vg:#6E2ABF; --acc:#C9A8FF;
+    --ink:#FFFFFF; --txt:#D2D8E4; --mut:#A7AFC0;
+    --line:rgba(154,77,255,.28); --line2:rgba(190,198,214,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1400px; height:600px; background:var(--bg); color:var(--txt);
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; justify-content:center; gap:34px;
+    padding:34px 52px; position:relative; overflow:hidden;
+  }
+  /* restrained violet ground glow, no molecular clutter */
+  body:before{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 55% 62% at 24% 38%, rgba(110,42,191,.22), transparent 70%),
+      radial-gradient(ellipse 45% 58% at 79% 46%, rgba(154,77,255,.14), transparent 72%);
+  }
+  .stage{position:relative; display:grid; grid-template-columns:430px minmax(190px,1fr) 232px;
+         gap:0; align-items:center; justify-content:center; width:100%}
+
+  .cap{font-size:13px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+       color:var(--acc); margin-bottom:12px}
+
+  /* ---- certificate ---- */
+  .doc{background:#F4F6FA; border-radius:14px; padding:26px 24px 22px;
+       box-shadow:0 30px 70px rgba(0,0,0,.55); color:#0C1020; position:relative}
+  .doc-top{display:flex; align-items:center; gap:11px; padding-bottom:13px;
+           border-bottom:1px solid #D3D9E4; margin-bottom:16px}
+  .mark{width:30px;height:30px;border-radius:50%;border:2.5px solid #6E2ABF;
+        display:flex;align-items:center;justify-content:center;
+        font-size:15px;font-weight:900;color:#6E2ABF}
+  .doc-name{font-size:11px;font-weight:900;letter-spacing:.13em;color:#3A4356;
+            text-transform:uppercase;line-height:1.5}
+  .doc-h{font-size:19px;font-weight:900;letter-spacing:.02em;color:#0C1020;margin-bottom:18px}
+  .row{display:flex;justify-content:space-between;gap:14px;margin-bottom:9px;font-size:13px}
+  .row span{color:#5A6478;font-weight:600}
+  .row b{color:#0C1020;font-weight:700}
+  .ghost{display:block;height:8px;border-radius:99px;background:#DDE2EB;margin:9px 0}
+  .ghost.s{width:58%} .ghost.m{width:78%}
+  .field{margin-top:16px;padding:11px 13px;border:2px solid #9A4DFF;border-radius:9px;
+         background:rgba(154,77,255,.09)}
+  .field span{display:block;font-size:10px;font-weight:900;letter-spacing:.13em;
+              text-transform:uppercase;color:#6E2ABF;margin-bottom:4px}
+  .field b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+           font-size:18px;font-weight:800;letter-spacing:.03em;color:#0C1020}
+
+  /* ---- link: a real rule spanning both batch fields, label sitting on it ---- */
+  /* The rule joins the two batch fields, so it must sit at their height rather
+     than at the vertical centre of the row. Both fields land ~54px above the
+     bottom of their card. */
+  .link{position:relative;align-self:stretch}
+  .rule{position:absolute;left:-16px;right:-16px;bottom:54px;height:2px;
+        background:linear-gradient(90deg,transparent,var(--v) 10%,var(--v) 90%,transparent)}
+  .rule:before,.rule:after{content:"";position:absolute;top:-4px;width:10px;height:10px;
+        border-radius:50%;background:var(--v);box-shadow:0 0 0 5px rgba(154,77,255,.22)}
+  .rule:before{left:0} .rule:after{right:0}
+  .match{position:absolute;left:50%;bottom:54px;transform:translate(-50%,50%);
+         padding:10px 20px;border-radius:999px;
+         border:1px solid var(--line);background:var(--s1);
+         font-size:15px;font-weight:800;color:var(--acc);white-space:nowrap;
+         box-shadow:0 0 0 9px var(--bg)}
+  .match-note{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);
+              width:236px;font-size:14.5px;color:var(--mut);
+              text-align:center;line-height:1.55}
+
+  /* ---- vial ---- */
+  .vialwrap{display:flex;justify-content:flex-end}
+  .vial{width:212px;position:relative}
+  .cap-top{height:36px;margin:0 38px;border-radius:10px 10px 4px 4px;
+           background:linear-gradient(160deg,#C49BFF,#6E2ABF)}
+  .neck{height:16px;margin:0 52px;background:linear-gradient(90deg,#6E7788,#D3D9E4 40%,#6E7788)}
+  .body{margin-top:-1px;border-radius:9px 9px 18px 18px;padding:22px 16px 30px;
+        background:linear-gradient(150deg,#161C2B,#070A12 62%);
+        border:1px solid rgba(190,198,214,.22);
+        box-shadow:0 26px 60px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.1)}
+  .v-mark{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:4px}
+  .v-mark i{width:20px;height:20px;border-radius:50%;border:2px solid #fff;
+            font-style:normal;font-size:11px;font-weight:900;color:#fff;
+            display:flex;align-items:center;justify-content:center}
+  .v-mark span{font-size:13px;font-weight:900;letter-spacing:.11em;color:#fff}
+  .v-sub{text-align:center;font-size:8px;font-weight:800;letter-spacing:.24em;
+         color:#9AA3B5;margin-bottom:16px}
+  .v-name{text-align:center;font-size:18px;font-weight:900;letter-spacing:.03em;
+          color:#fff;margin-bottom:3px;white-space:nowrap}
+  .v-str{text-align:center;font-size:13px;font-weight:800;color:var(--acc);margin-bottom:14px}
+  .v-ruo{text-align:center;font-size:8px;font-weight:800;letter-spacing:.08em;
+         color:#8A93A5;line-height:1.8;margin-bottom:15px}
+  .v-batch{padding:9px 8px;border:2px solid var(--v);border-radius:8px;
+           background:rgba(154,77,255,.18);text-align:center}
+  .v-batch span{display:block;font-size:8.5px;font-weight:900;letter-spacing:.14em;
+                color:var(--acc);margin-bottom:4px}
+  .v-batch b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+             font-size:15px;font-weight:800;color:#fff;letter-spacing:.02em}
+
+  /* ---- footer steps ---- */
+  .steps{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .step{display:flex;gap:11px;align-items:flex-start;padding:14px 16px;
+        border:1px solid var(--line2);border-radius:11px;background:rgba(9,13,24,.72)}
+  .step i{flex:none;width:26px;height:26px;border-radius:50%;
+          background:linear-gradient(135deg,var(--v),var(--vg));color:#fff;
+          font-style:normal;font-size:13px;font-weight:900;
+          display:flex;align-items:center;justify-content:center}
+  .step p{font-size:14.5px;line-height:1.5;color:var(--txt)}
+  .step b{color:var(--ink);font-weight:800}
+</style>
+
+<div class="stage">
+  <div>
+    <p class="cap">Certificate of Analysis</p>
+    <div class="doc">
+      <div class="doc-top">
+        <div class="mark">O</div>
+        <div class="doc-name">OligoPoly<br>Laboratories</div>
+      </div>
+      <p class="doc-h">Certificate of Analysis</p>
+      <div class="row"><span>Product</span><b>Compound name</b></div>
+      <div class="row"><span>Strength</span><b>## mg</b></div>
+      <i class="ghost m"></i>
+      <i class="ghost"></i>
+      <i class="ghost s"></i>
+      <div class="field">
+        <span>Batch number</span>
+        <b>OP-######-XXX</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="link">
+    <p class="match-note">The same batch ID appears on both, character for character.</p>
+    <div class="rule"></div>
+    <div class="match">These must match</div>
+  </div>
+
+  <div>
+    <p class="cap" style="text-align:right">Your vial</p>
+    <div class="vialwrap">
+      <div class="vial">
+        <div class="cap-top"></div>
+        <div class="neck"></div>
+        <div class="body">
+          <div class="v-mark"><i>O</i><span>OLIGOPOLY</span></div>
+          <p class="v-sub">LABORATORIES</p>
+          <p class="v-name">Compound name</p>
+          <p class="v-str">## mg</p>
+          <p class="v-ruo">RESEARCH USE ONLY<br>NOT FOR HUMAN CONSUMPTION</p>
+          <div class="v-batch"><span>BATCH #</span><b>OP-######-XXX</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="steps">
+  <div class="step"><i>1</i><p><b>Read the batch ID</b> printed on your vial or verification card.</p></div>
+  <div class="step"><i>2</i><p><b>Search that batch ID</b> to open the record filed for it.</p></div>
+  <div class="step"><i>3</i><p><b>Compare the two IDs</b> before relying on the document.</p></div>
+</div>

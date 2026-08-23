@@ -274,3 +274,17 @@ doubling as the status legend) whose every field is a placeholder symbol
 (`Compound name`, `## mg`, `DD Month YYYY`). Banded SPECIMEN — NOT A RECORD,
 linked to nothing, outside the searchable record set, and self-removing once a
 real record is published. `opl_cl_specimens()` switches them off.
+
+**Update, same day —** the verification graphic question resolved as *rebuild*.
+Attachment 3544 carried a specimen COA with invented purity results, a
+conclusion, a report date and a signature, plus six separate strap lines
+("All products are 3rd-party tested", "TRUSTED FOR SAFETY", "View real test
+results anytime, anywhere"). None were croppable — the fabricated results table
+is the centre of the composition — so the useful half, the vial-to-certificate
+batch match, was rebuilt from scratch as
+`assets/coa-figure/batch-match-diagram.html`. Both batch IDs read
+`OP-######-XXX`; there is no result, date, laboratory, signature or claim in it.
+1,930 KB PNG becomes a 55 KB WebP. The snippet finds it by filename, and falls
+back to no figure at all rather than to 3544, so a missed lookup cannot
+reinstate the original. Attachment 3544 is left in the library, just unreferenced
+by this page.

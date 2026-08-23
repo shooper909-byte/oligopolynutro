@@ -75,18 +75,76 @@ function opl_cl_post_type() {
 }
 
 /**
- * Media library ID of the verification illustration.
+ * Filename (without extension) of the verification illustration.
  *
- * Return 0 to remove the figure entirely - that is the one-line switch if the
- * owner decides the artwork's embedded claims cannot be supported. See the
- * "Claims requiring owner confirmation" section of docs/COA-LIBRARY.md: the
- * artwork contains a specimen certificate with a batch number, purity figures,
- * a date and a signature, and the strap lines "All products are 3rd-party
- * tested", "Independently tested for purity and safety" and "TRUSTED FOR
- * SAFETY". No record on this site currently substantiates any of those.
+ * Deliberately NOT attachment 3544, the original marketing render. That artwork
+ * carries a specimen certificate with an invented batch number, purity figures,
+ * a report date and a signature, plus the strap lines "All products are
+ * 3rd-party tested", "Independently tested for purity and safety", "TRUSTED FOR
+ * SAFETY" and "View real test results anytime, anywhere" - none of which any
+ * record on this site substantiates. The claims are baked into the pixels
+ * around the fabricated results table, so they could not be cropped away.
+ *
+ * The replacement is built from `assets/coa-figure/batch-match-diagram.html`
+ * and contains no result, date, laboratory, signature or claim. Upload
+ * `batch-match-diagram.webp` to the media library; it is found by name, so the
+ * attachment ID does not matter and re-uploading cannot break it.
+ */
+function opl_cl_figure_slug() {
+	return 'batch-match-diagram';
+}
+
+/**
+ * Resolve the illustration. Returns an attachment ID, or 0 for no figure.
+ *
+ * Falls back to NOTHING on purpose. Falling back to 3544 would silently
+ * reinstate the very artwork this replaces the first time a lookup missed, so a
+ * missing upload shows no figure rather than the wrong one.
  */
 function opl_cl_figure_id() {
-	return 3544;
+	static $cache = null;
+
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache = 0;
+
+	if ( ! function_exists( 'get_posts' ) ) {
+		return $cache;
+	}
+
+	// Compare with separators stripped: browsers, operating systems and
+	// WordPress all rewrite filenames on upload (`-1` suffixes, dropped
+	// hyphens), so an exact match is not dependable.
+	$target = preg_replace( '/[^a-z0-9]/', '', strtolower( opl_cl_figure_slug() ) );
+
+	$candidates = get_posts(
+		array(
+			'post_type'        => 'attachment',
+			'post_status'      => 'inherit',
+			'post_mime_type'   => array( 'image/webp', 'image/png', 'image/jpeg' ),
+			'numberposts'      => 80,
+			'orderby'          => 'date',
+			'order'            => 'DESC',
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( (array) $candidates as $candidate ) {
+		$file = get_post_meta( $candidate, '_wp_attached_file', true );
+		$base = $file ? pathinfo( $file, PATHINFO_FILENAME ) : '';
+		$norm = preg_replace( '/[^a-z0-9]/', '', strtolower( $base ) );
+		$norm = preg_replace( '/[0-9]+$/', '', $norm );
+
+		if ( $norm === $target ) {
+			$cache = (int) $candidate;
+			break;
+		}
+	}
+
+	return $cache;
 }
 
 /** Where "Contact Quality Support" points. */
@@ -688,9 +746,10 @@ function opl_cl_figure() {
 		return '';
 	}
 
-	// The stored alt text describes a Tirzepatide vial, which is what the
-	// artwork actually shows. Do not relabel it as another compound.
-	$alt = 'Example showing how to match a research vial batch ID with its supporting Certificate of Analysis.';
+	$alt = 'Diagram showing a Certificate of Analysis beside a research vial. The batch '
+		. 'number field on the certificate and the batch number on the vial label are both '
+		. 'highlighted and joined by a line marked "these must match". Both read as the '
+		. 'placeholder OP-######-XXX rather than a real batch.';
 
 	// `large` (1024px) plus srcset, never the 1.9 MB full-size original.
 	$img = wp_get_attachment_image(
@@ -712,14 +771,10 @@ function opl_cl_figure() {
 	$out = '<section class="oplcl-figwrap"><div class="oplcl-shell">';
 	$out .= '<figure class="oplcl-fig">';
 	$out .= $img;
-	// The artwork carries a specimen certificate and its own strap lines. The
-	// caption has to disclaim both the values AND the claims, or the page
-	// inherits assertions it cannot support.
 	$out .= '<figcaption><span class="oplcl-fig-tag">Illustrative verification guide</span> '
-		. 'This graphic shows how a batch ID on a vial links to its certificate. The specimen '
-		. 'certificate, batch number, dates, figures and statements shown inside the artwork are '
-		. 'part of the illustration. They are not a laboratory record, they do not describe any '
-		. 'batch, and they are not a statement about testing performed on any product. Published '
+		. 'How a batch ID on a vial links to its certificate. Both IDs shown are the placeholder '
+		. 'OP-######-XXX, not a batch. The illustration carries no test result, date, laboratory '
+		. 'or approval, and makes no statement about testing performed on any product. Published '
 		. 'records appear in the library above.</figcaption>';
 	$out .= '</figure>';
 	$out .= '</div></section>';

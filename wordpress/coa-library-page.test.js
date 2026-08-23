@@ -462,11 +462,19 @@ const contrast = (a, b) => {
       !(await page.getAttribute('.oplcl-fig-img', 'src')).match(/5113\.png$/));
     ok('figure has srcset', !!(await page.getAttribute('.oplcl-fig-img', 'srcset')));
     const cap = await page.locator('.oplcl-fig figcaption').innerText();
-    ok('figure captioned as illustrative', /illustrative/i.test(cap) && /not a laboratory record/i.test(cap));
+    ok('figure captioned as illustrative', /illustrative/i.test(cap));
+    ok('caption flags the IDs as placeholders', /placeholder/i.test(cap) && cap.includes('OP-######-XXX'), cap);
+    ok('caption disclaims any testing statement',
+      /no test result, date, laboratory or approval/i.test(cap)
+      && /makes no statement about testing/i.test(cap), cap);
     ok('figure is not a link', await page.evaluate(() =>
       !document.querySelector('.oplcl-fig-img').closest('a')));
-    ok('alt text does not name a compound the artwork may not show', await page.evaluate(() =>
-      !/BPC-157/i.test(document.querySelector('.oplcl-fig-img').getAttribute('alt'))));
+    const alt = await page.getAttribute('.oplcl-fig-img', 'alt');
+    ok('alt names no compound the artwork does not show', !/BPC-157|Tirzepatide/i.test(alt), alt);
+    ok('alt states the IDs are placeholders', /placeholder/i.test(alt), alt);
+    ok('figure is the rebuilt diagram, not the claim-carrying render',
+      !(await page.getAttribute('.oplcl-fig-img', 'src')).includes('5113'));
+    ok('figure is served as webp', (await page.getAttribute('.oplcl-fig-img', 'src')).endsWith('.webp'));
     await page.close();
   }
 
