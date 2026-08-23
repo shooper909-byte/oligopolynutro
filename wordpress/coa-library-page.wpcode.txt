@@ -1463,8 +1463,13 @@ function opl_cl_render() {
 	$batch = opl_cl_requested_batch();
 	$total = count( opl_cl_records() );
 
-	$out = opl_cl_css();
-	$out .= '<div id="oplcl" data-total="' . (int) $total . '">';
+	// Everything lives inside the wrapper. Page 1652 carries the shortcode as a
+	// Gutenberg shortcode block, so `do_blocks()` unhooks `wpautop` and the
+	// output is left alone - but keeping the <style> inside the div means the
+	// markup survives even if it is ever pasted as classic content, where
+	// wpautop would otherwise wrap the loose tags in stray paragraphs.
+	$out = '<div id="oplcl" data-total="' . (int) $total . '">';
+	$out .= opl_cl_css();
 	$out .= opl_cl_hero( $batch );
 	$out .= opl_cl_results( $batch );
 	$out .= opl_cl_figure();
@@ -1472,9 +1477,9 @@ function opl_cl_render() {
 	$out .= opl_cl_how();
 	$out .= opl_cl_accordions();
 	$out .= opl_cl_notice();
-	$out .= '</div>';
 	$out .= opl_cl_schema();
 	$out .= opl_cl_js();
+	$out .= '</div>';
 
 	return $out;
 }
