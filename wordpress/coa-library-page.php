@@ -1,0 +1,1425 @@
+<?php
+/**
+ * OligoPoly - Certificate Library / batch finder for /research-peptides-with-coa/
+ *
+ * Registers [opl_coa_library]. Page 1652 keeps its URL, its slug and its
+ * canonical; only the stored content is swapped for the shortcode.
+ *
+ * WHY THIS IS DATA-DRIVEN AND CURRENTLY EMPTY
+ * -------------------------------------------
+ * The site already carries the plumbing for batch documentation:
+ *
+ *   - `op_coa_record`  custom post type ("COA Records")
+ *   - `opl_lot_record` custom post type ("Lot Records")
+ *   - GET /wp-json/oligopoly/v1/coa?batch=<id>  ->  {found, records[], message}
+ *   - GET /wp-json/opl-lot/v1/lookup?identifier=<id>
+ *
+ * As of the 2026-08-23 audit all of it is empty: both post types hold zero
+ * posts, the lot endpoint is feature-flagged off ("Lot-specific verification
+ * records are being prepared"), and the media library holds 692 attachments of
+ * which zero are PDFs. There is no certificate on this site to link to.
+ *
+ * So this file publishes NO records of its own. It reads whatever
+ * `op_coa_record` actually holds and renders that. With an empty post type the
+ * library section renders an honest "documentation is being published" state
+ * and every search lands on the no-result state, which routes the customer to
+ * Quality Support. The moment real records are added they appear here with no
+ * further code change.
+ *
+ * The batch IDs, dates, laboratories and "Documents Available" badges in the
+ * design mockup are illustrative. Publishing them would invent laboratory
+ * records, so they are not in this file.
+ *
+ * READING A RECORD
+ * ----------------
+ * Meta keys are read through an explicit allowlist (see opl_cl_meta_map).
+ * Nothing outside that allowlist is ever read or rendered, so supplier notes,
+ * internal comments, file paths, cost data and other admin metadata cannot
+ * leak onto the public page even if they live on the same post.
+ *
+ * The allowlist accepts several spellings per field because the record schema
+ * was defined by an earlier snippet that is not in this repository and could
+ * not be inspected (the post type is empty, so no live example exists). See
+ * docs/COA-LIBRARY.md - the exact key names need owner confirmation.
+ *
+ * STATUS VOCABULARY
+ * -----------------
+ * Only these five are ever printed:
+ *   Documents Available | Partial Documentation | Pending | Archived | Superseded
+ * "Verified", "Passed", "Approved" and "Certified" are never emitted, and a
+ * stored status carrying one of those words is downgraded rather than shown.
+ * A test result is never inferred from the presence of a PDF.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/* -------------------------------------------------------------------------
+ * Configuration
+ * ---------------------------------------------------------------------- */
+
+/** Page that hosts the shortcode. Used to scope the SEO and robots filters. */
+function opl_cl_page_id() {
+	return 1652;
+}
+
+/** Canonical path. Never changed - existing QR codes point here. */
+function opl_cl_path() {
+	return '/research-peptides-with-coa/';
+}
+
+/** Post type holding certificate records. */
+function opl_cl_post_type() {
+	return 'op_coa_record';
+}
+
+/**
+ * Media library ID of the verification illustration.
+ *
+ * Return 0 to remove the figure entirely - that is the one-line switch if the
+ * owner decides the artwork's embedded claims cannot be supported. See the
+ * "Claims requiring owner confirmation" section of docs/COA-LIBRARY.md: the
+ * artwork contains a specimen certificate with a batch number, purity figures,
+ * a date and a signature, and the strap lines "All products are 3rd-party
+ * tested", "Independently tested for purity and safety" and "TRUSTED FOR
+ * SAFETY". No record on this site currently substantiates any of those.
+ */
+function opl_cl_figure_id() {
+	return 3544;
+}
+
+/** Where "Contact Quality Support" points. */
+function opl_cl_support_url() {
+	return '/contact/';
+}
+
+/** Records rendered before "Load More" reveals the next page. */
+function opl_cl_page_size() {
+	return 6;
+}
+
+/* -------------------------------------------------------------------------
+ * Data layer
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Allowlist of readable meta keys, per logical field, most-preferred first.
+ *
+ * Anything not named here is never read. Keep it that way - this is the only
+ * thing standing between an internal note and the public page.
+ */
+function opl_cl_meta_map() {
+	return array(
+		'batch'    => array( 'batch_id', 'batch', 'lot_number', 'lot', 'opl_batch_id', 'opl_lot_number' ),
+		'product'  => array( 'product_name', 'product', 'opl_product_name' ),
+		'strength' => array( 'strength', 'labeled_amount', 'label_amount', 'opl_strength' ),
+		'status'   => array( 'document_status', 'status', 'opl_document_status' ),
+		'date'     => array( 'report_date', 'issue_date', 'date_reported', 'opl_report_date' ),
+		'lab'      => array( 'testing_laboratory', 'laboratory', 'document_issuer', 'issuer', 'opl_laboratory' ),
+		'tests'    => array( 'test_categories', 'tests', 'opl_test_categories' ),
+		'view'     => array( 'certificate_url', 'view_url', 'document_url', 'opl_certificate_url' ),
+		'pdf'      => array( 'pdf_url', 'pdf', 'document_pdf', 'opl_pdf_url' ),
+		'category' => array( 'product_category', 'category', 'opl_category' ),
+		'sku'      => array( 'sku', 'opl_sku' ),
+	);
+}
+
+/** Read the first allowlisted key that holds a value. */
+function opl_cl_meta( $post_id, $field ) {
+	$map = opl_cl_meta_map();
+
+	if ( ! isset( $map[ $field ] ) ) {
+		return '';
+	}
+
+	foreach ( $map[ $field ] as $key ) {
+		$value = get_post_meta( $post_id, $key, true );
+
+		if ( is_array( $value ) ) {
+			$value = implode( ', ', array_filter( array_map( 'strval', $value ) ) );
+		}
+
+		if ( '' !== trim( (string) $value ) ) {
+			return trim( (string) $value );
+		}
+	}
+
+	return '';
+}
+
+/** The only statuses this page will print. */
+function opl_cl_statuses() {
+	return array(
+		'documents available'   => 'Documents Available',
+		'partial documentation' => 'Partial Documentation',
+		'partial'               => 'Partial Documentation',
+		'pending'               => 'Pending',
+		'archived'              => 'Archived',
+		'superseded'            => 'Superseded',
+	);
+}
+
+/**
+ * Resolve a stored status to one of the five permitted labels.
+ *
+ * A stored "Verified" / "Passed" / "Approved" / "Certified" is NOT printed -
+ * this page cannot substantiate a test outcome, and the presence of a document
+ * is not evidence that anything passed. Such a value is downgraded to whether a
+ * document is actually attached.
+ */
+function opl_cl_status( $raw, $has_document ) {
+	$key      = strtolower( trim( (string) $raw ) );
+	$allowed  = opl_cl_statuses();
+	$forbidden = array( 'verified', 'passed', 'approved', 'certified', 'compliant' );
+
+	foreach ( $forbidden as $word ) {
+		if ( false !== strpos( $key, $word ) ) {
+			return $has_document ? 'Documents Available' : 'Pending';
+		}
+	}
+
+	if ( isset( $allowed[ $key ] ) ) {
+		return $allowed[ $key ];
+	}
+
+	return $has_document ? 'Documents Available' : 'Pending';
+}
+
+/** Green is reserved for one status, and is never the only signal. */
+function opl_cl_status_tone( $status ) {
+	if ( 'Documents Available' === $status ) {
+		return 'ok';
+	}
+
+	if ( 'Archived' === $status || 'Superseded' === $status ) {
+		return 'past';
+	}
+
+	return 'wait';
+}
+
+/** Rank the sort order: active records first, retired ones last. */
+function opl_cl_status_rank( $status ) {
+	$order = array(
+		'Documents Available'   => 0,
+		'Partial Documentation' => 1,
+		'Pending'               => 2,
+		'Superseded'            => 3,
+		'Archived'              => 4,
+	);
+
+	return isset( $order[ $status ] ) ? $order[ $status ] : 2;
+}
+
+/** Normalise one post into the shape the renderer expects. */
+function opl_cl_record( $post_id ) {
+	$batch = opl_cl_meta( $post_id, 'batch' );
+
+	// A record with no batch identifier cannot be matched to a vial, so it is
+	// not publishable here. Dropping it is deliberate.
+	if ( '' === $batch ) {
+		return null;
+	}
+
+	$view = opl_cl_meta( $post_id, 'view' );
+	$pdf  = opl_cl_meta( $post_id, 'pdf' );
+
+	$view = $view ? esc_url_raw( $view ) : '';
+	$pdf  = $pdf ? esc_url_raw( $pdf ) : '';
+
+	$has_document = ( '' !== $view || '' !== $pdf );
+	$status       = opl_cl_status( opl_cl_meta( $post_id, 'status' ), $has_document );
+
+	$date_raw = opl_cl_meta( $post_id, 'date' );
+	$stamp    = $date_raw ? strtotime( $date_raw ) : 0;
+
+	if ( ! $stamp ) {
+		$stamp    = (int) get_post_time( 'U', true, $post_id );
+		$date_raw = '';
+	}
+
+	$product = opl_cl_meta( $post_id, 'product' );
+
+	if ( '' === $product ) {
+		$product = get_the_title( $post_id );
+	}
+
+	$tests = opl_cl_meta( $post_id, 'tests' );
+	$tests = $tests ? array_values( array_filter( array_map( 'trim', explode( ',', $tests ) ) ) ) : array();
+
+	return array(
+		'id'       => (int) $post_id,
+		'batch'    => $batch,
+		'product'  => $product,
+		'strength' => opl_cl_meta( $post_id, 'strength' ),
+		'status'   => $status,
+		'tone'     => opl_cl_status_tone( $status ),
+		'rank'     => opl_cl_status_rank( $status ),
+		'date'     => $date_raw ? date_i18n( 'F j, Y', $stamp ) : '',
+		'stamp'    => (int) $stamp,
+		'lab'      => opl_cl_meta( $post_id, 'lab' ),
+		'tests'    => $tests,
+		'view'     => $view,
+		'pdf'      => $pdf,
+		'category' => opl_cl_meta( $post_id, 'category' ),
+		'sku'      => opl_cl_meta( $post_id, 'sku' ),
+	);
+}
+
+/** Every published certificate record, normalised and sorted. */
+function opl_cl_records() {
+	static $cache = null;
+
+	if ( null !== $cache ) {
+		return $cache;
+	}
+
+	$cache = array();
+
+	if ( ! function_exists( 'get_posts' ) || ! post_type_exists( opl_cl_post_type() ) ) {
+		return $cache;
+	}
+
+	$ids = get_posts(
+		array(
+			'post_type'        => opl_cl_post_type(),
+			'post_status'      => 'publish',
+			'numberposts'      => 500,
+			'fields'           => 'ids',
+			'orderby'          => 'date',
+			'order'            => 'DESC',
+			'suppress_filters' => false,
+		)
+	);
+
+	foreach ( (array) $ids as $id ) {
+		$record = opl_cl_record( $id );
+
+		if ( $record ) {
+			$cache[] = $record;
+		}
+	}
+
+	// Active records first, then newest first within each tier.
+	usort(
+		$cache,
+		function ( $a, $b ) {
+			if ( $a['rank'] !== $b['rank'] ) {
+				return $a['rank'] - $b['rank'];
+			}
+
+			return $b['stamp'] - $a['stamp'];
+		}
+	);
+
+	return $cache;
+}
+
+/** Normalise a batch ID for comparison: case-insensitive, separators ignored. */
+function opl_cl_norm( $value ) {
+	return preg_replace( '/[^a-z0-9]/', '', strtolower( (string) $value ) );
+}
+
+/**
+ * Find records for a batch ID.
+ *
+ * Exact normalised match first. If nothing matches exactly, records whose batch
+ * ID *contains* the query are returned as candidates - but they are returned as
+ * a multiple-match list, never auto-selected as "the" result, so a near miss
+ * can never be presented as the customer's batch.
+ */
+function opl_cl_lookup( $query ) {
+	$needle = opl_cl_norm( $query );
+
+	if ( '' === $needle ) {
+		return array(
+			'exact'      => array(),
+			'candidates' => array(),
+		);
+	}
+
+	$exact      = array();
+	$candidates = array();
+
+	foreach ( opl_cl_records() as $record ) {
+		$hay = opl_cl_norm( $record['batch'] );
+
+		if ( $hay === $needle ) {
+			$exact[] = $record;
+		} elseif ( false !== strpos( $hay, $needle ) || false !== strpos( $needle, $hay ) ) {
+			$candidates[] = $record;
+		}
+	}
+
+	return array(
+		'exact'      => $exact,
+		'candidates' => $candidates,
+	);
+}
+
+/** Distinct categories present in real records. No invented filters. */
+function opl_cl_categories() {
+	$found = array();
+
+	foreach ( opl_cl_records() as $record ) {
+		if ( '' !== $record['category'] ) {
+			$found[ $record['category'] ] = true;
+		}
+	}
+
+	$list = array_keys( $found );
+	sort( $list );
+
+	return $list;
+}
+
+/** The batch ID the visitor arrived with, if any. Sanitised, length-capped. */
+function opl_cl_requested_batch() {
+	if ( ! isset( $_GET['batch'] ) ) {
+		return '';
+	}
+
+	$raw = wp_unslash( $_GET['batch'] );
+
+	if ( ! is_string( $raw ) ) {
+		return '';
+	}
+
+	// Batch IDs are alphanumeric with hyphens, underscores and slashes. Strip
+	// everything else, collapse whitespace, cap the length.
+	$clean = preg_replace( '/[^A-Za-z0-9\-_\/ ]/', '', $raw );
+	$clean = trim( preg_replace( '/\s+/', ' ', (string) $clean ) );
+
+	return substr( $clean, 0, 64 );
+}
+
+/* -------------------------------------------------------------------------
+ * Rendering helpers
+ * ---------------------------------------------------------------------- */
+
+/** Small inline icon set. Decorative - always aria-hidden. */
+function opl_cl_icon( $name ) {
+	$paths = array(
+		'search' => 'M10 2a8 8 0 1 1-4.9 14.3l-3.4 3.4-1.4-1.4 3.4-3.4A8 8 0 0 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z',
+		'shield' => 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm-1 13-3.5-3.5 1.4-1.4L11 12.2l4.1-4.1 1.4 1.4L11 15Z',
+		'flask'  => 'M9 2h6v2h-1v4.2l4.8 9.3A2 2 0 0 1 17 20.5H7a2 2 0 0 1-1.8-3L10 8.2V4H9V2Zm3 8.4-2.6 5.1h5.2L12 10.4Z',
+		'doc'    => 'M6 2h8l4 4v16H6V2Zm7 1.5V7h3.5L13 3.5ZM8 11h8v2H8v-2Zm0 4h8v2H8v-2Z',
+		'down'   => 'M11 3h2v9.2l3.1-3.1 1.4 1.4L12 16l-5.5-5.5 1.4-1.4L11 12.2V3ZM5 18h14v2H5v-2Z',
+		'alert'  => 'M12 2 1 21h22L12 2Zm1 14v2h-2v-2h2Zm0-7v5h-2V9h2Z',
+		'check'  => 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-1.2 13.6 6-6-1.4-1.4-4.6 4.6-2.2-2.2-1.4 1.4 3.6 3.6Z',
+		'clock'  => 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm1 5h-2v5.4l3.8 3.8 1.4-1.4-3.2-3.2V7Z',
+		'box'    => 'M3 5h18v4H3V5Zm1 6h16v8H4v-8Zm5 2v2h6v-2H9Z',
+		'life'   => 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z',
+	);
+
+	$d = isset( $paths[ $name ] ) ? $paths[ $name ] : $paths['doc'];
+
+	return '<svg class="oplcl-i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' . $d . '"/></svg>';
+}
+
+/** Status pill. Icon + word + colour - never colour alone. */
+function opl_cl_badge( $status, $tone ) {
+	$icon = 'clock';
+
+	if ( 'ok' === $tone ) {
+		$icon = 'check';
+	} elseif ( 'past' === $tone ) {
+		$icon = 'box';
+	}
+
+	return '<span class="oplcl-badge oplcl-badge-' . esc_attr( $tone ) . '">'
+		. opl_cl_icon( $icon )
+		. '<span>' . esc_html( $status ) . '</span></span>';
+}
+
+/** The full batch result card. */
+function opl_cl_result_card( $record ) {
+	$out = '<article class="oplcl-result" data-batch="' . esc_attr( $record['batch'] ) . '">';
+
+	$out .= '<div class="oplcl-result-head">';
+	$out .= '<div><h3 class="oplcl-result-name">' . esc_html( $record['product'] );
+
+	if ( '' !== $record['strength'] ) {
+		$out .= ' <span class="oplcl-strength">' . esc_html( $record['strength'] ) . '</span>';
+	}
+
+	$out .= '</h3>';
+	$out .= '<p class="oplcl-result-batch">Batch ID: <b>' . esc_html( $record['batch'] ) . '</b></p>';
+	$out .= '</div>';
+	$out .= opl_cl_badge( $record['status'], $record['tone'] );
+	$out .= '</div>';
+
+	$facts = array();
+
+	if ( '' !== $record['date'] ) {
+		$facts[] = array( 'Report date', $record['date'] );
+	}
+
+	if ( '' !== $record['lab'] ) {
+		$facts[] = array( 'Document issuer', $record['lab'] );
+	}
+
+	if ( '' !== $record['sku'] ) {
+		$facts[] = array( 'SKU', $record['sku'] );
+	}
+
+	if ( ! empty( $record['tests'] ) ) {
+		$facts[] = array( 'Test categories', implode( ', ', $record['tests'] ) );
+	}
+
+	if ( $facts ) {
+		$out .= '<dl class="oplcl-facts">';
+
+		foreach ( $facts as $fact ) {
+			$out .= '<div><dt>' . esc_html( $fact[0] ) . '</dt><dd>' . esc_html( $fact[1] ) . '</dd></div>';
+		}
+
+		$out .= '</dl>';
+	}
+
+	if ( '' !== $record['view'] || '' !== $record['pdf'] ) {
+		$out .= '<div class="oplcl-result-actions">';
+
+		if ( '' !== $record['view'] ) {
+			$out .= '<a class="oplcl-btn oplcl-btn-primary" href="' . esc_url( $record['view'] ) . '"'
+				. ' rel="noopener noreferrer">' . opl_cl_icon( 'doc' ) . 'View Certificate</a>';
+		}
+
+		if ( '' !== $record['pdf'] ) {
+			$out .= '<a class="oplcl-btn" href="' . esc_url( $record['pdf'] ) . '"'
+				. ' rel="noopener noreferrer" download>' . opl_cl_icon( 'down' ) . 'Download PDF</a>';
+		}
+
+		$out .= '</div>';
+	}
+
+	$out .= '<p class="oplcl-confirm">' . opl_cl_icon( 'alert' )
+		. 'Confirm that the batch ID on the document matches the batch ID on your vial.</p>';
+
+	$out .= '</article>';
+
+	return $out;
+}
+
+/** One card in the browse grid. */
+function opl_cl_library_card( $record, $index ) {
+	$hidden = ( $index >= opl_cl_page_size() ) ? ' hidden' : '';
+
+	$out = '<article class="oplcl-card" data-category="' . esc_attr( $record['category'] ) . '"'
+		. ' data-batch="' . esc_attr( opl_cl_norm( $record['batch'] ) ) . '"' . $hidden . '>';
+
+	$out .= '<h3 class="oplcl-card-name">' . esc_html( $record['product'] );
+
+	if ( '' !== $record['strength'] ) {
+		$out .= ' <span class="oplcl-strength">' . esc_html( $record['strength'] ) . '</span>';
+	}
+
+	$out .= '</h3>';
+	$out .= '<p class="oplcl-card-line">Batch ID: <b>' . esc_html( $record['batch'] ) . '</b></p>';
+
+	if ( '' !== $record['date'] ) {
+		$out .= '<p class="oplcl-card-line">Report date: ' . esc_html( $record['date'] ) . '</p>';
+	}
+
+	$out .= opl_cl_badge( $record['status'], $record['tone'] );
+
+	$href = '' !== $record['view'] ? $record['view'] : $record['pdf'];
+
+	if ( '' !== $href ) {
+		$out .= '<a class="oplcl-card-link" href="' . esc_url( $href ) . '" rel="noopener noreferrer">'
+			. 'View Report<span aria-hidden="true"> &rarr;</span>'
+			. '<span class="oplcl-sr"> for batch ' . esc_html( $record['batch'] ) . '</span></a>';
+	}
+
+	$out .= '</article>';
+
+	return $out;
+}
+
+/* -------------------------------------------------------------------------
+ * Sections
+ * ---------------------------------------------------------------------- */
+
+function opl_cl_hero( $batch ) {
+	$out = '<section class="oplcl-hero">';
+	$out .= '<div class="oplcl-shell">';
+	$out .= '<p class="oplcl-eyebrow">Quality Documentation</p>';
+	$out .= '<h1 class="oplcl-h1">Find Your Batch Certificate</h1>';
+	$out .= '<p class="oplcl-lede">Enter the batch ID printed on your vial or verification card.</p>';
+
+	$out .= '<form class="oplcl-finder" id="oplcl-form" method="get" action="' . esc_url( opl_cl_path() ) . '" role="search">';
+	$out .= '<div class="oplcl-field">';
+	$out .= '<label class="oplcl-label" for="oplcl-batch">Batch ID</label>';
+	$out .= '<div class="oplcl-input-wrap">';
+	$out .= opl_cl_icon( 'search' );
+	$out .= '<input class="oplcl-input" id="oplcl-batch" name="batch" type="search"'
+		. ' value="' . esc_attr( $batch ) . '"'
+		. ' placeholder="Example: OP-250718-BPC" maxlength="64" autocomplete="off"'
+		. ' autocapitalize="characters" spellcheck="false"'
+		. ' aria-describedby="oplcl-help">';
+	$out .= '</div>';
+	$out .= '</div>';
+	$out .= '<button class="oplcl-btn oplcl-btn-primary oplcl-verify" type="submit">Verify Batch</button>';
+	$out .= '</form>';
+	$out .= '<p class="oplcl-help" id="oplcl-help">Use the complete batch ID, including letters and hyphens.</p>';
+
+	$out .= '<ul class="oplcl-signals">';
+	$out .= '<li>' . opl_cl_icon( 'shield' ) . '<b>Batch-specific records</b><span>Documentation is filed per batch, not per product family.</span></li>';
+	$out .= '<li>' . opl_cl_icon( 'flask' ) . '<b>Laboratory documentation</b><span>Certificates and supporting analytical reports, where available.</span></li>';
+	$out .= '<li>' . opl_cl_icon( 'doc' ) . '<b>Research-use transparency</b><span>Records are published as-is, with their issuer and date shown.</span></li>';
+	$out .= '</ul>';
+
+	$out .= '</div></section>';
+
+	return $out;
+}
+
+/**
+ * Search results, rendered server-side so a QR scan with ?batch= works with no
+ * JavaScript at all. The JS layer replaces this region in place.
+ */
+function opl_cl_results( $batch ) {
+	$total = count( opl_cl_records() );
+
+	$out = '<section class="oplcl-results-wrap" id="oplcl-results" aria-labelledby="oplcl-results-title" tabindex="-1">';
+	$out .= '<div class="oplcl-shell">';
+	$out .= '<h2 class="oplcl-sr" id="oplcl-results-title">Search results</h2>';
+	$out .= '<div class="oplcl-state" id="oplcl-state" role="status" aria-live="polite">';
+
+	if ( '' === $batch ) {
+		$out .= '<p class="oplcl-idle">' . opl_cl_icon( 'search' )
+			. 'Enter the batch ID from your vial or verification card.</p>';
+	} else {
+		$hit = opl_cl_lookup( $batch );
+
+		if ( 1 === count( $hit['exact'] ) ) {
+			$out .= opl_cl_result_card( $hit['exact'][0] );
+		} elseif ( count( $hit['exact'] ) > 1 ) {
+			$out .= '<p class="oplcl-multi">' . esc_html( count( $hit['exact'] ) )
+				. ' records share that batch ID. Compare the report date and issuer against your document.</p>';
+
+			foreach ( $hit['exact'] as $record ) {
+				$out .= opl_cl_result_card( $record );
+			}
+		} elseif ( ! empty( $hit['candidates'] ) ) {
+			$out .= '<p class="oplcl-multi">No record matches <b>' . esc_html( $batch )
+				. '</b> exactly. These batch IDs are similar &mdash; check yours character by character before using one.</p>';
+
+			foreach ( $hit['candidates'] as $record ) {
+				$out .= opl_cl_result_card( $record );
+			}
+		} else {
+			$out .= opl_cl_no_result( $batch, $total );
+		}
+	}
+
+	$out .= '</div></div></section>';
+
+	return $out;
+}
+
+/**
+ * The no-result state.
+ *
+ * The wording adapts to reality. While the library holds no published records
+ * at all, telling the customer to re-check their typing would be misleading -
+ * nothing they type can match. Once records exist, the standard message
+ * applies.
+ */
+function opl_cl_no_result( $batch, $total ) {
+	$out = '<div class="oplcl-empty">';
+	$out .= opl_cl_icon( 'alert' );
+
+	if ( 0 === $total ) {
+		$out .= '<h3>Batch documentation is not published yet</h3>';
+		$out .= '<p>This library does not yet hold a public record for any batch, including <b>'
+			. esc_html( $batch ) . '</b>. Our quality team can locate the documentation associated '
+			. 'with your batch directly.</p>';
+	} else {
+		$out .= '<h3>We couldn&rsquo;t locate documentation for that batch ID</h3>';
+		$out .= '<p>No published record matches <b>' . esc_html( $batch )
+			. '</b>. Check the characters on your vial, or contact Quality Support.</p>';
+	}
+
+	$out .= '<a class="oplcl-btn oplcl-btn-primary" href="' . esc_url( opl_cl_support_url() ) . '">Contact Quality Support</a>';
+	$out .= '</div>';
+
+	return $out;
+}
+
+/** The verification illustration. Educational only - never a certificate. */
+function opl_cl_figure() {
+	$id = opl_cl_figure_id();
+
+	if ( ! $id || ! function_exists( 'wp_get_attachment_image' ) ) {
+		return '';
+	}
+
+	// The stored alt text describes a Tirzepatide vial, which is what the
+	// artwork actually shows. Do not relabel it as another compound.
+	$alt = 'Example showing how to match a research vial batch ID with its supporting Certificate of Analysis.';
+
+	// `large` (1024px) plus srcset, never the 1.9 MB full-size original.
+	$img = wp_get_attachment_image(
+		$id,
+		'large',
+		false,
+		array(
+			'class'    => 'oplcl-fig-img',
+			'alt'      => $alt,
+			'loading'  => 'lazy',
+			'decoding' => 'async',
+		)
+	);
+
+	if ( ! $img ) {
+		return '';
+	}
+
+	$out = '<section class="oplcl-figwrap"><div class="oplcl-shell">';
+	$out .= '<figure class="oplcl-fig">';
+	$out .= $img;
+	// The artwork carries a specimen certificate and its own strap lines. The
+	// caption has to disclaim both the values AND the claims, or the page
+	// inherits assertions it cannot support.
+	$out .= '<figcaption><span class="oplcl-fig-tag">Illustrative verification guide</span> '
+		. 'This graphic shows how a batch ID on a vial links to its certificate. The specimen '
+		. 'certificate, batch number, dates, figures and statements shown inside the artwork are '
+		. 'part of the illustration. They are not a laboratory record, they do not describe any '
+		. 'batch, and they are not a statement about testing performed on any product. Published '
+		. 'records appear in the library above.</figcaption>';
+	$out .= '</figure>';
+	$out .= '</div></section>';
+
+	return $out;
+}
+
+/** Browse / filter / paginate the published records. */
+function opl_cl_library() {
+	$records = opl_cl_records();
+	$total   = count( $records );
+
+	$out = '<section class="oplcl-lib" aria-labelledby="oplcl-lib-title"><div class="oplcl-shell">';
+	$out .= '<h2 id="oplcl-lib-title">Browse the Certificate Library</h2>';
+
+	if ( 0 === $total ) {
+		$out .= '<div class="oplcl-empty oplcl-empty-lib">';
+		$out .= opl_cl_icon( 'clock' );
+		$out .= '<h3>Records are being published</h3>';
+		$out .= '<p>Certificate records are added to this library as each batch completes '
+			. 'documentation review. Nothing is listed here until a document exists for that '
+			. 'exact batch, so this page never shows a placeholder record.</p>';
+		$out .= '<p>If you have a vial or verification card in hand, Quality Support can locate '
+			. 'the documentation for your batch.</p>';
+		$out .= '<a class="oplcl-btn oplcl-btn-primary" href="' . esc_url( opl_cl_support_url() ) . '">Contact Quality Support</a>';
+		$out .= '</div></div></section>';
+
+		return $out;
+	}
+
+	$categories = opl_cl_categories();
+
+	$out .= '<div class="oplcl-lib-controls">';
+
+	if ( $categories ) {
+		$out .= '<div class="oplcl-filters" role="group" aria-label="Filter certificates by research division">';
+		$out .= '<button type="button" class="oplcl-chip is-on" data-filter="all" aria-pressed="true">All</button>';
+
+		foreach ( $categories as $category ) {
+			$out .= '<button type="button" class="oplcl-chip" data-filter="' . esc_attr( $category ) . '"'
+				. ' aria-pressed="false">' . esc_html( $category ) . '</button>';
+		}
+
+		$out .= '</div>';
+	}
+
+	$out .= '<div class="oplcl-libsearch">';
+	$out .= '<label class="oplcl-sr" for="oplcl-libsearch">Search the library by batch ID</label>';
+	$out .= '<div class="oplcl-input-wrap">' . opl_cl_icon( 'search' );
+	$out .= '<input class="oplcl-input" id="oplcl-libsearch" type="search" placeholder="Search by batch ID"'
+		. ' maxlength="64" autocomplete="off" spellcheck="false">';
+	$out .= '</div></div>';
+	$out .= '</div>';
+
+	$out .= '<p class="oplcl-count" id="oplcl-count" role="status" aria-live="polite">'
+		. esc_html( $total ) . ' ' . esc_html( _n( 'record', 'records', $total ) ) . '</p>';
+
+	$out .= '<div class="oplcl-grid" id="oplcl-grid">';
+
+	foreach ( $records as $index => $record ) {
+		$out .= opl_cl_library_card( $record, $index );
+	}
+
+	$out .= '</div>';
+
+	if ( $total > opl_cl_page_size() ) {
+		$out .= '<div class="oplcl-more-wrap"><button type="button" class="oplcl-btn oplcl-more" id="oplcl-more">Load More</button></div>';
+	}
+
+	$out .= '<p class="oplcl-nomatch" id="oplcl-nomatch" hidden>No records match that filter or batch ID.</p>';
+	$out .= '</div></section>';
+
+	return $out;
+}
+
+/** Three-step explainer. */
+function opl_cl_how() {
+	$steps = array(
+		array( 'Match Your Batch', 'Enter the batch ID exactly as printed on your vial or verification card.' ),
+		array( 'Open the Report', 'Review the available Certificate of Analysis and related laboratory documents.' ),
+		array( 'Review the Details', 'Confirm the laboratory, report date, document validity, and matching batch ID.' ),
+	);
+
+	$out = '<section class="oplcl-how" aria-labelledby="oplcl-how-title"><div class="oplcl-shell">';
+	$out .= '<h2 id="oplcl-how-title">How Verification Works</h2>';
+	$out .= '<ol class="oplcl-steps">';
+
+	$number = 1;
+
+	foreach ( $steps as $step ) {
+		$out .= '<li><span class="oplcl-step-n" aria-hidden="true">' . $number . '</span>'
+			. '<h3>Step ' . $number . ' &mdash; ' . esc_html( $step[0] ) . '</h3>'
+			. '<p>' . esc_html( $step[1] ) . '</p></li>';
+		$number++;
+	}
+
+	$out .= '</ol></div></section>';
+
+	return $out;
+}
+
+/**
+ * Compact accordions replacing the long educational wall.
+ *
+ * Every entry describes what a field means. None asserts that a given test was
+ * performed on any product, or what any result was.
+ */
+function opl_cl_accordions() {
+	$items = array(
+		array(
+			'Identity',
+			'An identity section states which compound the tested material was found to be, and the '
+				. 'method used to establish it. Read it alongside the batch ID so you know which material '
+				. 'the finding describes.',
+		),
+		array(
+			'Purity',
+			'A purity figure is a measurement produced by a stated method on a stated sample. It is '
+				. 'meaningful only together with that method, the sample reference, and the batch it came '
+				. 'from. A purity number quoted without them describes nothing in particular.',
+		),
+		array(
+			'Peptide Content',
+			'Peptide content describes how much of the labelled compound the tested material contained, '
+				. 'as distinct from purity. The two answer different questions and are reported separately.',
+		),
+		array(
+			'Testing Methods',
+			'Certificates name the analytical method behind each line, commonly HPLC for purity and '
+				. 'LC-MS for identity. Different methods answer different questions, so the method '
+				. 'reference is part of the result, not a footnote.',
+		),
+		array(
+			'Chromatography',
+			'A chromatogram is the raw output of a separation method: peaks plotted against retention '
+				. 'time. Reading it depends on the method, sample preparation, detector and integration '
+				. 'settings, all of which should be stated on the document that carries it.',
+		),
+		array(
+			'Batch Numbers',
+			'The batch ID is the link between a physical vial and a document. If the ID on the '
+				. 'certificate does not match the ID on your vial character for character, the document '
+				. 'describes a different batch and does not apply to what you are holding.',
+		),
+		array(
+			'Document Dates',
+			'A report date fixes when the analysis was reported. Records are kept after they are '
+				. 'replaced rather than deleted, marked Archived or Superseded, so an older document '
+				. 'stays available for the batch it describes.',
+		),
+		array(
+			'Laboratory Information',
+			'Each record names the party that issued it. An issuer may be an outside analytical '
+				. 'laboratory or the supplier of the material. These are not equivalent, so the issuer is '
+				. 'shown as recorded and is never described as independent unless the document itself '
+				. 'establishes that.',
+		),
+	);
+
+	$out = '<section class="oplcl-learn" aria-labelledby="oplcl-learn-title"><div class="oplcl-shell">';
+	$out .= '<div class="oplcl-learn-grid">';
+	$out .= '<div class="oplcl-learn-main">';
+	$out .= '<h2 id="oplcl-learn-title">Understanding Your Certificate</h2>';
+	$out .= '<div class="oplcl-acc">';
+
+	foreach ( $items as $item ) {
+		$out .= '<details class="oplcl-item"><summary><span>' . esc_html( $item[0] ) . '</span></summary>'
+			. '<div class="oplcl-item-body"><p>' . esc_html( $item[1] ) . '</p></div></details>';
+	}
+
+	$out .= '</div>';
+	$out .= '<p class="oplcl-learn-more">More detail on documentation practice: '
+		. '<a href="/quality-standards/">Quality Standards</a> and '
+		. '<a href="/research-library/">Research Library</a>.</p>';
+	$out .= '</div>';
+
+	$out .= opl_cl_support();
+
+	$out .= '</div></div></section>';
+
+	return $out;
+}
+
+/** Quality Support card. */
+function opl_cl_support() {
+	$out = '<aside class="oplcl-support" aria-labelledby="oplcl-support-title">';
+	$out .= opl_cl_icon( 'life' );
+	$out .= '<h2 id="oplcl-support-title">Can&rsquo;t find your batch?</h2>';
+	$out .= '<p>Our quality team can help locate the documentation associated with your batch.</p>';
+	$out .= '<a class="oplcl-btn oplcl-btn-primary" href="' . esc_url( opl_cl_support_url() ) . '">Contact Quality Support</a>';
+	$out .= '<p class="oplcl-support-list">Please include:</p>';
+	$out .= '<ul class="oplcl-support-ul">';
+	$out .= '<li>Product name</li>';
+	$out .= '<li>Complete batch ID</li>';
+	$out .= '<li>Order number, if available</li>';
+	$out .= '<li>A clear photograph of the vial label, if the ID is hard to read</li>';
+	$out .= '</ul>';
+	$out .= '<p class="oplcl-support-note">Please do not send health information. We only need to '
+		. 'identify the batch and its documentation.</p>';
+	$out .= '</aside>';
+
+	return $out;
+}
+
+/** Research-use notice above the footer. */
+function opl_cl_notice() {
+	$out = '<section class="oplcl-ruo" aria-label="Research use notice"><div class="oplcl-shell oplcl-ruo-inner">';
+	$out .= opl_cl_icon( 'alert' );
+	$out .= '<div>';
+	$out .= '<p class="oplcl-ruo-head">For Research Use Only &mdash; Not for Human Consumption</p>';
+	$out .= '<p class="oplcl-ruo-body">Products and supporting documentation are intended solely for '
+		. 'laboratory research use. They are not intended for diagnostic, therapeutic, or human-use '
+		. 'procedures.</p>';
+	$out .= '</div></div></section>';
+
+	return $out;
+}
+
+/** Breadcrumb schema only. No Product, Review, rating or certification markup. */
+function opl_cl_schema() {
+	$home = home_url( '/' );
+	$here = home_url( opl_cl_path() );
+
+	$data = array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'@id'             => $here . '#breadcrumb',
+		'itemListElement' => array(
+			array(
+				'@type'    => 'ListItem',
+				'position' => 1,
+				'name'     => 'Home',
+				'item'     => $home,
+			),
+			array(
+				'@type'    => 'ListItem',
+				'position' => 2,
+				'name'     => 'Certificate Library',
+				'item'     => $here,
+			),
+		),
+	);
+
+	return '<script type="application/ld+json">'
+		. wp_json_encode( $data, JSON_UNESCAPED_SLASHES )
+		. '</script>';
+}
+
+/* -------------------------------------------------------------------------
+ * Styles
+ * ---------------------------------------------------------------------- */
+
+function opl_cl_css() {
+	return '<style id="oplcl-css">'
+	. '#oplcl{--bg:#03040A;--s1:#090D18;--s2:#0D1321;--v:#9A4DFF;--vg:#6E2ABF;'
+	. '--ink:#FFFFFF;--txt:#D2D8E4;--mut:#A7AFC0;--acc:#C9A8FF;--ok:#5BE0A4;'
+	. '--line:rgba(154,77,255,.24);--line2:rgba(190,198,214,.15);'
+	. 'background:var(--bg);color:var(--txt);font-family:inherit;line-height:1.65;'
+	. 'font-size:16px;overflow-x:clip}'
+	. '#oplcl *{box-sizing:border-box}'
+	. '#oplcl p,#oplcl li,#oplcl dd,#oplcl dt{font-size:16px}'
+	. '#oplcl h1,#oplcl h2,#oplcl h3{color:var(--ink);line-height:1.15;margin:0 0 12px;letter-spacing:-.01em}'
+	. '#oplcl a{color:var(--acc)}'
+	. '#oplcl [hidden]{display:none!important}'
+	. '.oplcl-shell{max-width:1180px;margin:0 auto;padding:0 22px}'
+	. '.oplcl-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;'
+	. 'overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}'
+	. '.oplcl-i{width:20px;height:20px;flex:none;fill:currentColor}'
+
+	// Focus.
+	. '#oplcl a:focus-visible,#oplcl button:focus-visible,#oplcl input:focus-visible,'
+	. '#oplcl summary:focus-visible{outline:3px solid var(--acc);outline-offset:3px;border-radius:8px}'
+
+	// Buttons.
+	. '.oplcl-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;'
+	. 'min-height:52px;padding:0 22px;border-radius:10px;border:1px solid var(--line);'
+	. 'background:var(--s2);color:var(--ink);font-size:15px;font-weight:800;'
+	. 'letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:pointer}'
+	. '.oplcl-btn-primary{background:linear-gradient(135deg,var(--v),var(--vg));'
+	. 'border-color:transparent;color:#fff}'
+	. '.oplcl-btn:hover{border-color:var(--v)}'
+
+	// Hero.
+	. '.oplcl-hero{position:relative;padding:44px 0 34px;text-align:center;'
+	. 'background:radial-gradient(ellipse 70% 60% at 50% -10%,rgba(110,42,191,.34),transparent 70%)}'
+	. '.oplcl-eyebrow{margin:0 0 10px;color:var(--acc);font-size:13px;font-weight:800;'
+	. 'letter-spacing:.18em;text-transform:uppercase}'
+	. '.oplcl-h1{font-size:clamp(30px,5.4vw,50px);font-weight:900;margin:0 0 10px}'
+	. '.oplcl-lede{max-width:620px;margin:0 auto 26px;color:var(--txt)}'
+
+	// Finder.
+	. '.oplcl-finder{display:flex;gap:12px;align-items:flex-end;justify-content:center;'
+	. 'flex-wrap:wrap;max-width:760px;margin:0 auto;padding:16px;border-radius:16px;'
+	. 'border:1px solid var(--line);background:var(--s1)}'
+	. '.oplcl-field{flex:1 1 340px;text-align:left}'
+	. '.oplcl-label{display:block;margin-bottom:7px;color:var(--txt);font-size:14px;'
+	. 'font-weight:800;letter-spacing:.08em;text-transform:uppercase}'
+	. '.oplcl-input-wrap{display:flex;align-items:center;gap:10px;padding:0 14px;'
+	. 'border:1px solid var(--line2);border-radius:10px;background:#05070F;'
+	. 'transition:border-color .18s ease,box-shadow .18s ease}'
+	. '.oplcl-input-wrap:focus-within{border-color:var(--v);box-shadow:0 0 0 4px rgba(154,77,255,.2)}'
+	. '.oplcl-input-wrap .oplcl-i{color:var(--mut)}'
+	. '.oplcl-input{flex:1;min-width:0;min-height:52px;border:0;background:transparent;'
+	. 'color:var(--ink);font-size:16px;font-family:inherit;outline:none}'
+	. '.oplcl-input::placeholder{color:#7C8598}'
+	. '.oplcl-verify{flex:0 0 auto}'
+	. '.oplcl-help{max-width:760px;margin:10px auto 0;color:var(--mut);font-size:14px}'
+
+	// Signals.
+	. '.oplcl-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;'
+	. 'max-width:960px;margin:26px auto 0;padding:0;list-style:none}'
+	. '.oplcl-signals li{display:flex;flex-direction:column;align-items:center;gap:4px;'
+	. 'padding:16px 14px;border:1px solid var(--line2);border-radius:12px;background:var(--s1);'
+	. 'text-align:center}'
+	. '.oplcl-signals .oplcl-i{color:var(--acc);width:24px;height:24px;margin-bottom:4px}'
+	. '.oplcl-signals b{color:var(--ink);font-size:16px}'
+	. '.oplcl-signals span{color:var(--mut);font-size:15px;line-height:1.5}'
+
+	// Results.
+	. '.oplcl-results-wrap{padding:26px 0 8px}'
+	. '.oplcl-results-wrap:focus{outline:none}'
+	. '.oplcl-idle{display:flex;align-items:center;justify-content:center;gap:10px;'
+	. 'margin:0;padding:22px;border:1px dashed var(--line2);border-radius:14px;'
+	. 'background:var(--s1);color:var(--mut);text-align:center}'
+	. '.oplcl-idle .oplcl-i{color:var(--mut)}'
+	. '.oplcl-multi{margin:0 0 14px;padding:14px 16px;border-left:3px solid var(--v);'
+	. 'border-radius:0 10px 10px 0;background:rgba(154,77,255,.09);color:var(--txt)}'
+	. '.oplcl-loading{display:flex;align-items:center;justify-content:center;gap:10px;'
+	. 'margin:0;padding:22px;border:1px solid var(--line);border-radius:14px;'
+	. 'background:var(--s1);color:var(--txt)}'
+
+	// Result card.
+	. '.oplcl-result{padding:22px;border:1px solid var(--line);border-radius:16px;'
+	. 'background:linear-gradient(180deg,var(--s2),var(--s1));margin-bottom:14px;'
+	. 'animation:oplcl-in .28s ease both}'
+	. '@keyframes oplcl-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'
+	. '.oplcl-result-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;'
+	. 'flex-wrap:wrap;margin-bottom:16px}'
+	. '.oplcl-result-name{font-size:clamp(21px,3vw,28px);font-weight:900;margin:0 0 4px}'
+	. '.oplcl-strength{color:var(--acc);font-weight:700}'
+	. '.oplcl-result-batch{margin:0;color:var(--mut);font-size:15px}'
+	. '.oplcl-result-batch b{color:var(--txt);font-weight:700;overflow-wrap:anywhere}'
+	. '.oplcl-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
+	. 'gap:14px;margin:0 0 18px;padding:16px 0;border-top:1px solid var(--line2);'
+	. 'border-bottom:1px solid var(--line2)}'
+	. '.oplcl-facts dt{color:var(--mut);font-size:14px;margin-bottom:3px}'
+	. '.oplcl-facts dd{margin:0;color:var(--ink);font-weight:700;overflow-wrap:anywhere}'
+	. '.oplcl-result-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}'
+	. '.oplcl-confirm{display:flex;gap:9px;align-items:flex-start;margin:0;color:var(--mut);font-size:15px}'
+	. '.oplcl-confirm .oplcl-i{color:var(--acc);margin-top:2px}'
+
+	// Badge.
+	. '.oplcl-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;'
+	. 'border-radius:999px;font-size:14px;font-weight:800;border:1px solid;white-space:nowrap}'
+	. '.oplcl-badge .oplcl-i{width:17px;height:17px}'
+	. '.oplcl-badge-ok{color:var(--ok);border-color:rgba(91,224,164,.4);background:rgba(91,224,164,.1)}'
+	. '.oplcl-badge-wait{color:var(--acc);border-color:var(--line);background:rgba(154,77,255,.1)}'
+	. '.oplcl-badge-past{color:var(--mut);border-color:var(--line2);background:rgba(190,198,214,.07)}'
+
+	// Empty states.
+	. '.oplcl-empty{padding:30px 24px;border:1px solid var(--line);border-radius:16px;'
+	. 'background:var(--s1);text-align:center}'
+	. '.oplcl-empty .oplcl-i{width:30px;height:30px;color:var(--acc);margin-bottom:8px}'
+	. '.oplcl-empty h3{font-size:21px;font-weight:900}'
+	. '.oplcl-empty p{max-width:620px;margin:0 auto 12px;color:var(--mut)}'
+	. '.oplcl-empty .oplcl-btn{margin-top:8px}'
+	. '.oplcl-empty-lib{margin-top:8px}'
+
+	// Figure.
+	. '.oplcl-figwrap{padding:26px 0}'
+	. '.oplcl-fig{margin:0;padding:0}'
+	. '.oplcl-fig-img{display:block;width:100%;height:auto;border-radius:16px;'
+	. 'border:1px solid var(--line);background:var(--s1)}'
+	. '.oplcl-fig figcaption{margin-top:12px;color:var(--mut);font-size:15px;line-height:1.6}'
+	. '.oplcl-fig-tag{display:inline-block;margin-right:6px;padding:3px 10px;border-radius:999px;'
+	. 'border:1px solid var(--line);background:rgba(154,77,255,.1);color:var(--acc);'
+	. 'font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}'
+
+	// Library.
+	. '.oplcl-lib{padding:30px 0}'
+	. '.oplcl-lib h2,.oplcl-how h2,.oplcl-learn h2{font-size:clamp(23px,3.4vw,32px);font-weight:900}'
+	. '.oplcl-lib-controls{display:flex;gap:14px;align-items:center;justify-content:space-between;'
+	. 'flex-wrap:wrap;margin:18px 0 14px}'
+	. '.oplcl-filters{display:flex;gap:9px;flex-wrap:wrap}'
+	. '.oplcl-chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line2);'
+	. 'background:var(--s1);color:var(--txt);font-size:15px;font-weight:700;cursor:pointer}'
+	. '.oplcl-chip.is-on{background:linear-gradient(135deg,var(--v),var(--vg));'
+	. 'border-color:transparent;color:#fff}'
+	. '.oplcl-libsearch{flex:1 1 260px;max-width:340px}'
+	. '.oplcl-count{margin:0 0 14px;color:var(--mut);font-size:15px}'
+	. '.oplcl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}'
+	. '.oplcl-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;'
+	. 'padding:20px;border:1px solid var(--line2);border-radius:14px;background:var(--s1);'
+	. 'transition:transform .18s ease,border-color .18s ease}'
+	. '.oplcl-card:hover{transform:translateY(-3px);border-color:var(--line)}'
+	. '.oplcl-card-name{font-size:19px;font-weight:900;margin:0}'
+	. '.oplcl-card-line{margin:0;color:var(--mut);font-size:15px}'
+	. '.oplcl-card-line b{color:var(--txt);overflow-wrap:anywhere}'
+	. '.oplcl-card-link{margin-top:6px;min-height:44px;display:inline-flex;align-items:center;'
+	. 'font-weight:800;text-decoration:none}'
+	. '.oplcl-card-link:hover{text-decoration:underline}'
+	. '.oplcl-more-wrap{display:flex;justify-content:center;margin-top:22px}'
+	. '.oplcl-nomatch{margin-top:16px;padding:18px;border:1px dashed var(--line2);'
+	. 'border-radius:12px;background:var(--s1);color:var(--mut);text-align:center}'
+
+	// How it works.
+	. '.oplcl-how{padding:30px 0}'
+	. '.oplcl-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;'
+	. 'margin:18px 0 0;padding:0;list-style:none}'
+	. '.oplcl-steps li{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--s1)}'
+	. '.oplcl-step-n{display:inline-flex;align-items:center;justify-content:center;'
+	. 'width:38px;height:38px;margin-bottom:12px;border-radius:999px;'
+	. 'background:linear-gradient(135deg,var(--v),var(--vg));color:#fff;font-weight:900;font-size:17px}'
+	. '.oplcl-steps h3{font-size:18px;font-weight:900}'
+	. '.oplcl-steps p{margin:0;color:var(--mut)}'
+
+	// Learn + support.
+	. '.oplcl-learn{padding:30px 0 40px}'
+	. '.oplcl-learn-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);'
+	. 'gap:24px;align-items:start}'
+	. '.oplcl-acc{display:grid;gap:9px;margin-top:16px}'
+	. '.oplcl-item{border:1px solid var(--line2);border-radius:12px;background:var(--s1);overflow:hidden}'
+	. '.oplcl-item summary{display:flex;align-items:center;justify-content:space-between;gap:12px;'
+	. 'min-height:56px;padding:0 18px;color:var(--ink);font-size:17px;font-weight:800;'
+	. 'cursor:pointer;list-style:none}'
+	. '.oplcl-item summary::-webkit-details-marker{display:none}'
+	. '.oplcl-item summary:after{content:"";width:9px;height:9px;flex:none;'
+	. 'border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);'
+	. 'transform:rotate(45deg) translateY(-3px);transition:transform .2s ease}'
+	. '.oplcl-item[open] summary:after{transform:rotate(-135deg) translateY(-1px)}'
+	. '.oplcl-item[open] summary{border-bottom:1px solid var(--line2)}'
+	. '.oplcl-item-body{padding:14px 18px 18px}'
+	. '.oplcl-item-body p{margin:0;color:var(--mut)}'
+	. '.oplcl-learn-more{margin-top:16px;color:var(--mut);font-size:15px}'
+	. '.oplcl-support{padding:26px 22px;border:1px solid var(--line);border-radius:16px;'
+	. 'background:linear-gradient(180deg,rgba(154,77,255,.13),var(--s1))}'
+	. '.oplcl-support .oplcl-i{width:32px;height:32px;color:var(--acc);margin-bottom:8px}'
+	. '.oplcl-support h2{font-size:23px;font-weight:900}'
+	. '.oplcl-support p{color:var(--txt)}'
+	. '.oplcl-support .oplcl-btn{width:100%;margin:6px 0 16px}'
+	. '.oplcl-support-list{margin:0 0 6px;color:var(--txt);font-weight:700}'
+	. '.oplcl-support-ul{margin:0 0 12px;padding-left:20px;color:var(--mut)}'
+	. '.oplcl-support-ul li{margin-bottom:3px}'
+	. '.oplcl-support-note{margin:0;color:var(--mut);font-size:15px}'
+
+	// RUO notice.
+	. '.oplcl-ruo{padding:20px 0;border-top:1px solid var(--line2);background:var(--s2)}'
+	. '.oplcl-ruo-inner{display:flex;gap:14px;align-items:flex-start}'
+	. '.oplcl-ruo .oplcl-i{width:26px;height:26px;color:var(--acc);margin-top:2px}'
+	. '.oplcl-ruo-head{margin:0 0 5px;color:var(--ink);font-size:17px;font-weight:900}'
+	. '.oplcl-ruo-body{margin:0;color:var(--mut)}'
+
+	// Tablet.
+	. '@media(max-width:980px){'
+	. '.oplcl-grid,.oplcl-steps{grid-template-columns:repeat(2,minmax(0,1fr))}'
+	. '.oplcl-learn-grid{grid-template-columns:1fr}'
+	. '}'
+
+	// Mobile. Search stays full width, buttons stay tappable, one column.
+	. '@media(max-width:680px){'
+	. '.oplcl-shell{padding:0 16px}'
+	. '.oplcl-hero{padding:26px 0 22px}'
+	. '.oplcl-finder{padding:14px;gap:10px}'
+	. '.oplcl-field{flex:1 1 100%}'
+	. '.oplcl-verify{width:100%}'
+	. '.oplcl-signals{grid-template-columns:1fr;gap:10px}'
+	. '.oplcl-signals li{flex-direction:row;align-items:flex-start;text-align:left;'
+	. 'display:grid;grid-template-columns:24px 1fr;gap:4px 12px}'
+	. '.oplcl-signals .oplcl-i{grid-row:1/3;margin:0}'
+	. '.oplcl-grid,.oplcl-steps{grid-template-columns:1fr}'
+	. '.oplcl-result{padding:18px}'
+	. '.oplcl-result-head{flex-direction:column;gap:10px}'
+	. '.oplcl-facts{grid-template-columns:1fr;gap:11px}'
+	. '.oplcl-result-actions{flex-direction:column}'
+	. '.oplcl-result-actions .oplcl-btn{width:100%}'
+	. '.oplcl-lib-controls{flex-direction:column;align-items:stretch}'
+	. '.oplcl-libsearch{max-width:none}'
+	. '.oplcl-filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;'
+	. 'scrollbar-width:thin}'
+	. '.oplcl-chip{white-space:nowrap}'
+	. '}'
+
+	// Reduced motion.
+	. '@media(prefers-reduced-motion:reduce){'
+	. '#oplcl *,#oplcl *:before,#oplcl *:after{animation:none!important;transition:none!important}'
+	. '.oplcl-card:hover{transform:none}'
+	. '}'
+	. '</style>';
+}
+
+/* -------------------------------------------------------------------------
+ * Behaviour
+ * ---------------------------------------------------------------------- */
+
+function opl_cl_js() {
+	$endpoint = esc_js( rest_url( 'oligopoly/v1/coa' ) );
+	$path     = esc_js( opl_cl_path() );
+
+	return '<script id="oplcl-js">(function(){'
+	. 'var root=document.getElementById("oplcl");if(!root)return;'
+	. 'var form=document.getElementById("oplcl-form");'
+	. 'var input=document.getElementById("oplcl-batch");'
+	. 'var state=document.getElementById("oplcl-state");'
+	. 'var wrap=document.getElementById("oplcl-results");'
+	. 'var ENDPOINT="' . $endpoint . '";'
+	. 'var PATH="' . $path . '";'
+
+	// Trim, collapse inner spaces, uppercase. Accepts any capitalisation.
+	. 'function clean(v){return String(v||"").replace(/\s+/g," ").trim().toUpperCase();}'
+	. 'function esc(v){return String(v==null?"":v).replace(/[&<>"\']/g,function(c){'
+	. 'return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","\'":"&#39;"}[c];});}'
+
+	// Search happened -> keep it out of the index, keep the canonical clean.
+	. 'function setUrl(q){if(!window.history||!history.replaceState)return;'
+	. 'history.replaceState(null,"",q?PATH+"?batch="+encodeURIComponent(q):PATH);}'
+
+	. 'function loading(){state.innerHTML=\'<p class="oplcl-loading">Searching documentation&hellip;</p>\';}'
+
+	. 'function render(html){state.innerHTML=html;}'
+
+	. 'function noResult(q,total){'
+	. 'var h=\'<div class="oplcl-empty">\';'
+	. 'if(total===0){h+="<h3>Batch documentation is not published yet</h3>"'
+	. '+"<p>This library does not yet hold a public record for any batch, including <b>"+esc(q)'
+	. '+"</b>. Our quality team can locate the documentation associated with your batch directly.</p>";}'
+	. 'else{h+="<h3>We couldn\u2019t locate documentation for that batch ID</h3>"'
+	. '+"<p>No published record matches <b>"+esc(q)+"</b>. Check the characters on your vial, '
+	. 'or contact Quality Support.</p>";}'
+	. 'h+=\'<a class="oplcl-btn oplcl-btn-primary" href="/contact/">Contact Quality Support</a></div>\';'
+	. 'return h;}'
+
+	. 'function badge(status){'
+	. 'var tone=status==="Documents Available"?"ok":(status==="Archived"||status==="Superseded"?"past":"wait");'
+	. 'return \'<span class="oplcl-badge oplcl-badge-\'+tone+\'"><span>\'+esc(status)+"</span></span>";}'
+
+	// Only the five permitted labels are ever shown, and a document is never
+	// read as evidence of a result.
+	. 'function safeStatus(raw,hasDoc){'
+	. 'var s=String(raw||"").toLowerCase();'
+	. 'var bad=["verified","passed","approved","certified","compliant"];'
+	. 'for(var i=0;i<bad.length;i++){if(s.indexOf(bad[i])>-1)return hasDoc?"Documents Available":"Pending";}'
+	. 'var ok={"documents available":"Documents Available","partial documentation":"Partial Documentation",'
+	. '"partial":"Partial Documentation","pending":"Pending","archived":"Archived","superseded":"Superseded"};'
+	. 'return ok[s]||(hasDoc?"Documents Available":"Pending");}'
+
+	// The record schema of op_coa_record could not be inspected (the post type
+	// is empty), so read each field through a list of likely key names.
+	. 'function pick(o,keys){for(var i=0;i<keys.length;i++){var v=o[keys[i]];'
+	. 'if(v!=null&&String(v).trim()!=="")return String(v).trim();}return "";}'
+
+	. 'function card(r){'
+	. 'var batch=pick(r,["batch_id","batch","lot_number","lot"]);'
+	. 'var name=pick(r,["product_name","product","title"]);'
+	. 'var str=pick(r,["strength","labeled_amount","label_amount"]);'
+	. 'var date=pick(r,["report_date","issue_date","date_reported"]);'
+	. 'var lab=pick(r,["testing_laboratory","laboratory","document_issuer","issuer"]);'
+	. 'var view=pick(r,["certificate_url","view_url","document_url"]);'
+	. 'var pdf=pick(r,["pdf_url","pdf","document_pdf"]);'
+	. 'var tests=pick(r,["test_categories","tests"]);'
+	. 'var status=safeStatus(pick(r,["document_status","status"]),!!(view||pdf));'
+	. 'var h=\'<article class="oplcl-result">\';'
+	. 'h+=\'<div class="oplcl-result-head"><div><h3 class="oplcl-result-name">\'+esc(name)'
+	. '+(str?\' <span class="oplcl-strength">\'+esc(str)+"</span>":"")+"</h3>";'
+	. 'h+=\'<p class="oplcl-result-batch">Batch ID: <b>\'+esc(batch)+"</b></p></div>"+badge(status)+"</div>";'
+	. 'var f="";'
+	. 'if(date)f+="<div><dt>Report date</dt><dd>"+esc(date)+"</dd></div>";'
+	. 'if(lab)f+="<div><dt>Document issuer</dt><dd>"+esc(lab)+"</dd></div>";'
+	. 'if(tests)f+="<div><dt>Test categories</dt><dd>"+esc(tests)+"</dd></div>";'
+	. 'if(f)h+=\'<dl class="oplcl-facts">\'+f+"</dl>";'
+	. 'if(view||pdf){h+=\'<div class="oplcl-result-actions">\';'
+	. 'if(view)h+=\'<a class="oplcl-btn oplcl-btn-primary" rel="noopener noreferrer" href="\'+esc(view)+\'">View Certificate</a>\';'
+	. 'if(pdf)h+=\'<a class="oplcl-btn" rel="noopener noreferrer" download href="\'+esc(pdf)+\'">Download PDF</a>\';'
+	. 'h+="</div>";}'
+	. 'h+=\'<p class="oplcl-confirm">Confirm that the batch ID on the document matches the batch ID on your vial.</p>\';'
+	. 'return h+"</article>";}'
+
+	. 'function search(q,scroll){'
+	. 'q=clean(q);if(!q){return;}'
+	. 'input.value=q;setUrl(q);loading();'
+	. 'if(scroll&&wrap){wrap.scrollIntoView({block:"start",behavior:'
+	. '(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)?"auto":"smooth"});}'
+	. 'fetch(ENDPOINT+"?batch="+encodeURIComponent(q),{credentials:"omit"})'
+	. '.then(function(r){return r.json();})'
+	. '.then(function(d){'
+	. 'var recs=(d&&d.records)||[];'
+	. 'if(!recs.length){render(noResult(q,root.getAttribute("data-total")|0));return;}'
+	// Exact matches only are presented as the result. Anything else is listed
+	// as a candidate set - never auto-selected.
+	. 'var norm=function(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]/g,"");};'
+	. 'var want=norm(q);'
+	. 'var exact=recs.filter(function(r){'
+	. 'return norm(pick(r,["batch_id","batch","lot_number","lot"]))===want;});'
+	. 'var list=exact.length?exact:recs;'
+	. 'var head="";'
+	. 'if(!exact.length){head=\'<p class="oplcl-multi">No record matches <b>\'+esc(q)'
+	. '+"</b> exactly. These batch IDs are similar &mdash; check yours character by character '
+	. 'before using one.</p>";}'
+	. 'else if(exact.length>1){head=\'<p class="oplcl-multi">\'+exact.length'
+	. '+" records share that batch ID. Compare the report date and issuer against your document.</p>";}'
+	. 'render(head+list.map(card).join(""));'
+	. '})'
+	. '.catch(function(){render(\'<div class="oplcl-empty"><h3>The lookup is temporarily unavailable</h3>\''
+	. '+"<p>Please try again, or contact Quality Support with your batch ID.</p>"'
+	. '+\'<a class="oplcl-btn oplcl-btn-primary" href="/contact/">Contact Quality Support</a></div>\');});'
+	. '}'
+
+	. 'if(form){form.addEventListener("submit",function(e){e.preventDefault();search(input.value,true);});}'
+
+	// A QR link that carries ?batch= runs the search and scrolls to it. The
+	// server already rendered the same answer, so this only upgrades it.
+	. 'var params=new URLSearchParams(location.search);'
+	. 'var initial=params.get("batch");'
+	. 'if(initial){search(initial,true);}'
+
+	// Library filtering, batch search and Load More.
+	. 'var grid=document.getElementById("oplcl-grid");'
+	. 'if(grid){'
+	. 'var cards=[].slice.call(grid.querySelectorAll(".oplcl-card"));'
+	. 'var chips=[].slice.call(document.querySelectorAll(".oplcl-chip"));'
+	. 'var libq=document.getElementById("oplcl-libsearch");'
+	. 'var more=document.getElementById("oplcl-more");'
+	. 'var count=document.getElementById("oplcl-count");'
+	. 'var none=document.getElementById("oplcl-nomatch");'
+	. 'var PAGE=' . (int) opl_cl_page_size() . ';'
+	. 'var shown=PAGE,filter="all",query="";'
+	. 'function matches(c){'
+	. 'var okCat=filter==="all"||c.getAttribute("data-category")===filter;'
+	. 'var okQ=!query||(c.getAttribute("data-batch")||"").indexOf(query)>-1;'
+	. 'return okCat&&okQ;}'
+	. 'function apply(){'
+	. 'var n=0,vis=0;'
+	. 'cards.forEach(function(c){'
+	. 'if(!matches(c)){c.hidden=true;return;}'
+	. 'n++;if(n<=shown){c.hidden=false;vis++;}else{c.hidden=true;}});'
+	. 'if(count)count.textContent=n+" "+(n===1?"record":"records");'
+	. 'if(none)none.hidden=n>0;'
+	. 'if(more)more.hidden=n<=shown;'
+	. '}'
+	. 'chips.forEach(function(b){b.addEventListener("click",function(){'
+	. 'chips.forEach(function(x){x.classList.remove("is-on");x.setAttribute("aria-pressed","false");});'
+	. 'b.classList.add("is-on");b.setAttribute("aria-pressed","true");'
+	. 'filter=b.getAttribute("data-filter");shown=PAGE;apply();});});'
+	. 'if(libq){libq.addEventListener("input",function(){'
+	. 'query=libq.value.toLowerCase().replace(/[^a-z0-9]/g,"");shown=PAGE;apply();});}'
+	. 'if(more){more.addEventListener("click",function(){shown+=PAGE;apply();});}'
+	. 'apply();'
+	. '}'
+	. '})();</script>';
+}
+
+/* -------------------------------------------------------------------------
+ * Shortcode
+ * ---------------------------------------------------------------------- */
+
+add_shortcode( 'opl_coa_library', 'opl_cl_render' );
+
+function opl_cl_render() {
+	$batch = opl_cl_requested_batch();
+	$total = count( opl_cl_records() );
+
+	$out = opl_cl_css();
+	$out .= '<div id="oplcl" data-total="' . (int) $total . '">';
+	$out .= opl_cl_hero( $batch );
+	$out .= opl_cl_results( $batch );
+	$out .= opl_cl_figure();
+	$out .= opl_cl_library();
+	$out .= opl_cl_how();
+	$out .= opl_cl_accordions();
+	$out .= opl_cl_notice();
+	$out .= '</div>';
+	$out .= opl_cl_schema();
+	$out .= opl_cl_js();
+
+	return $out;
+}
+
+/* -------------------------------------------------------------------------
+ * SEO
+ * ---------------------------------------------------------------------- */
+
+/** True only on the page that hosts the library. */
+function opl_cl_is_page() {
+	return ( function_exists( 'is_page' ) && is_page( opl_cl_page_id() ) );
+}
+
+add_filter( 'pre_get_document_title', 'opl_cl_title', 99 );
+
+function opl_cl_title( $title ) {
+	if ( ! opl_cl_is_page() ) {
+		return $title;
+	}
+
+	return 'Certificate of Analysis Library | Verify Research Peptide Batches | OligoPoly Laboratories';
+}
+
+// Rank Math owns the meta description on this site.
+add_filter( 'rank_math/frontend/description', 'opl_cl_description', 99 );
+add_filter( 'rank_math/frontend/title', 'opl_cl_title', 99 );
+
+function opl_cl_description( $description ) {
+	if ( ! opl_cl_is_page() ) {
+		return $description;
+	}
+
+	return 'Search OligoPoly Laboratories batch documentation and review available '
+		. 'Certificates of Analysis and supporting laboratory reports.';
+}
+
+/**
+ * A search is a view of one page, not a new page.
+ *
+ * `?batch=` is marked noindex,follow so lookups cannot spawn an indexable URL
+ * per batch. The canonical stays on the clean path, so link equity and existing
+ * QR codes are unaffected. Library filters never touch the URL at all.
+ */
+add_action( 'wp_head', 'opl_cl_robots', 1 );
+
+function opl_cl_robots() {
+	if ( ! opl_cl_is_page() || ! isset( $_GET['batch'] ) ) {
+		return;
+	}
+
+	echo '<meta name="robots" content="noindex,follow">' . "\n";
+	echo '<link rel="canonical" href="' . esc_url( home_url( opl_cl_path() ) ) . '">' . "\n";
+}
+
+add_filter( 'rank_math/frontend/canonical', 'opl_cl_canonical', 99 );
+
+function opl_cl_canonical( $canonical ) {
+	if ( ! opl_cl_is_page() ) {
+		return $canonical;
+	}
+
+	return home_url( opl_cl_path() );
+}

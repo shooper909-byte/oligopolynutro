@@ -235,3 +235,34 @@ WordPress connection used here reaches pages, posts and media only.
 
 Full write-up, including where each grid lives:
 [PRODUCT-CARD-FACTS.md](PRODUCT-CARD-FACTS.md)
+
+---
+
+## 2026-08-23 — Certificate Library redesign, `/research-peptides-with-coa/` (page 1652)
+
+**Built and tested. NOT deployed.** Staged for review per the brief; see
+`docs/COA-LIBRARY.md` for the full report.
+
+Rebuilds the page as a QR-first batch finder: one H1, a labelled batch field and
+Verify button above the fold on a 390px phone, server-rendered results,
+`?batch=` deep links, an 8-item accordion replacing a 2,600-word essay, and a
+Quality Support path from every dead end. Page height drops 77% on desktop and
+82% on mobile; two H1s become one; the cyan/teal palette becomes brand violet.
+
+**The page publishes no certificate records, because the site has none.** Both
+COA post types are empty, both lookup endpoints return nothing, and the media
+library holds zero PDFs across 692 attachments. The build reads
+`op_coa_record` and renders whatever is there — currently an honest "records are
+being published" state. The mockup's BPC-157 / TB-500 / KPV cards were not
+shipped; publishing them would have invented batch numbers, dates and statuses.
+
+Open question for the owner: the supplied verification graphic has a specimen
+certificate, a signature, purity figures and the strap lines "All products are
+3rd-party tested" and "TRUSTED FOR SAFETY" baked into the image, none of which
+the current records support. Captioned and switchable, but it needs a decision —
+`docs/COA-LIBRARY.md` §9a.
+
+- `wordpress/coa-library-page.php` — the build, `[opl_coa_library]`
+- `wordpress/coa-library-page.wpcode.txt` — paste-ready
+- `wordpress/coa-library-page.test.js` — 125/125 passing, lowest contrast 8.42:1
+- `wordpress/backup/page-1652-*.BEFORE.html` — rollback
