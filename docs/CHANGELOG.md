@@ -354,3 +354,25 @@ real permalink, but only when the id resolves to a published product. This also
 gained a control — the homepage went 7 → 8, because the repaired link resolves.
 The first regex used `#` as its delimiter, which the `&#038;` entity terminated;
 caught by the suite. Cart-button suite now 40/40.
+
+**Update, same day —** category cleanup (items 1-4).
+
+*Footer.* `wordpress/footer-shop-links.php` repoints the Shop column from the
+five retired supplement categories (all serving HTTP 410) to categories that
+hold products. Candidates are verified at render time and skipped if empty, and
+if none qualify the footer is left exactly as it was rather than emptied.
+30/30 tests; 231-byte delta against the real homepage.
+
+*Stacks shelf.* `/product-category/research-stacks/` is linked as "Research
+Stacks" from 11 pages and was empty. The 4 curated stacks and 3 build-your-own
+bundles now file there — 7 products. Single-compound kits do not: a six-pack of
+one compound is a kit, not a stack.
+
+*Deletion sweep.* The migration now deletes empty, unreferenced product
+categories. 17 slugs are protected: the 7 it fills, the 5 retired ones serving
+410 (deleting the term would downgrade a deliberate 410 to an accidental 404),
+4 still linked from catalogue cards, and uncategorized. The sweep re-verifies
+at run time rather than trusting a captured list — and that matters:
+`research-catalog` reports `count = 0` but actually holds 7 products, so it is
+skipped. 48 deleted, not the 49 the cached counts suggested. Tests cover the
+stale-count case, child-term orphaning and the protection list. 93/93.

@@ -72,6 +72,63 @@ function opl_pcat_umbrella() {
 }
 
 /**
+ * Multi-vial products also belong on the "Stacks" shelf.
+ *
+ * `/product-category/research-stacks/` is linked as "Research Stacks" from a
+ * navigation row on 11 pages and is currently empty - a sitewide dead end.
+ * Curated stacks and build-your-own bundles are both multi-vial configurable
+ * products, which is what a customer clicking "Stacks" is looking for, so both
+ * go here. Single-compound kits do not: a six-pack of one compound is a kit,
+ * not a stack.
+ */
+function opl_pcat_stacks_slug() {
+	return 'research-stacks';
+}
+
+/**
+ * Terms that must never be deleted by the sweep below, whatever their count.
+ *
+ *   - the six this migration fills
+ *   - `research-stacks`, filled here too
+ *   - the five retired supplement categories: they return HTTP 410 Gone on
+ *     purpose, which is the correct way to retire a URL. Deleting the term
+ *     would turn a deliberate 410 into an accidental 404 and lose that signal
+ *   - four categories still linked from product cards on /research-catalog/.
+ *     They are empty and no product fits them, but deleting a term something
+ *     links to trades an empty page for a 404, which is worse. They need the
+ *     card markup changed first - a content decision, not a cleanup
+ *   - `uncategorized`, which WordPress requires
+ */
+function opl_pcat_protected() {
+	return array(
+		// Filled by this migration.
+		'metabolic-research',
+		'cellular-research',
+		'longevity-research',
+		'cognitive-research',
+		'research-compounds',
+		'research-products',
+		'research-stacks',
+
+		// Retired on purpose, serving 410.
+		'vitamins',
+		'longevity',
+		'performance',
+		'cognitive-support',
+		'wellness',
+
+		// Still linked from catalogue cards.
+		'growth-hormone-research',
+		'immune-research',
+		'recovery-research',
+		'research-blends-cat',
+
+		// WordPress default.
+		'uncategorized',
+	);
+}
+
+/**
  * Research area by stack name, where contents cannot distinguish them.
  *
  * Keyed by a lowercase substring of the product name.
@@ -94,15 +151,17 @@ function opl_pcat_research_slugs() {
 function opl_pcat_plan_for( $product ) {
 	$name = strtolower( $product->get_name() );
 
-	// Build-your-own bundles span everything; umbrella only.
+	// Build-your-own bundles span every research area by design, so they get no
+	// area of their own - filing them under all four would put the same three
+	// bundles at the top of every category page. They are stacks, though.
 	if ( false !== strpos( $name, 'build your research bundle' ) ) {
-		return opl_pcat_umbrella();
+		return array_merge( opl_pcat_umbrella(), array( opl_pcat_stacks_slug() ) );
 	}
 
 	// A named stack states its own area.
 	foreach ( opl_pcat_stack_map() as $needle => $slugs ) {
 		if ( false !== strpos( $name, $needle ) ) {
-			return array_merge( $slugs, opl_pcat_umbrella() );
+			return array_merge( $slugs, opl_pcat_umbrella(), array( opl_pcat_stacks_slug() ) );
 		}
 	}
 
@@ -257,6 +316,110 @@ function opl_pcat_run() {
 		wc_delete_product_transients();
 	}
 
+	$deleted = opl_pcat_sweep_unused();
+
 	update_option( 'opl_pcat_log', $log, false );
+	update_option( 'opl_pcat_deleted', $deleted, false );
 	update_option( 'opl_pcat_done', gmdate( 'c' ), false );
+}
+
+/**
+ * Delete product categories that are empty, unprotected and unreferenced.
+ *
+ * The site carries 66 product categories, of which 64 were empty - sediment
+ * from an earlier supplement catalogue (gut-health, sleep-support,
+ * daily-foundation) and an abandoned taxonomy plan (concentration-reference-
+ * sets, orii-research-collections). There are also straight duplicates:
+ * `research-catalog` is a second term also named "Research Compounds", and
+ * there are pairs like `cellular-longevity` / `cellular-longevity-2` and
+ * `support-products` / `support-products-support-products`.
+ *
+ * This is the only destructive operation in the file, so it re-verifies
+ * everything at run time rather than trusting a list captured earlier:
+ *
+ *   1. the term is not in opl_pcat_protected()
+ *   2. it holds zero products, counted directly rather than from the cached
+ *      `count` column, which was already observed to be out of step
+ *   3. it has no child terms, so no hierarchy is orphaned
+ *   4. it is not the default category
+ *
+ * Every deleted term is recorded in `opl_pcat_deleted` with its name, slug,
+ * id and parent, which is enough to recreate any of them by hand.
+ *
+ * Runs AFTER the assignment above, so a term this migration just filled can
+ * never be swept.
+ */
+function opl_pcat_sweep_unused() {
+	$protected = opl_pcat_protected();
+	$deleted   = array();
+
+	$terms = get_terms(
+		array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => false,
+		)
+	);
+
+	if ( is_wp_error( $terms ) ) {
+		return $deleted;
+	}
+
+	$default = (int) get_option( 'default_product_cat' );
+
+	foreach ( $terms as $term ) {
+		if ( in_array( $term->slug, $protected, true ) ) {
+			continue;
+		}
+
+		if ( (int) $term->term_id === $default ) {
+			continue;
+		}
+
+		// Count products directly. `$term->count` proved unreliable on this
+		// site, and deleting on the strength of a stale zero would lose a
+		// category that actually holds products.
+		$in_use = get_posts(
+			array(
+				'post_type'        => 'product',
+				'post_status'      => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+				'numberposts'      => 1,
+				'fields'           => 'ids',
+				'suppress_filters' => false,
+				'tax_query'        => array(
+					array(
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => (int) $term->term_id,
+						'include_children' => true,
+					),
+				),
+			)
+		);
+
+		if ( ! empty( $in_use ) ) {
+			continue;
+		}
+
+		// Never orphan a child term.
+		$children = get_term_children( (int) $term->term_id, 'product_cat' );
+
+		if ( ! is_wp_error( $children ) && ! empty( $children ) ) {
+			continue;
+		}
+
+		$record = array(
+			'id'     => (int) $term->term_id,
+			'name'   => $term->name,
+			'slug'   => $term->slug,
+			'parent' => (int) $term->parent,
+		);
+
+		$result = wp_delete_term( (int) $term->term_id, 'product_cat' );
+
+		if ( true === $result ) {
+			$deleted[] = $record;
+		}
+	}
+
+	return $deleted;
 }

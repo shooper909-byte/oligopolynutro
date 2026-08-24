@@ -131,16 +131,16 @@ $EXPECTED = array(
 	3470 => array( 'metabolic-research', 'research-compounds', 'research-products' ),
 	3472 => array( 'metabolic-research', 'research-compounds', 'research-products' ),
 
-	// Named stacks take their own stated area.
-	3474 => array( 'metabolic-research', 'research-compounds', 'research-products' ),
-	3477 => array( 'cellular-research', 'research-compounds', 'research-products' ),
-	3480 => array( 'cognitive-research', 'research-compounds', 'research-products' ),
-	3483 => array( 'cellular-research', 'longevity-research', 'research-compounds', 'research-products' ),
+	// Named stacks take their own stated area, plus the Stacks shelf.
+	3474 => array( 'metabolic-research', 'research-compounds', 'research-products', 'research-stacks' ),
+	3477 => array( 'cellular-research', 'research-compounds', 'research-products', 'research-stacks' ),
+	3480 => array( 'cognitive-research', 'research-compounds', 'research-products', 'research-stacks' ),
+	3483 => array( 'cellular-research', 'longevity-research', 'research-compounds', 'research-products', 'research-stacks' ),
 
-	// Build-your-own spans everything: umbrella only.
-	3447 => array( 'research-compounds', 'research-products' ),
-	3450 => array( 'research-compounds', 'research-products' ),
-	3452 => array( 'research-compounds', 'research-products' ),
+	// Build-your-own spans every area, so no area of its own - but it is a stack.
+	3447 => array( 'research-compounds', 'research-products', 'research-stacks' ),
+	3450 => array( 'research-compounds', 'research-products', 'research-stacks' ),
+	3452 => array( 'research-compounds', 'research-products', 'research-stacks' ),
 );
 
 foreach ( $EXPECTED as $id => $want ) {
@@ -183,12 +183,157 @@ foreach ( array( 'metabolic-research', 'cellular-research', 'longevity-research'
 	ok( "category $slug gains sellable products", ! empty( $coverage[ $slug ] ), 'still empty' );
 }
 
+/* The sitewide "Research Stacks" nav link must stop being a dead end. */
+ok( 'research-stacks gains the multi-vial products', ( $coverage['research-stacks'] ?? 0 ) === 7,
+	'got ' . ( $coverage['research-stacks'] ?? 0 ) );
+
+/* A single-compound kit is a kit, not a stack. */
+foreach ( array( 3454, 3457, 3459, 3463, 3465, 3468, 3470, 3472 ) as $id ) {
+	ok( "kit $id is not filed as a stack",
+		! in_array( 'research-stacks', opl_pcat_plan_for( wc_get_product( $id ) ), true ) );
+}
+
+/* --------------------------------------------- deletion sweep protections */
+
+$protected = opl_pcat_protected();
+
+// Everything this migration fills must be un-deletable.
+foreach ( array( 'metabolic-research', 'cellular-research', 'longevity-research',
+	'cognitive-research', 'research-compounds', 'research-products', 'research-stacks' ) as $slug ) {
+	ok( "sweep protects $slug (filled by this migration)", in_array( $slug, $protected, true ) );
+}
+
+// The five retired categories serve 410 deliberately; deleting the term would
+// downgrade that to an accidental 404.
+foreach ( array( 'vitamins', 'longevity', 'performance', 'cognitive-support', 'wellness' ) as $slug ) {
+	ok( "sweep protects retired $slug (serves 410)", in_array( $slug, $protected, true ) );
+}
+
+// Four are still linked from catalogue cards; deleting them trades an empty
+// page for a 404.
+foreach ( array( 'growth-hormone-research', 'immune-research', 'recovery-research', 'research-blends-cat' ) as $slug ) {
+	ok( "sweep protects linked $slug", in_array( $slug, $protected, true ) );
+}
+
+ok( 'sweep protects uncategorized', in_array( 'uncategorized', $protected, true ) );
+
+// Sediment must NOT be protected, or the cleanup does nothing.
+foreach ( array( 'gut-health', 'sleep-support', 'daily-foundation', 'starter-packs',
+	'research-catalog', 'cellular-longevity-2', 'support-products-support-products' ) as $slug ) {
+	ok( "sweep will remove unused $slug", ! in_array( $slug, $protected, true ) );
+}
+
+ok( 'protection list has no duplicates', count( $protected ) === count( array_unique( $protected ) ) );
+ok( 'protection list covers every slug the plans use', ( function () use ( $protected ) {
+	global $CONTAINERS;
+
+	foreach ( array_keys( $CONTAINERS ) as $id ) {
+		foreach ( opl_pcat_plan_for( wc_get_product( $id ) ) as $slug ) {
+			if ( ! in_array( $slug, $protected, true ) ) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+} )(), 'a category a product is filed into could be swept' );
+
 echo "\nResulting category sizes:\n";
 ksort( $coverage );
 
 foreach ( $coverage as $slug => $n ) {
 	echo sprintf( "  %-22s %d\n", $slug, $n );
 }
+
+/* ------------------------------------------- the destructive sweep itself */
+
+/**
+ * The sweep must never trust `$term->count`. `research-catalog` reports
+ * count = 0 on this site yet holds 7 products; deleting it on the strength of
+ * that stale zero would lose a category that is in use.
+ */
+$GLOBALS['opl_terms'] = array(
+	// slug => array( term_id, cached count, REAL product count, child count )
+	'gut-health'         => array( 801, 0, 0, 0 ),
+	'sleep-support'      => array( 802, 0, 0, 0 ),
+	'research-catalog'   => array( 594, 0, 7, 0 ),   // stale zero, really in use
+	'metabolic-research' => array( 198, 0, 13, 0 ),  // protected AND in use
+	'vitamins'           => array( 300, 0, 0, 0 ),   // protected, serves 410
+	'parent-with-child'  => array( 900, 0, 0, 2 ),   // must not be orphaned
+);
+
+$GLOBALS['opl_deleted'] = array();
+
+function get_terms( $args ) {
+	$out = array();
+
+	foreach ( $GLOBALS['opl_terms'] as $slug => $d ) {
+		$out[] = (object) array(
+			'term_id' => $d[0],
+			'slug'    => $slug,
+			'name'    => $slug,
+			'parent'  => 0,
+			'count'   => $d[1],
+		);
+	}
+
+	return $out;
+}
+
+function get_option( $k, $default = false ) {
+	return 'default_product_cat' === $k ? 15 : $default; }
+
+/** Reports the REAL product count, which is what the sweep must rely on. */
+function get_posts( $args ) {
+	$want = (int) $args['tax_query'][0]['terms'];
+
+	foreach ( $GLOBALS['opl_terms'] as $d ) {
+		if ( $d[0] === $want ) {
+			return $d[2] > 0 ? array( 1 ) : array();
+		}
+	}
+
+	return array();
+}
+
+function get_term_children( $id, $tax ) {
+	foreach ( $GLOBALS['opl_terms'] as $d ) {
+		if ( $d[0] === $id ) {
+			return array_fill( 0, $d[3], 1 );
+		}
+	}
+
+	return array();
+}
+
+function wp_delete_term( $id, $tax ) {
+	$GLOBALS['opl_deleted'][] = $id;
+
+	return true;
+}
+
+$swept = opl_pcat_sweep_unused();
+$ids   = $GLOBALS['opl_deleted'];
+
+ok( 'sweep deletes genuinely unused terms',
+	in_array( 801, $ids, true ) && in_array( 802, $ids, true ) );
+ok( 'sweep SKIPS a term with a stale zero count but real products',
+	! in_array( 594, $ids, true ), 'research-catalog would have been deleted' );
+ok( 'sweep skips protected terms in use', ! in_array( 198, $ids, true ) );
+ok( 'sweep skips protected terms serving 410', ! in_array( 300, $ids, true ) );
+ok( 'sweep never orphans a child term', ! in_array( 900, $ids, true ) );
+ok( 'sweep deleted exactly the two it should', 2 === count( $ids ), implode( ',', $ids ) );
+ok( 'sweep records enough to recreate each term', ( function () use ( $swept ) {
+	foreach ( $swept as $r ) {
+		foreach ( array( 'id', 'name', 'slug', 'parent' ) as $k ) {
+			if ( ! array_key_exists( $k, $r ) ) {
+				return false;
+			}
+		}
+	}
+
+	return count( $swept ) > 0;
+} )() );
 
 echo "\n$PASS/" . ( $PASS + count( $FAIL ) ) . " passed\n";
 
