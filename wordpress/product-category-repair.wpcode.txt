@@ -40,10 +40,10 @@
  * SAFETY
  * ------
  *   - Terms are APPENDED, with exactly one exception: "Uncategorized" is
- *     removed from a product that just gained a real category in the same run,
- *     because all 15 containers currently carry it and would otherwise be filed
- *     in two places at once. Never removed if it would leave the product with
- *     no category. Every removal is recorded in the log.
+ *     removed from any container that has real categories, because all 15
+ *     carried it and would otherwise be filed in two places at once. Never
+ *     removed if it would leave the product with no category. Every removal is
+ *     recorded in the log.
  *   - Products themselves are untouched: no name, price, stock, description,
  *     SKU or meta is written.
  *   - It runs ONCE, guarded by an option, and records what it did so the change
@@ -52,9 +52,9 @@
  *
  * RE-RUNNING
  * ----------
- * The guard is `opl_pcat_done_v2`. An earlier revision used `opl_pcat_done` and
- * only did the category assignment, so a site that ran that one still needs
- * this. Delete `opl_pcat_done_v2` to run it again after editing the maps.
+ * The guard is `opl_pcat_done_v3`. Earlier revisions used `opl_pcat_done` and
+ * `opl_pcat_done_v2`; each left work undone, so the key is bumped rather than
+ * reused. Delete `opl_pcat_done_v3` to run it again after editing the maps.
  *
  * Everything here is idempotent: a product that already has its categories is
  * skipped, and a term that no longer exists cannot be deleted twice.
@@ -210,7 +210,7 @@ function opl_pcat_run() {
 	// Stacks shelf, the Uncategorized removal and the deletion sweep. Reusing
 	// that key would make this revision a silent no-op on any site where the
 	// first one already ran.
-	if ( get_option( 'opl_pcat_done_v2' ) ) {
+	if ( get_option( 'opl_pcat_done_v3' ) ) {
 		return;
 	}
 
@@ -254,16 +254,11 @@ function opl_pcat_run() {
 		$have = wp_get_object_terms( $id, 'product_cat', array( 'fields' => 'slugs' ) );
 		$have = is_wp_error( $have ) ? array() : $have;
 
-		$missing = array_values( array_diff( $want, $have ) );
-
-		if ( empty( $missing ) ) {
-			continue;
-		}
+		$missing  = array_values( array_diff( $want, $have ) );
+		$term_ids = array();
 
 		// Resolve slugs to IDs; skip any slug that does not exist rather than
 		// creating a category nobody asked for.
-		$term_ids = array();
-
 		foreach ( $missing as $slug ) {
 			$term = get_term_by( 'slug', $slug, 'product_cat' );
 
@@ -272,26 +267,21 @@ function opl_pcat_run() {
 			}
 		}
 
-		if ( empty( $term_ids ) ) {
-			continue;
+		if ( ! empty( $term_ids ) ) {
+			// APPEND. The final `true` is what makes this non-destructive.
+			wp_set_object_terms( $id, $term_ids, 'product_cat', true );
 		}
 
-		// APPEND. The final `true` is what makes this non-destructive.
-		$result = wp_set_object_terms( $id, $term_ids, 'product_cat', true );
-
-		if ( is_wp_error( $result ) ) {
-			continue;
-		}
-
-		// Now that the product has real categories, drop "Uncategorized" - all
-		// 15 containers currently carry it. Leaving it would file every product
-		// in two places at once and print "Uncategorized" on the product page
-		// next to the correct category.
+		// Drop "Uncategorized" from any container that now has real categories.
 		//
-		// This is the one removal in the file, and it is deliberately narrow:
-		// only from a product that just gained a real category in this same
-		// run, and only the default term. It is recorded in the log so it can
-		// be put back.
+		// This deliberately runs for EVERY container, not only one that gained a
+		// term in this pass. An earlier revision nested it inside the "gained
+		// something" branch, so the eight kits - which already had their
+		// categories from a previous run - were skipped and kept Uncategorized
+		// alongside the correct category.
+		//
+		// It is still narrow: only the default term, only when a real category
+		// remains, and recorded in the log so it can be put back.
 		$dropped = array();
 		$default = get_term_by( 'slug', 'uncategorized', 'product_cat' );
 
@@ -308,6 +298,10 @@ function opl_pcat_run() {
 					$touch[]   = (int) $default->term_id;
 				}
 			}
+		}
+
+		if ( empty( $term_ids ) && empty( $dropped ) ) {
+			continue;
 		}
 
 		$log[ $id ] = array(
@@ -329,11 +323,25 @@ function opl_pcat_run() {
 		wc_delete_product_transients();
 	}
 
-	$deleted = opl_pcat_sweep_unused();
+	// Repeat until a pass removes nothing. Product categories are hierarchical
+	// and a parent is skipped while it still has children, so a single pass only
+	// clears the leaves. The first live run left 22 of 48 for exactly this
+	// reason. Bounded so a bug can never loop forever.
+	$deleted = array();
+
+	for ( $pass = 0; $pass < 6; $pass++ ) {
+		$round = opl_pcat_sweep_unused();
+
+		if ( empty( $round ) ) {
+			break;
+		}
+
+		$deleted = array_merge( $deleted, $round );
+	}
 
 	update_option( 'opl_pcat_log', $log, false );
 	update_option( 'opl_pcat_deleted', $deleted, false );
-	update_option( 'opl_pcat_done_v2', gmdate( 'c' ), false );
+	update_option( 'opl_pcat_done_v3', gmdate( 'c' ), false );
 }
 
 /**
@@ -360,7 +368,8 @@ function opl_pcat_run() {
  * id and parent, which is enough to recreate any of them by hand.
  *
  * Runs AFTER the assignment above, so a term this migration just filled can
- * never be swept.
+ * never be swept. Called repeatedly by opl_pcat_run() until a pass deletes
+ * nothing, because a parent term is skipped while it still has children.
  */
 function opl_pcat_sweep_unused() {
 	$protected = opl_pcat_protected();

@@ -419,3 +419,20 @@ removal and the deletion sweep, and its `opl_pcat_done` guard would have made
 the newer revision a silent no-op. Guard bumped to `opl_pcat_done_v2` so it runs
 again; everything in it is idempotent, so the already-correct assignments are
 simply skipped.
+
+**Update, same day —** two bugs in the category migration, caught by verifying
+the live result rather than trusting the run.
+
+*Uncategorized survived on 8 products.* The removal was nested inside the
+"gained a category" branch. The eight single-compound kits already had their
+categories from the first run, so they were `continue`d before reaching it and
+kept Uncategorized alongside the correct category. Now runs for every container
+that has real categories, regardless of whether this pass added any.
+
+*The sweep deleted 22 of 48.* Product categories are hierarchical and the sweep
+skips a parent while it still has children, so one pass only clears the leaves.
+`opl_pcat_run()` now repeats the sweep until a pass removes nothing, bounded to
+6 passes. A test drops a parent's children and asserts the repeat pass then
+removes it, while still refusing in-use and protected terms.
+
+Guard bumped `opl_pcat_done_v2` → `_v3`. 95/95.

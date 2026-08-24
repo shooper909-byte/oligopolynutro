@@ -315,6 +315,20 @@ function wp_delete_term( $id, $tax ) {
 $swept = opl_pcat_sweep_unused();
 $ids   = $GLOBALS['opl_deleted'];
 
+// A parent is skipped while it has children, so one pass only clears leaves.
+// Prove a repeat pass then removes the now-childless parent - the bug that left
+// 22 of 48 deleted on the first live run.
+$GLOBALS['opl_terms']['parent-with-child'][3] = 0; // its children are now gone
+$GLOBALS['opl_deleted'] = array();
+$second = opl_pcat_sweep_unused();
+ok( 'a second pass removes a now-childless parent',
+	in_array( 900, $GLOBALS['opl_deleted'], true ),
+	'parent survived the repeat pass' );
+ok( 'the repeat pass still refuses in-use and protected terms',
+	! in_array( 594, $GLOBALS['opl_deleted'], true )
+	&& ! in_array( 198, $GLOBALS['opl_deleted'], true )
+	&& ! in_array( 300, $GLOBALS['opl_deleted'], true ) );
+
 ok( 'sweep deletes genuinely unused terms',
 	in_array( 801, $ids, true ) && in_array( 802, $ids, true ) );
 ok( 'sweep SKIPS a term with a stale zero count but real products',
