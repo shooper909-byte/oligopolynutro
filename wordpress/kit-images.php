@@ -1,0 +1,180 @@
+<?php
+/**
+ * OligoPoly - give each single-compound kit its compound's image
+ *
+ * THE PROBLEM
+ * -----------
+ * 11 of 25 products have no featured image at all. Audited 2026-08-23 via
+ * `wc/store/v1/products`:
+ *
+ *   8 single-compound kits   Tirzepatide / Semaglutide / NAD+ / Selank /
+ *                            Retatrutide 5 mg / Retatrutide 20 mg / GHK-Cu /
+ *                            Cagrilintide - 6 Vial Research Kit
+ *   3 build-your-own bundles 3, 6 and 9 Vials
+ *
+ * Every other product has one. This is why the catalogue looks half-finished:
+ * the kits are the products a customer can actually buy, and they are the ones
+ * showing no picture on their own product page, in search, in the cart and in
+ * any block that does not hand-roll a fallback.
+ *
+ * THE FIX
+ * -------
+ * Each of the 8 kits contains exactly one compound, and that compound HAS an
+ * image. The kit is six vials of precisely that compound, so its own vial shot
+ * is the correct picture - not a stand-in.
+ *
+ *   3454 <- 39    OP-MET-TIRZ-10MG.png
+ *   3457 <- 3397  OP-MET-SEMA-5MG.png
+ *   3459 <- 63    OP-AUX-NAD-500MG.png
+ *   3463 <- 447   OP-COG-SELANK-5MG.png
+ *   3465 <- 3395  OP-MET-RETA-5MG.png
+ *   3468 <- 441   OP-LON-GHKCU-50MG.png
+ *   3470 <- 3396  OP-MET-RETA-20MG.png
+ *   3472 <- 436   OP-MET-CAGRI-5MG.png
+ *
+ * The mapping is not hard-coded - it is read from each container's own MNM
+ * children at run time, so it cannot drift from the products.
+ *
+ * NOT COVERED: the three build-your-own bundles. They contain eight different
+ * compounds, so no single vial represents them. Using one would misrepresent
+ * the product. They need a bundle graphic - see docs/KIT-IMAGES.md.
+ *
+ * SAFETY
+ * ------
+ *   - Only ever sets an image on a product that has NONE. An existing image is
+ *     never replaced.
+ *   - Only for a container with exactly ONE distinct child, where that child's
+ *     image is unambiguous.
+ *   - Sets `_thumbnail_id` only. No name, price, stock, SKU, description or any
+ *     other product field is touched.
+ *   - Runs once, on `admin_init`, gated on `manage_woocommerce`. Never on a
+ *     front-end request.
+ *   - Records what it set in `opl_kimg_log` so it can be undone.
+ *
+ * TO REVERSE
+ * ----------
+ * `opl_kimg_log` maps each product ID to the attachment ID that was set and the
+ * compound it came from. Clear the featured image on those products in
+ * WooCommerce, or delete the option and re-run after editing.
+ *
+ * AFTER IT RUNS
+ * -------------
+ * Deactivate and delete this snippet. It is a migration, not a feature.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * The one compound inside a container, or null when it is not a
+ * single-compound kit.
+ *
+ * A container with several children has no single representative image, so it
+ * is skipped rather than given an arbitrary one.
+ */
+function opl_kimg_sole_child( $product ) {
+	if ( ! $product || ! is_callable( array( $product, 'get_child_items' ) ) ) {
+		return null;
+	}
+
+	$items = $product->get_child_items();
+
+	if ( empty( $items ) ) {
+		return null;
+	}
+
+	$ids = array();
+
+	foreach ( $items as $item ) {
+		$child = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : null;
+
+		if ( ! $child ) {
+			return null;
+		}
+
+		$ids[ (int) $child->get_id() ] = $child;
+	}
+
+	if ( 1 !== count( $ids ) ) {
+		return null;
+	}
+
+	return reset( $ids );
+}
+
+add_action( 'admin_init', 'opl_kimg_run' );
+
+function opl_kimg_run() {
+	if ( get_option( 'opl_kimg_done' ) ) {
+		return;
+	}
+
+	if ( ! function_exists( 'wc_get_product' ) || ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+
+	$containers = get_posts(
+		array(
+			'post_type'        => 'product',
+			'post_status'      => 'publish',
+			'numberposts'      => 200,
+			'fields'           => 'ids',
+			'suppress_filters' => false,
+			'tax_query'        => array(
+				array(
+					'taxonomy' => 'product_type',
+					'field'    => 'slug',
+					'terms'    => 'mix-and-match',
+				),
+			),
+		)
+	);
+
+	$log     = array();
+	$skipped = array();
+
+	foreach ( (array) $containers as $id ) {
+		$product = wc_get_product( $id );
+
+		if ( ! $product ) {
+			continue;
+		}
+
+		// Never replace an image somebody chose.
+		if ( get_post_thumbnail_id( $id ) ) {
+			continue;
+		}
+
+		$child = opl_kimg_sole_child( $product );
+
+		if ( ! $child ) {
+			$skipped[ $id ] = $product->get_name() . ' (not a single-compound kit)';
+			continue;
+		}
+
+		$thumb = get_post_thumbnail_id( $child->get_id() );
+
+		if ( ! $thumb ) {
+			$skipped[ $id ] = $product->get_name() . ' (its compound has no image either)';
+			continue;
+		}
+
+		set_post_thumbnail( $id, (int) $thumb );
+
+		$log[ $id ] = array(
+			'name'          => $product->get_name(),
+			'attachment'    => (int) $thumb,
+			'from_product'  => (int) $child->get_id(),
+			'from_name'     => $child->get_name(),
+		);
+	}
+
+	if ( function_exists( 'wc_delete_product_transients' ) ) {
+		wc_delete_product_transients();
+	}
+
+	update_option( 'opl_kimg_log', $log, false );
+	update_option( 'opl_kimg_skipped', $skipped, false );
+	update_option( 'opl_kimg_done', gmdate( 'c' ), false );
+}

@@ -436,3 +436,22 @@ skips a parent while it still has children, so one pass only clears the leaves.
 removes it, while still refusing in-use and protected terms.
 
 Guard bumped `opl_pcat_done_v2` → `_v3`. 95/95.
+
+## 2026-08-23 — Missing product images
+
+11 of 25 products have no featured image: the 8 single-compound kits and the 3
+build-your-own bundles. Those are the products a customer can actually buy, so
+they are the ones showing no picture on their product page, in search and in the
+cart. Everything else has one.
+
+`wordpress/kit-images.php` gives each single-compound kit its compound's own
+image — the kit is six vials of exactly that compound, so its vial shot is the
+correct picture, not a stand-in. The kit→compound mapping is read from each
+container's MNM children at run time, never hard-coded, so it cannot drift.
+
+Only sets an image where there is none; never replaces one. Only for a container
+with exactly one distinct child. Writes `_thumbnail_id` and nothing else. 33/33.
+
+The 3 build-your-own bundles are deliberately skipped and recorded with a
+reason: eight different compounds, no single vial represents them. They need a
+bundle graphic.
