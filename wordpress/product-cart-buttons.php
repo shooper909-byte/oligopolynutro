@@ -49,6 +49,26 @@ function opl_pcb_catalog_url() {
 	return '/research-catalog/';
 }
 
+/**
+ * Feature kits rather than compounds in the homepage grid.
+ *
+ * The grid was built from the 10 individual compounds, none of which can be
+ * bought on their own. Every card was therefore a dead end: a name, a price and
+ * no way to buy it.
+ *
+ * With this on, each compound card is retargeted to that compound's dedicated
+ * kit - the heading, both links and the price become the kit's, so the card
+ * advertises something a customer can actually purchase, at the price they will
+ * actually pay. The vial image and the fact bullets are kept: they describe the
+ * compound, and the kit is six vials of exactly that compound.
+ *
+ * Return false to leave the grid on compounds; the cards then fall back to the
+ * "Add N-Vial Kit - $price" button, which states the swap in the button instead.
+ */
+function opl_pcb_feature_kits() {
+	return true;
+}
+
 /** Labels, in one place. */
 function opl_pcb_label( $key ) {
 	$labels = array(
@@ -465,6 +485,93 @@ function opl_pcb_css() {
  * ---------------------------------------------------------------------- */
 
 /**
+ * Retarget each homepage compound card to that compound's dedicated kit.
+ *
+ * Operates on whole `<article class="op9-product-card">` blocks so a card is
+ * only ever rewritten as a unit - there is no way for a heading to end up
+ * describing one product while a link points at another.
+ *
+ * A card is retargeted only when ALL of these hold:
+ *   - it resolves to a published product
+ *   - that product cannot be sold on its own
+ *   - it has a dedicated kit with exactly one valid selection
+ *   - the kit is in stock and priced
+ *
+ * Anything else - the curated stack in the same grid, a compound with no kit -
+ * is returned untouched.
+ */
+function opl_pcb_feature_kits_in_grid( $html ) {
+	if ( ! opl_pcb_feature_kits() || false === strpos( $html, 'op9-product-card' ) ) {
+		return $html;
+	}
+
+	return preg_replace_callback(
+		'#<article class="op9-product-card">.*?</article>#s',
+		'opl_pcb_swap_card',
+		$html
+	);
+}
+
+/** Rewrite one card from its compound to its kit. */
+function opl_pcb_swap_card( $m ) {
+	$card = $m[0];
+
+	if ( ! preg_match( '#<a class="op9-product-media" href="([^"]+)"#', $card, $href ) ) {
+		return $card;
+	}
+
+	$compound = opl_pcb_product_from_url( html_entity_decode( $href[1] ) );
+
+	if ( ! $compound || ! opl_pcb_is_bundled_only( $compound ) ) {
+		return $card;
+	}
+
+	$kit = opl_pcb_kit_containing( $compound );
+
+	if ( ! $kit || null === opl_pcb_fixed_selection( $kit ) ) {
+		return $card;
+	}
+
+	$old_url = $href[1];
+	$new_url = esc_url( $kit->get_permalink() );
+	$name    = esc_html( $kit->get_name() );
+
+	// Every link in the card moves together.
+	$card = str_replace( $old_url, $new_url, $card );
+
+	// Heading text.
+	$card = preg_replace(
+		'#(<h3><a href="[^"]*">).*?(</a></h3>)#s',
+		'${1}' . str_replace( array( '\\', '$' ), array( '\\\\', '\\$' ), $name ) . '${2}',
+		$card,
+		1
+	);
+
+	// Accessible name on the image link.
+	$card = preg_replace(
+		'#(<a class="op9-product-media"[^>]*aria-label=")[^"]*(")#',
+		'${1}View ' . str_replace( array( '\\', '$' ), array( '\\\\', '\\$' ), $name ) . '${2}',
+		$card,
+		1
+	);
+
+	// Price becomes the kit's. Falls through silently if the card has no price
+	// block, rather than inventing one.
+	$price = $kit->get_price();
+
+	if ( '' !== (string) $price && function_exists( 'wc_price' ) ) {
+		$card = preg_replace(
+			'#(<div class="op9-product-price">).*?(</div>)#s',
+			'${1}' . str_replace( array( '\\', '$' ), array( '\\\\', '\\$' ), wc_price( $price ) ) . '${2}',
+			$card,
+			1
+		);
+	}
+
+	return $card;
+}
+
+/**
  * Mark the homepage card price as per-vial.
  *
  * Those cards show a compound's own price - $74.99 for Tirzepatide - while the
@@ -556,7 +663,12 @@ function opl_pcb_rewrite( $html ) {
 
 	$added = 0;
 
+	// Order matters. Repair the links first so every card resolves to a
+	// product, then retarget compound cards to their kits, and only then add
+	// controls - so a retargeted card gets a plain "Add to Cart" for the kit it
+	// now advertises, not a "buy the kit instead" button.
 	$html = opl_pcb_fix_raw_product_links( $html );
+	$html = opl_pcb_feature_kits_in_grid( $html );
 
 	// --- /research-catalog/ cards: prepend inside the existing action row.
 	$html = preg_replace_callback(
@@ -596,7 +708,11 @@ function opl_pcb_rewrite( $html ) {
 		$html
 	);
 
-	$html = opl_pcb_annotate_per_vial( $html );
+	// Only meaningful when the grid still shows compounds - a retargeted card
+	// already prints the kit's own price, which is not per vial.
+	if ( ! opl_pcb_feature_kits() ) {
+		$html = opl_pcb_annotate_per_vial( $html );
+	}
 
 	if ( ! $added ) {
 		return $html;

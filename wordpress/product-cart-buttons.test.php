@@ -49,6 +49,10 @@ $PRODUCTS = array(
 	3454 => array( 'Tirzepatide 10 mg - 6 Vial Research Kit', 'tirzepatide-10-mg-6-vial-research-kit', 'mix-and-match', true, '413.94', false, 6, 6, array( 39 => 6 ) ),
 	3457 => array( 'Semaglutide 5 mg - 6 Vial Research Kit', 'semaglutide-5-mg-6-vial-research-kit', 'mix-and-match', true, '419.94', false, 6, 6, array( 3397 => 6 ) ),
 	3463 => array( 'Selank 5 mg - 6 Vial Research Kit', 'selank-5-mg-6-vial-research-kit', 'mix-and-match', true, '441.54', false, 6, 6, array( 447 => 6 ) ),
+	3459 => array( 'NAD+ 500 mg - 6 Vial Research Kit', 'nad-500-mg-6-vial-research-kit', 'mix-and-match', true, '359.94', false, 6, 6, array( 63 => 6 ) ),
+	3465 => array( 'Retatrutide 5 mg - 6 Vial Research Kit', 'retatrutide-5-mg-6-vial-research-kit', 'mix-and-match', true, '524.94', false, 6, 6, array( 3395 => 6 ) ),
+	3468 => array( 'GHK-Cu 50 mg - 6 Vial Research Kit', 'ghk-cu-50-mg-6-vial-research-kit', 'mix-and-match', true, '386.94', false, 6, 6, array( 441 => 6 ) ),
+	3472 => array( 'Cagrilintide 5 mg - 6 Vial Research Kit', 'cagrilintide-5-mg-6-vial-research-kit', 'mix-and-match', true, '469.94', false, 6, 6, array( 436 => 6 ) ),
 
 	// Curated stack: six children, each may contribute up to 6 -> many selections.
 	3474 => array( 'Metabolic Pathways Stack', 'metabolic-pathways-stack', 'mix-and-match', true, '413.94', false, 6, 6, array( 3395 => 6, 39 => 6, 436 => 6, 63 => 6, 447 => 6, 441 => 6 ) ),
@@ -253,7 +257,9 @@ ok( 'kit form targets the product permalink', false !== strpos( $form, 'action="
 ok( 'kit form is a real POST', false !== strpos( $form, 'method="post"' ) );
 ok( 'kit form needs no JavaScript', false === stripos( $form, 'onclick' ) && false === stripos( $form, '<script' ) );
 
-// A compound card sells its dedicated kit, and must SAY it is doing that.
+// With kit-featuring OFF, a compound card sells its dedicated kit and must SAY
+// so in the button. (With it ON the card itself becomes the kit - covered in
+// the integration block below.)
 $bundled = opl_pcb_control( wc_get_product( 39 ) )['html'];
 ok( 'compound card posts the KIT, not the compound',
 	false !== strpos( $bundled, 'name="add-to-cart" value="3454"' ), $bundled );
@@ -365,23 +371,60 @@ if ( $home ) {
 			return count( $m[1] ) > 0;
 		} )(), 'a compound id was posted' );
 
-	ok( 'home: every kit button states a size and a price',
-		( function () use ( $out ) {
-			preg_match_all( '#<button[^>]*opl-pcb-add[^>]*>(.*?)</button>#s', $out, $m );
 
-			foreach ( $m[1] as $b ) {
-				if ( ! preg_match( '#\d+-Vial Kit#', $b ) || ! preg_match( '#\d+\.\d\d#', $b ) ) {
+	// With kit-featuring on the card IS the kit, so no per-vial suffix is
+	// needed - the price shown is the price charged.
+	// Look for the rendered element, not the class name - the stylesheet also
+	// contains `.opl-pcb-unit`, which a bare substring search matches.
+	ok( 'home: no per-vial suffix when the card is already the kit',
+		false === strpos( $out, '<span class="opl-pcb-unit">' ) );
+
+	// The grid must now advertise kits, not unbuyable compounds.
+	ok( 'home: headings name kits', false !== strpos( $out, '6 Vial Research Kit' )
+		|| false !== strpos( $out, '6-Vial Research Kit' ), 'no kit heading' );
+
+	ok( 'home: no card still links to a bare compound',
+		( function () use ( $out ) {
+			preg_match_all( '#<a class="op9-product-media" href="([^"]+)"#', $out, $m );
+
+			foreach ( $m[1] as $u ) {
+				$id = url_to_postid( html_entity_decode( $u ) );
+
+				if ( $id && in_array( $id, array( 39, 447, 3395, 3396, 3397, 63, 436, 441 ), true ) ) {
 					return false;
 				}
 			}
 
-			return count( $m[1] ) > 0;
-		} )(), 'a kit button was missing its size or price' );
+			return true;
+		} )(), 'a compound card survived' );
 
-	ok( 'home: price line marked per vial', false !== strpos( $out, 'opl-pcb-unit' ) );
-	ok( 'home: per-vial marker applied once per card',
-		substr_count( $out, 'opl-pcb-unit' ) === substr_count( $out, 'class="opl-pcb-form"' )
-		|| substr_count( $out, 'opl-pcb-unit' ) > 0 );
+	ok( 'home: card price is the kit price, not the compound price',
+		false !== strpos( $out, '413.94' ) && false === strpos( $out, '74.99' ),
+		'compound price still shown' );
+
+	ok( 'home: every link inside a swapped card agrees',
+		( function () use ( $out ) {
+			preg_match_all( '#<article class="op9-product-card">.*?</article>#s', $out, $cards );
+
+			foreach ( $cards[0] as $c ) {
+				preg_match_all( '#href="(https://[^"]*/products/[^"]+)"#', $c, $h );
+				if ( count( array_unique( $h[1] ) ) > 1 ) {
+					return false;
+				}
+			}
+
+			return true;
+		} )(), 'a card mixed two products' );
+
+	ok( 'home: swapped cards carry a plain Add to Cart, not a kit-swap label',
+		false === strpos( $out, '6-Vial Kit &middot;' ) && false === strpos( $out, '6-Vial Kit ·' ) );
+
+	ok( 'home: the fact bullets survive the swap',
+		substr_count( $out, 'opl-facts' ) === substr_count( $home, 'opl-facts' ) );
+
+	ok( 'home: card count unchanged',
+		substr_count( $out, '<article class="op9-product-card">' )
+		=== substr_count( $home, '<article class="op9-product-card">' ) );
 
 	ok( 'home: the curated stack still gets a configure link',
 		false !== strpos( $out, 'opl-pcb-configure' ) );
@@ -391,9 +434,11 @@ if ( $home ) {
 		false === strpos( $out, 'post_type=product' ),
 		'raw link survived' );
 
-	ok( 'home: rewritten link points at the right product',
-		false !== strpos( $out, '/products/selank-5mg-research-peptide/' ),
-		'permalink missing' );
+	// The malformed link resolved to Selank, whose card is then retargeted to
+	// the Selank kit - so the kit URL is what should survive.
+	ok( 'home: repaired link ends up on the right kit',
+		false !== strpos( $out, '/products/selank-5-mg-6-vial-research-kit/' ),
+		'kit permalink missing' );
 
 	// A raw link to something that is not a published product stays untouched.
 	$fake = '<a href="https://x.test/?post_type=product&#038;p=99999">x</a>';

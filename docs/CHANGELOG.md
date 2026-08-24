@@ -390,3 +390,21 @@ which also flatters the kit: $413.94 for six is $68.99 each.
 
 Tests assert no compound id is ever posted to the cart, every kit button carries
 a size and a price, and the compound price never appears on the button. 48/48.
+
+**Update, same day —** the homepage now features kits instead of compounds.
+
+Rather than explaining the compound/kit price gap in the button, each compound
+card is retargeted to that compound's dedicated kit: heading, both links and
+price become the kit's. Seven of the eight cards swap; the eighth is the
+Neurocognitive stack, which keeps Select Options. The vial image and fact
+bullets are kept — they describe the compound, and the kit is six vials of it.
+
+Cards are rewritten as whole `<article>` blocks, so a heading can never describe
+one product while a link points at another; a test re-parses every card and
+fails if it holds two different product URLs. `opl_pcb_feature_kits()` returns
+false to restore the previous "Add 6-Vial Kit · $413.94" behaviour, which stays
+covered by the suite. 53/53.
+
+Two test bugs of my own found and fixed along the way: a fixture with only 3 of
+the 8 real kits (so four cards had nothing to swap to), and a substring check
+for `opl-pcb-unit` that matched the stylesheet rather than the rendered span.

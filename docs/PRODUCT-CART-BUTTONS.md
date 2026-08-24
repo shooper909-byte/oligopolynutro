@@ -3,7 +3,7 @@
 Adds a cart control to every product card on the site — the homepage
 `op9-product-card` grid and the `oprc-card` grid on `/research-catalog/`.
 
-**Status: deployed and live. 48/48 tests.**
+**Status: 53/53 tests. Homepage kit-featuring not yet deployed.**
 
 ---
 
@@ -42,25 +42,35 @@ control that would fail.**
 A greyed-out or decorative "Add to Cart" was not an option. On a research-supply
 catalogue, a button that silently does nothing is worse than no button.
 
-### Selling a kit from a compound's card
+### The homepage features kits, not compounds
 
-The homepage grid is entirely individual compounds, none of which can be bought
-alone — so it had no Add to Cart at all. Each of those compounds does have a
-dedicated single-compound kit with exactly one valid selection, so the card can
-sell that in one click.
+The homepage grid was built from the 10 individual compounds, none of which can
+be bought alone. Every card was a dead end: a name, a price, and no way to buy
+it.
 
-The catch is price. The card shows the compound's own price, $74.99 for
-Tirzepatide, while the kit costs $413.94. A button reading just "Add to Cart"
-next to "$74.99" would be a trap. So:
+Each compound card is now **retargeted to that compound's dedicated kit** —
+heading, both links and price become the kit's, so the card advertises something
+purchasable at the price actually charged. The vial image and the fact bullets
+are kept: they describe the compound, and the kit is six vials of exactly that
+compound.
 
-- the button names what it adds and what it costs: **"Add 6-Vial Kit ·
-  $413.94"**, both read from the kit itself;
-- the card price gains a **"per vial"** suffix, which also flatters the kit —
-  $413.94 for six is $68.99 each, below the single-vial price.
+| | Before | After |
+|---|---|---|
+| Heading | Tirzepatide 10mg Research Peptide | Tirzepatide 10 mg – 6 Vial Research Kit |
+| Price | $74.99 (unbuyable) | $413.94 |
+| Control | none | **Add to Cart** |
 
-Tests assert that no compound id is ever posted to the cart, that every kit
-button carries both a size and a price, and that the compound's own price never
-appears on the button.
+Seven of the eight cards swap; the eighth is the Neurocognitive stack, which
+keeps Select Options because it has several valid configurations.
+
+Cards are rewritten as **whole `<article>` blocks**, so a heading can never end
+up describing one product while a link points at another — asserted by a test
+that re-parses every card and fails if it contains two different product URLs.
+
+`opl_pcb_feature_kits()` returns false to keep the grid on compounds. In that
+mode the card instead gets a button reading **"Add 6-Vial Kit · $413.94"** and
+the price gains a "per vial" suffix, so the swap is stated in the button rather
+than the card. Both modes are covered by the suite.
 
 ### How "exactly one configuration" is decided
 
@@ -76,8 +86,8 @@ page. This is computed from the live MNM API at render time, never hard-coded.
 | File | Role |
 |---|---|
 | `wordpress/product-cart-buttons.php` | The build |
-| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 618 lines |
-| `wordpress/product-cart-buttons.test.php` | 48-assertion suite, run against real captured pages |
+| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 706 lines |
+| `wordpress/product-cart-buttons.test.php` | 53-assertion suite, run against real captured pages |
 | `screenshots/cart-btn-catalog-card.png`, `cart-btn-home-card.png` | Result |
 
 ---
@@ -107,7 +117,7 @@ every render.
 ## Test results
 
 `php wordpress/product-cart-buttons.test.php <home.html> <catalog.html>` —
-**48/48 passing**, run against HTML captured from the live site.
+**53/53 passing**, run against HTML captured from the live site.
 
 **Control selection:** each of the four product groups resolves to the right
 control; a kit whose only child is out of stock degrades to "Select Options"
