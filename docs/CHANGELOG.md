@@ -408,3 +408,14 @@ covered by the suite. 53/53.
 Two test bugs of my own found and fixed along the way: a fixture with only 3 of
 the 8 real kits (so four cards had nothing to swap to), and a substring check
 for `opl-pcb-unit` that matched the stylesheet rather than the rendered span.
+
+**Update, same day —** migration guard versioned.
+
+Checked the live site: the FIRST revision of `product-category-repair` had
+already run (metabolic 6, cellular 4, longevity 3, cognitive 2 — correct), but
+`research-stacks` was still empty, Uncategorized still held 15, and all 66
+categories remained. That revision predates the Stacks shelf, the Uncategorized
+removal and the deletion sweep, and its `opl_pcat_done` guard would have made
+the newer revision a silent no-op. Guard bumped to `opl_pcat_done_v2` so it runs
+again; everything in it is idempotent, so the already-correct assignments are
+simply skipped.

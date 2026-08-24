@@ -51,6 +51,15 @@
  *     is auditable and reversible.
  *   - Nothing runs on a front-end request. It fires on `admin_init` only.
  *
+ * RE-RUNNING
+ * ----------
+ * The guard is `opl_pcat_done_v2`. An earlier revision used `opl_pcat_done` and
+ * only did the category assignment, so a site that ran that one still needs
+ * this. Delete `opl_pcat_done_v2` to run it again after editing the maps.
+ *
+ * Everything here is idempotent: a product that already has its categories is
+ * skipped, and a term that no longer exists cannot be deleted twice.
+ *
  * TO REVERSE
  * ----------
  * The option `opl_pcat_log` holds every product ID and the exact term IDs added
@@ -197,7 +206,12 @@ function opl_pcat_plan_for( $product ) {
 add_action( 'admin_init', 'opl_pcat_run' );
 
 function opl_pcat_run() {
-	if ( get_option( 'opl_pcat_done' ) ) {
+	// Version the guard. An earlier revision of this file ran with the key
+	// `opl_pcat_done`; it assigned the research categories but predates the
+	// Stacks shelf, the Uncategorized removal and the deletion sweep. Reusing
+	// that key would make this revision a silent no-op on any site where the
+	// first one already ran.
+	if ( get_option( 'opl_pcat_done_v2' ) ) {
 		return;
 	}
 
@@ -320,7 +334,7 @@ function opl_pcat_run() {
 
 	update_option( 'opl_pcat_log', $log, false );
 	update_option( 'opl_pcat_deleted', $deleted, false );
-	update_option( 'opl_pcat_done', gmdate( 'c' ), false );
+	update_option( 'opl_pcat_done_v2', gmdate( 'c' ), false );
 }
 
 /**
