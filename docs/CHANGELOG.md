@@ -376,3 +376,17 @@ at run time rather than trusting a captured list — and that matters:
 `research-catalog` reports `count = 0` but actually holds 7 products, so it is
 skipped. 48 deleted, not the 49 the cached counts suggested. Tests cover the
 stale-count case, child-term orphaning and the protection list. 93/93.
+
+**Update, same day —** Add to Cart on the homepage.
+
+The homepage grid is entirely individual compounds, none sellable alone, so it
+had no Add to Cart. Each does have a dedicated single-compound kit with exactly
+one valid selection, so the card now sells that kit in one click.
+
+The button names what it adds and what it costs — **"Add 6-Vial Kit ·
+$413.94"** — because the card shows $74.99 and an unlabelled "Add to Cart"
+beside it would have been a trap. The card price gains a "per vial" suffix,
+which also flatters the kit: $413.94 for six is $68.99 each.
+
+Tests assert no compound id is ever posted to the cart, every kit button carries
+a size and a price, and the compound price never appears on the button. 48/48.

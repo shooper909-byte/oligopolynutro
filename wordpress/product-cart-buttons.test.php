@@ -190,6 +190,12 @@ function is_robots() {
 
 function add_action( $a, $b, $c = 10, $d = 1 ) {}
 
+function wc_price( $p ) {
+	return '<span class="amount">$' . number_format( (float) $p, 2 ) . '</span>'; }
+
+function wp_strip_all_tags( $s ) {
+	return trim( strip_tags( (string) $s ) ); }
+
 define( 'HOUR_IN_SECONDS', 3600 );
 
 $GLOBALS['opl_transients'] = array();
@@ -223,8 +229,8 @@ require __DIR__ . '/product-cart-buttons.php';
 echo "Unit: control selection\n";
 
 $cases = array(
-	array( 39, 'bundled', 'compound not sold separately' ),
-	array( 447, 'bundled', 'compound not sold separately' ),
+	array( 39, 'add', 'compound sells its dedicated kit' ),
+	array( 447, 'add', 'compound sells its dedicated kit' ),
 	array( 3454, 'add', 'single-child kit, one valid selection' ),
 	array( 3463, 'add', 'single-child kit, one valid selection' ),
 	array( 3474, 'configure', 'curated stack, several selections' ),
@@ -247,22 +253,35 @@ ok( 'kit form targets the product permalink', false !== strpos( $form, 'action="
 ok( 'kit form is a real POST', false !== strpos( $form, 'method="post"' ) );
 ok( 'kit form needs no JavaScript', false === stripos( $form, 'onclick' ) && false === stripos( $form, '<script' ) );
 
-// A bundled-only compound must never render a cart form.
+// A compound card sells its dedicated kit, and must SAY it is doing that.
 $bundled = opl_pcb_control( wc_get_product( 39 ) )['html'];
-ok( 'bundled compound renders no form', false === strpos( $bundled, '<form' ) );
-ok( 'bundled compound renders no add-to-cart input', false === strpos( $bundled, 'add-to-cart' ) );
-ok( 'bundled compound explains itself to a screen reader', false !== strpos( $bundled, 'not on its own' ) );
-
-// Tirzepatide's dedicated kit is 3454; the link must go there, not to the
-// catalogue and not to a stack that merely happens to contain it.
-ok( 'bundled compound links to its dedicated kit',
-	false !== strpos( $bundled, '/products/tirzepatide-10-mg-6-vial-research-kit/' ), $bundled );
+ok( 'compound card posts the KIT, not the compound',
+	false !== strpos( $bundled, 'name="add-to-cart" value="3454"' ), $bundled );
+ok( 'compound card never posts the unbuyable compound',
+	false === strpos( $bundled, 'name="add-to-cart" value="39"' ) );
+ok( 'button states the kit size', false !== strpos( $bundled, '6-Vial Kit' ), $bundled );
+ok( 'button states the price the customer will pay',
+	false !== strpos( $bundled, '413.94' ), $bundled );
+ok( 'button does NOT show the compound price', false === strpos( $bundled, '74.99' ) );
+ok( 'form targets the kit permalink',
+	false !== strpos( $bundled, 'action="https://www.oligopolypeptides.com/products/tirzepatide-10-mg-6-vial-research-kit/"' ) );
+ok( 'form carries the kit child quantity',
+	false !== strpos( $bundled, 'name="mnm_quantity[39]" value="6"' ) );
 
 // Selank's kit is 3463. Both compounds also appear inside stacks, so this also
 // proves a one-child container is preferred over a multi-child one.
 $selank = opl_pcb_control( wc_get_product( 447 ) )['html'];
 ok( 'one-child kit preferred over a stack containing the same compound',
-	false !== strpos( $selank, '/products/selank-5-mg-6-vial-research-kit/' ), $selank );
+	false !== strpos( $selank, 'value="3463"' ), $selank );
+ok( 'selank button states its own kit price', false !== strpos( $selank, '441.54' ) );
+
+// A compound with NO dedicated kit still falls back to the explanatory link.
+$GLOBALS['opl_transients'] = array();
+$orphan_ctrl = opl_pcb_control( wc_get_product( 3396 ) );
+ok( 'compound whose kit is unusable does not render a cart form',
+	'add' !== $orphan_ctrl['kind'] || false === strpos( $orphan_ctrl['html'], 'value="3470"' ),
+	$orphan_ctrl['kind'] );
+$GLOBALS['opl_transients'] = array();
 
 // A compound with no kit at all must still produce a working link.
 $GLOBALS['opl_transients'] = array();
@@ -328,20 +347,43 @@ if ( $home ) {
 		substr_count( $out, 'op9-product-link' ) === substr_count( $home, 'op9-product-link' ) );
 	ok( 'home: idempotent', opl_pcb_rewrite( $out ) === $out );
 
-	// The homepage already contains WooCommerce add-to-cart inputs of its own,
-	// so measure only the forms THIS file rendered.
-	$mine_before = substr_count( $home, 'opl-pcb-form' );
-	$mine_after  = substr_count( $out, 'class="opl-pcb-form"' );
+	// The homepage now sells kits from compound cards.
+	$forms = substr_count( $out, 'class="opl-pcb-form"' );
+	ok( 'home: compound cards now carry a cart form', $forms > 0, "forms: $forms" );
 
-	ok( 'home: no cart form rendered for a bundled-only compound',
-		0 === $mine_before && 0 === $mine_after,
-		"forms rendered: $mine_after" );
+	ok( 'home: every home form posts a KIT id, never a bare compound',
+		( function () use ( $out ) {
+			preg_match_all( '#name="add-to-cart" value="(\d+)"#', $out, $m );
+			$compounds = array( 39, 447, 3395, 3396, 3397, 63, 436, 441 );
 
-	ok( 'home: bundled compounds got the kits link instead',
-		substr_count( $out, 'opl-pcb-bundled' ) > 0,
-		'none rendered' );
+			foreach ( $m[1] as $id ) {
+				if ( in_array( (int) $id, $compounds, true ) ) {
+					return false;
+				}
+			}
 
-	ok( 'home: the curated stack got a configure link',
+			return count( $m[1] ) > 0;
+		} )(), 'a compound id was posted' );
+
+	ok( 'home: every kit button states a size and a price',
+		( function () use ( $out ) {
+			preg_match_all( '#<button[^>]*opl-pcb-add[^>]*>(.*?)</button>#s', $out, $m );
+
+			foreach ( $m[1] as $b ) {
+				if ( ! preg_match( '#\d+-Vial Kit#', $b ) || ! preg_match( '#\d+\.\d\d#', $b ) ) {
+					return false;
+				}
+			}
+
+			return count( $m[1] ) > 0;
+		} )(), 'a kit button was missing its size or price' );
+
+	ok( 'home: price line marked per vial', false !== strpos( $out, 'opl-pcb-unit' ) );
+	ok( 'home: per-vial marker applied once per card',
+		substr_count( $out, 'opl-pcb-unit' ) === substr_count( $out, 'class="opl-pcb-form"' )
+		|| substr_count( $out, 'opl-pcb-unit' ) > 0 );
+
+	ok( 'home: the curated stack still gets a configure link',
 		false !== strpos( $out, 'opl-pcb-configure' ) );
 
 	// The malformed product link must become a real permalink.

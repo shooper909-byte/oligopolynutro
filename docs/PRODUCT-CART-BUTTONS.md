@@ -3,7 +3,7 @@
 Adds a cart control to every product card on the site — the homepage
 `op9-product-card` grid and the `oprc-card` grid on `/research-catalog/`.
 
-**Status: built and tested (40/40). Not yet deployed — one WPCode paste.**
+**Status: deployed and live. 48/48 tests.**
 
 ---
 
@@ -23,7 +23,7 @@ The actual constraint is Mix and Match's **"not sold separately"** flag:
 
 | Group | Count | Control | Why |
 |---|---|---|---|
-| Individual compounds | 10 | **Available in Kits** → its dedicated kit | `wc-mnm-not-sold-separately`. Priced $64.99–$123.49, but WooCommerce refuses to sell them alone — their own product pages render no add-to-cart form |
+| Individual compounds | 10 | **Add N-Vial Kit · $price** — adds that compound's dedicated kit | `wc-mnm-not-sold-separately`. Priced $64.99–$123.49, but WooCommerce refuses to sell them alone — their own product pages render no add-to-cart form. So the card sells the kit instead, and the button says so |
 | Single-compound kits | 8 | **Add to Cart**, one click | 1 child, `min = max = 6` → exactly one valid selection |
 | Curated stacks | 4 | **Select Options** | 6 children, each may contribute up to 6 → many valid selections |
 | Build-your-own bundles | 3 | **Select Options** | 8 children → many valid selections |
@@ -42,6 +42,26 @@ control that would fail.**
 A greyed-out or decorative "Add to Cart" was not an option. On a research-supply
 catalogue, a button that silently does nothing is worse than no button.
 
+### Selling a kit from a compound's card
+
+The homepage grid is entirely individual compounds, none of which can be bought
+alone — so it had no Add to Cart at all. Each of those compounds does have a
+dedicated single-compound kit with exactly one valid selection, so the card can
+sell that in one click.
+
+The catch is price. The card shows the compound's own price, $74.99 for
+Tirzepatide, while the kit costs $413.94. A button reading just "Add to Cart"
+next to "$74.99" would be a trap. So:
+
+- the button names what it adds and what it costs: **"Add 6-Vial Kit ·
+  $413.94"**, both read from the kit itself;
+- the card price gains a **"per vial"** suffix, which also flatters the kit —
+  $413.94 for six is $68.99 each, below the single-vial price.
+
+Tests assert that no compound id is ever posted to the cart, that every kit
+button carries both a size and a price, and that the compound's own price never
+appears on the button.
+
 ### How "exactly one configuration" is decided
 
 For a container, sum what each child is *allowed* to contribute. If that total
@@ -56,8 +76,8 @@ page. This is computed from the live MNM API at render time, never hard-coded.
 | File | Role |
 |---|---|
 | `wordpress/product-cart-buttons.php` | The build |
-| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 538 lines |
-| `wordpress/product-cart-buttons.test.php` | 40-assertion suite, run against real captured pages |
+| `wordpress/product-cart-buttons.wpcode.txt` | Paste-ready, no `<?php`, pure ASCII, 618 lines |
+| `wordpress/product-cart-buttons.test.php` | 48-assertion suite, run against real captured pages |
 | `screenshots/cart-btn-catalog-card.png`, `cart-btn-home-card.png` | Result |
 
 ---
@@ -87,7 +107,7 @@ every render.
 ## Test results
 
 `php wordpress/product-cart-buttons.test.php <home.html> <catalog.html>` —
-**40/40 passing**, run against HTML captured from the live site.
+**48/48 passing**, run against HTML captured from the live site.
 
 **Control selection:** each of the four product groups resolves to the right
 control; a kit whose only child is out of stock degrades to "Select Options"
@@ -97,8 +117,9 @@ rather than offering an unfulfillable cart.
 `mnm_quantity[39]=6` to the right permalink, as a real POST, with no JavaScript
 and no `onclick`.
 
-**Never broken:** no bundled-only compound renders a form or an `add-to-cart`
-input; no control anywhere carries `disabled`.
+**Never broken:** no control anywhere carries `disabled`; a compound id is never
+posted to the cart; a kit button never shows the compound's price in place of
+the kit's.
 
 **Kit routing:** Tirzepatide links to its own 6-vial kit, not the catalogue and
 not a stack that happens to contain it; a one-child kit is preferred over a

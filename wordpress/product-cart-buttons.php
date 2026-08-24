@@ -293,9 +293,26 @@ function opl_pcb_control( $product ) {
 	$url = $product->get_permalink();
 
 	if ( opl_pcb_is_bundled_only( $product ) ) {
-		// Send the customer to the kit that actually contains this compound
-		// where one exists, rather than to the catalogue to hunt for it.
 		$kit = opl_pcb_kit_containing( $product );
+
+		// A compound cannot be bought alone, but its dedicated kit can. When
+		// that kit has exactly one valid selection, the card can sell it in one
+		// click - PROVIDED the button says so.
+		//
+		// The button therefore names the kit size and its own price, because
+		// the card shows the per-vial price and adding a $413.94 kit from a
+		// button that just read "Add to Cart" next to "$74.99" would be a trap.
+		// Nobody should be surprised by what lands in the cart.
+		if ( $kit ) {
+			$fixed = opl_pcb_fixed_selection( $kit );
+
+			if ( null !== $fixed ) {
+				return array(
+					'kind' => 'add',
+					'html' => opl_pcb_form( $kit, $fixed, opl_pcb_kit_label( $kit ) ),
+				);
+			}
+		}
 
 		return array(
 			'kind' => 'bundled',
@@ -341,13 +358,37 @@ function opl_pcb_control( $product ) {
 }
 
 /**
+ * Button text for a kit sold from a compound's card.
+ *
+ * Reads "Add 6-Vial Kit &middot; $413.94" - the size and the price the customer
+ * will actually be charged, both taken from the kit itself.
+ */
+function opl_pcb_kit_label( $kit ) {
+	$size  = is_callable( array( $kit, 'get_min_container_size' ) ) ? (int) $kit->get_min_container_size() : 0;
+	$label = $size ? esc_html( 'Add ' . $size . '-Vial Kit' ) : esc_html( 'Add Kit to Cart' );
+
+	$price = $kit->get_price();
+
+	if ( '' !== (string) $price && function_exists( 'wc_price' ) ) {
+		// wc_price() returns markup; strip it to plain text, then escape. The
+		// separator stays literal so it renders as a middot rather than text.
+		$label .= ' &middot; ' . esc_html( wp_strip_all_tags( wc_price( $price ) ) );
+	}
+
+	return $label;
+}
+
+/**
  * A real add-to-cart form.
  *
  * A plain POST to the product permalink, exactly what the product page itself
  * submits. It needs no JavaScript, so it works on a slow phone and cannot be
  * left half-wired; WooCommerce handles validation, stock and redirect.
+ *
+ * `$label` overrides the button text when the thing being added is not the
+ * product whose card this is - see opl_pcb_kit_label().
  */
-function opl_pcb_form( $product, $children ) {
+function opl_pcb_form( $product, $children, $label = '' ) {
 	$id = (int) $product->get_id();
 
 	$out = '<form class="opl-pcb-form" method="post" action="' . esc_url( $product->get_permalink() ) . '">';
@@ -358,8 +399,10 @@ function opl_pcb_form( $product, $children ) {
 		$out .= '<input type="hidden" name="mnm_quantity[' . (int) $child_id . ']" value="' . (int) $qty . '">';
 	}
 
+	$text = ( '' !== $label ) ? $label : esc_html( opl_pcb_label( 'add' ) );
+
 	$out .= '<button type="submit" class="opl-pcb-btn opl-pcb-add">'
-		. opl_pcb_icon( 'cart' ) . esc_html( opl_pcb_label( 'add' ) )
+		. opl_pcb_icon( 'cart' ) . $text
 		. '<span class="opl-pcb-sr"> &mdash; ' . esc_html( $product->get_name() ) . '</span></button>';
 	$out .= '</form>';
 
@@ -399,6 +442,10 @@ function opl_pcb_css() {
 	. '.opl-pcb-bundled:hover{background:rgba(190,198,214,.13)}'
 	. '.opl-pcb-out{background:rgba(190,198,214,.05);color:#94A0B4;border-color:rgba(190,198,214,.16);cursor:not-allowed}'
 	. '.opl-pcb-i{width:19px;height:19px;flex:none;fill:currentColor}'
+	. '.opl-pcb-unit{font-size:.72em;font-weight:600;opacity:.72;letter-spacing:.02em}'
+	// A kit button carries size and price, so it needs room for two lines on a
+	// narrow card without the text being clipped.
+	. '.opl-pcb-add{line-height:1.25;padding-top:8px;padding-bottom:8px;height:auto}'
 	. '.opl-pcb-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;'
 	. 'overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}'
 	. '.opl-pcb-btn:focus-visible{outline:3px solid #C9A8FF;outline-offset:3px}'
@@ -416,6 +463,37 @@ function opl_pcb_css() {
 /* -------------------------------------------------------------------------
  * Injection
  * ---------------------------------------------------------------------- */
+
+/**
+ * Mark the homepage card price as per-vial.
+ *
+ * Those cards show a compound's own price - $74.99 for Tirzepatide - while the
+ * button beside it adds a six-vial kit for $413.94. Both numbers are correct,
+ * but side by side and unlabelled they read as a contradiction. Saying "per
+ * vial" makes the relationship obvious, and it happens to flatter the kit:
+ * $413.94 for six is $68.99 each, cheaper than the single-vial price.
+ *
+ * Only annotates a card that received a kit button in this same pass, and only
+ * once - the marker class makes it idempotent.
+ */
+function opl_pcb_annotate_per_vial( $html ) {
+	if ( false === strpos( $html, 'op9-product-price' ) ) {
+		return $html;
+	}
+
+	return preg_replace_callback(
+		'#<div class="op9-product-price">(.*?)</div>(\s*<form class="opl-pcb-form")#s',
+		function ( $m ) {
+			if ( false !== strpos( $m[1], 'opl-pcb-unit' ) ) {
+				return $m[0];
+			}
+
+			return '<div class="op9-product-price">' . $m[1]
+				. '<span class="opl-pcb-unit"> per vial</span></div>' . $m[2];
+		},
+		$html
+	);
+}
 
 /**
  * Rewrite raw `?post_type=product&p=N` hrefs to the product's real permalink.
@@ -517,6 +595,8 @@ function opl_pcb_rewrite( $html ) {
 		},
 		$html
 	);
+
+	$html = opl_pcb_annotate_per_vial( $html );
 
 	if ( ! $added ) {
 		return $html;
