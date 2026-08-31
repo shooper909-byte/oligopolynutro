@@ -58,7 +58,8 @@ wordpress/research-partner-program.analytics.html  analytics (FAQ schema is gene
 ## Product COA banner
 
 A separate, self-contained piece of work: a small purple "COA Available" banner on
-seven research product pages, between the product title and the price.
+thirteen research product pages (seven single vials plus their 6-vial kits),
+between the product title and the price.
 
 - **[docs/COA-BANNER.md](docs/COA-BANNER.md)** — install, verification, rollback, and
   the product list

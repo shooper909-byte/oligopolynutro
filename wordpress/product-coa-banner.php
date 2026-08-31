@@ -2,8 +2,9 @@
 /**
  * OligoPoly — "COA Available" product banner.
  *
- * Renders a small purple banner directly under the product title on the seven
- * research products that have certificate-of-analysis documentation on file.
+ * Renders a small purple banner directly under the product title on the research
+ * products that have certificate-of-analysis documentation on file: seven single
+ * vials plus the six 6-vial kits of the same materials.
  *
  * Scope: front-end display only. This does not touch product data, pricing,
  * inventory, cart, checkout, or any WooCommerce setting. Removing the snippet
@@ -26,20 +27,30 @@ if ( ! function_exists( 'opl_coa_banner_products' ) ) {
 	 *
 	 * To add a product: add a row. To remove one: delete its row.
 	 *
-	 * 'label' is the material name shown in the banner. 'href' is the
+	 * 'label' is the material name, used for the banner's accessible name (the
+	 * visible text does not repeat it — see opl_coa_banner_render). 'href' is the
 	 * documentation target; omit it to fall back to the documentation library.
 	 *
 	 * @return array<string, array{label:string, id:int}>
 	 */
 	function opl_coa_banner_products() {
 		$products = array(
-			'OP-REC-KLOW-80MG'   => array( 'label' => 'KLOW Research Blend 80 mg',  'id' => 1948 ),
-			'OP-LON-GHKCU-50MG'  => array( 'label' => 'GHK-Cu 50 mg',               'id' => 441 ),
-			'OP-AUX-NAD-500MG'   => array( 'label' => 'NAD+ 500 mg',                'id' => 63 ),
-			'OP-MET-RETA-5MG'    => array( 'label' => 'Retatrutide 5 mg',           'id' => 3395 ),
-			'OP-COG-SELANK-5MG'  => array( 'label' => 'Selank 5 mg',                'id' => 447 ),
-			'OP-MET-SEMA-5MG'    => array( 'label' => 'Semaglutide 5 mg',           'id' => 3397 ),
-			'OP-MET-TIRZ-10MG'   => array( 'label' => 'Tirzepatide 10 mg',          'id' => 39 ),
+			// Single vials.
+			'OP-REC-KLOW-80MG'    => array( 'label' => 'KLOW Research Blend 80 mg', 'id' => 1948 ),
+			'OP-LON-GHKCU-50MG'   => array( 'label' => 'GHK-Cu 50 mg',              'id' => 441 ),
+			'OP-AUX-NAD-500MG'    => array( 'label' => 'NAD+ 500 mg',               'id' => 63 ),
+			'OP-MET-RETA-5MG'     => array( 'label' => 'Retatrutide 5 mg',          'id' => 3395 ),
+			'OP-COG-SELANK-5MG'   => array( 'label' => 'Selank 5 mg',               'id' => 447 ),
+			'OP-MET-SEMA-5MG'     => array( 'label' => 'Semaglutide 5 mg',          'id' => 3397 ),
+			'OP-MET-TIRZ-10MG'    => array( 'label' => 'Tirzepatide 10 mg',         'id' => 39 ),
+
+			// 6-vial kits of the same materials. KLOW has no kit.
+			'OP-KIT-GHKCU-50MG-6' => array( 'label' => 'GHK-Cu 50 mg – 6 Vial Research Kit',      'id' => 3468 ),
+			'OP-KIT-NAD-500MG-6'  => array( 'label' => 'NAD+ 500 mg – 6 Vial Research Kit',       'id' => 3459 ),
+			'OP-KIT-RETA-5MG-6'   => array( 'label' => 'Retatrutide 5 mg – 6 Vial Research Kit',  'id' => 3465 ),
+			'OP-KIT-SELANK-5MG-6' => array( 'label' => 'Selank 5 mg – 6 Vial Research Kit',       'id' => 3463 ),
+			'OP-KIT-SEMA-5MG-6'   => array( 'label' => 'Semaglutide 5 mg – 6 Vial Research Kit',  'id' => 3457 ),
+			'OP-KIT-TIRZ-10MG-6'  => array( 'label' => 'Tirzepatide 10 mg – 6 Vial Research Kit', 'id' => 3454 ),
 		);
 
 		/**
@@ -87,15 +98,20 @@ if ( ! function_exists( 'opl_coa_banner_render' ) ) {
 		$href  = isset( $products[ $sku ]['href'] ) ? $products[ $sku ]['href'] : opl_coa_banner_doc_url();
 
 		opl_coa_banner_styles();
+
+		/*
+		 * The visible line deliberately does not repeat the product name — the banner
+		 * sits directly under the product title, so naming it again is redundant and
+		 * pushes the CTA onto a second line on longer titles (the 6-vial kits).
+		 * The name still reaches screen readers via aria-label, which is read instead
+		 * of the link's contents.
+		 */
 		?>
 		<a class="opl-coa-banner"
 		   href="<?php echo esc_url( $href ); ?>"
 		   aria-label="<?php echo esc_attr( sprintf( 'Certificate of Analysis available for %s — view documentation', $label ) ); ?>">
 			<span class="opl-coa-banner__badge">COA Available</span>
-			<span class="opl-coa-banner__text">
-				Certificate of Analysis on file for
-				<strong><?php echo esc_html( $label ); ?></strong>
-			</span>
+			<span class="opl-coa-banner__text">Certificate of Analysis on file</span>
 			<span class="opl-coa-banner__cta" aria-hidden="true">View&nbsp;COA&nbsp;&rarr;</span>
 		</a>
 		<?php
@@ -167,12 +183,11 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 			font-size:13px!important;
 			font-weight:500;
 		}
-		.opl-coa-banner__text strong{
-			color:#fff!important;
-			font-weight:750;
-		}
 		.opl-coa-banner__cta{
+			/* margin-left:auto keeps the CTA hard right even if the line above wraps,
+			   so it never ends up orphaned under the badge in a narrow summary column. */
 			flex:0 0 auto;
+			margin-left:auto;
 			color:#fff!important;
 			font-size:12px!important;
 			font-weight:700;

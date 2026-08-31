@@ -35,7 +35,7 @@ const DOCS = 'https://www.oligopolypeptides.com/research-peptides-with-coa/';
 const banner = p => `      <a class="opl-coa-banner" href="${DOCS}"
          aria-label="Certificate of Analysis available for ${esc(p.label)} — view documentation">
         <span class="opl-coa-banner__badge">COA Available</span>
-        <span class="opl-coa-banner__text">Certificate of Analysis on file for <strong>${esc(p.label)}</strong></span>
+        <span class="opl-coa-banner__text">Certificate of Analysis on file</span>
         <span class="opl-coa-banner__cta" aria-hidden="true">View&nbsp;COA&nbsp;&rarr;</span>
       </a>`;
 

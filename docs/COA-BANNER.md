@@ -1,6 +1,6 @@
 # Product COA banner
 
-A small purple "COA Available" banner on seven research product pages, sitting
+A small purple "COA Available" banner on thirteen research product pages, sitting
 between the product title and the price.
 
 ![Desktop](../screenshots/coa-banner-desktop.png)
@@ -19,6 +19,14 @@ and verified against the live site on 2026-08-31.
 | `OP-COG-SELANK-5MG` | Selank 5 mg | 447 | `/products/selank-5mg-research-peptide/` |
 | `OP-MET-SEMA-5MG` | Semaglutide 5 mg | 3397 | `/products/semaglutide-5mg-research-peptide/` |
 | `OP-MET-TIRZ-10MG` | Tirzepatide 10 mg | 39 | `/products/tirzepatide-10mg-research-peptide/` |
+| `OP-KIT-GHKCU-50MG-6` | GHK-Cu 50 mg – 6 Vial Research Kit | 3468 | `/products/ghk-cu-50-mg-6-vial-research-kit/` |
+| `OP-KIT-NAD-500MG-6` | NAD+ 500 mg – 6 Vial Research Kit | 3459 | `/products/nad-500-mg-6-vial-research-kit/` |
+| `OP-KIT-RETA-5MG-6` | Retatrutide 5 mg – 6 Vial Research Kit | 3465 | `/products/retatrutide-5-mg-6-vial-research-kit/` |
+| `OP-KIT-SELANK-5MG-6` | Selank 5 mg – 6 Vial Research Kit | 3463 | `/products/selank-5-mg-6-vial-research-kit/` |
+| `OP-KIT-SEMA-5MG-6` | Semaglutide 5 mg – 6 Vial Research Kit | 3457 | `/products/semaglutide-5-mg-6-vial-research-kit/` |
+| `OP-KIT-TIRZ-10MG-6` | Tirzepatide 10 mg – 6 Vial Research Kit | 3454 | `/products/tirzepatide-10-mg-6-vial-research-kit/` |
+
+The seven single vials plus the 6-vial kits of the same materials. KLOW has no kit.
 
 No other product is touched. The banner links to `/research-peptides-with-coa/`.
 
@@ -27,7 +35,7 @@ No other product is touched. The banner links to `/research-peptides-with-coa/`.
 The snippet is PHP because a banner under the product title has to hook
 `woocommerce_single_product_summary` — that region is rendered by WooCommerce, not
 stored in the product description, so there is nothing to paste per product.
-One install covers all seven, and adding an eighth is one line.
+One install covers all thirteen, and adding another is one line.
 
 **Option A — WPCode / Code Snippets plugin (recommended, no theme files touched)**
 
@@ -47,7 +55,7 @@ Append the file's contents (minus the opening `<?php`) to the child theme's
 
 ## Verify
 
-After activating, load any of the seven URLs above and confirm the banner appears
+After activating, load any of the URLs above and confirm the banner appears
 under the title. Then load a product that is *not* on the list (e.g.
 `/products/bpc-157-10mg-research-peptide/`) and confirm it does **not**.
 
@@ -91,5 +99,9 @@ there is nothing else to undo.
   deliberately hedged ("Product-level records where available", "Exact-lot
   publishing is not yet enabled"). This banner states COA availability flatly. That
   is fine if a COA is genuinely on file for all seven; if any of them is
-  record-pending, soften that row's copy or drop it from the list, so the two
-  blocks on the page do not contradict each other.
+  record-pending, drop it from the list, so the two blocks on the page do not
+  contradict each other. The kits carry the same claim as their single vials, on
+  the assumption that a kit ships the same material and therefore the same COA.
+- The banner's visible line does not name the product — it sits directly under the
+  product title, so repeating the name is redundant and would wrap the longer kit
+  titles onto a second line. Screen readers still get the name via `aria-label`.
