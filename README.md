@@ -55,6 +55,20 @@ wordpress/research-partner-program.form.html       application form
 wordpress/research-partner-program.analytics.html  analytics (FAQ schema is generated)
 ```
 
+## Product COA banner
+
+A separate, self-contained piece of work: a small purple "COA Available" banner on
+seven research product pages, between the product title and the price.
+
+- **[docs/COA-BANNER.md](docs/COA-BANNER.md)** — install, verification, rollback, and
+  the product list
+- [`wordpress/product-coa-banner.php`](wordpress/product-coa-banner.php) — the snippet
+  to install (WPCode or child theme)
+- `node build-coa-banner.js` — regenerates `preview/coa-banner-preview.html` from that
+  snippet for visual QA
+
+Display only, matched by SKU. No product, cart, or WooCommerce data is written.
+
 ## Ground rules this work respected
 
 No product data, cart, checkout, payment, shipping, tax, WooCommerce, customer-account,
