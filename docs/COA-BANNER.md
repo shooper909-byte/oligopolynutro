@@ -13,9 +13,24 @@ catalogue on 2026-09-01.
 
 ## Which products get it
 
-**All of them except Bacteriostatic Water** (`OP-AUX-BACWATER-10ML`), which ships as
-research support rather than an analysed research material. The rule is an exclusion
-list, not an inclusion list.
+**Every product except research support and multi-product bundles.** The rule is an
+exclusion list, not an inclusion list.
+
+| Excluded | Fragment | Why |
+|---|---|---|
+| Bacteriostatic Water | `OP-AUX-BACWATER-10ML` | Research support, not an analysed material |
+| Build Your Research Bundle ×3 | `OP-BUNDLE-` | Buyer composes the contents |
+| Research Collections ×4 | `OP-STACK-` | Multi-product |
+| Advanced Multi-Pathway, Cellular Research Panel | `OP-STK-` | Multi-product |
+
+The 6-vial kits (`OP-KIT-*`) are deliberately **not** excluded: six vials of one
+material, so a single COA does describe them.
+
+Entries are matched as case-insensitive **substrings**, not exact SKUs, so a prefix
+covers a whole family and a bundle added later is excluded without anyone remembering
+to update the list. A full SKU still works — it is just a fragment matching one
+product. Substring matching is also what the catalog page's `[data-name*=…]` does
+natively, so both surfaces apply the same entries identically instead of drifting.
 
 It originally carried a hand-maintained list of thirteen SKUs. That meant every
 product added afterwards silently had no banner — which is exactly what happened,
@@ -45,8 +60,9 @@ add_filter( 'opl_coa_banner_applies', function ( $applies, $product ) {
 }, 10, 2 );
 ```
 
-**Worth deciding:** the multi-product bundles and collections still carry the banner.
-If a COA is not genuinely on file for those, exclude them the same way.
+Verified 2026-09-01: 33 of the 43 catalog cards show the pill, 10 excluded (the four
+Collections, three Build-Your-Bundles, Advanced Multi-Pathway, Cellular Research
+Panel, Bacteriostatic Water).
 
 ### The custom catalog page
 
@@ -55,7 +71,8 @@ a separate snippet, so neither hook fires there. Its pill is generated content o
 badge row each card already has, and the exclusions are compiled into that selector
 from the same SKU list, so there is still one source of truth:
 
-    .oprc-card:not([data-name*='op-aux-bacwater-10ml']) .oprc-badges::after
+    .oprc-card:not([data-name*='op-aux-bacwater-10ml']):not([data-name*='op-bundle-'])
+        :not([data-name*='op-stack-']):not([data-name*='op-stk-']) .oprc-badges::after
 
 Note the **single quotes** in that attribute selector, and that it is printed raw.
 This is CSS inside a `<style>` block, not HTML: running it through an HTML escaper

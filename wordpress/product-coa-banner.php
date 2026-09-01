@@ -25,26 +25,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'opl_coa_banner_excluded_skus' ) ) {
 	/**
-	 * SKUs that must NOT show the banner.
+	 * SKU fragments that must NOT show the banner.
 	 *
-	 * Every other product is covered. Add a SKU here to drop one, or filter the
-	 * list from elsewhere without editing this file:
+	 * Entries are matched as case-insensitive SUBSTRINGS, not exact SKUs, so a
+	 * prefix covers a whole family and products added to that family later are
+	 * excluded without anyone remembering to update this list. A full SKU still
+	 * works — it is simply a fragment that matches one product.
+	 *
+	 * Substring matching is also what the catalog page's CSS does natively
+	 * (`[data-name*=…]`), so both surfaces apply these entries identically rather
+	 * than drifting apart.
+	 *
+	 * Add one from elsewhere without editing this file:
 	 *
 	 *     add_filter( 'opl_coa_banner_exclude_skus', function ( $skus ) {
 	 *         $skus[] = 'OP-MET-EXAMPLE-5MG';
 	 *         return $skus;
 	 *     } );
 	 *
-	 * This list is also what builds the catalog-page exclusions in
-	 * opl_coa_banner_styles(), so a SKU added here drops out of every surface at
-	 * once rather than needing to be removed from two places.
-	 *
 	 * @return string[]
 	 */
 	function opl_coa_banner_excluded_skus() {
 		$skus = array(
-			// Shipped as research support, not as an analysed research material.
+			// Research support, not an analysed research material.
 			'OP-AUX-BACWATER-10ML',
+
+			/*
+			 * Bundles and collections. One COA cannot describe a box whose contents
+			 * the buyer composes — the individual materials each carry their own, on
+			 * their own product pages. Prefixes rather than the nine current SKUs, so
+			 * the next bundle is covered the day it is created.
+			 *
+			 * OP-BUNDLE-*  Build Your Research Bundle (3 / 6 / 9 vials)
+			 * OP-STACK-*   the four themed Research Collections
+			 * OP-STK-*     Advanced Multi-Pathway Collection, Cellular Research Panel
+			 *
+			 * The 6-vial kits (OP-KIT-*) are deliberately NOT here: those are six
+			 * vials of one material, so a single COA does describe them.
+			 */
+			'OP-BUNDLE-',
+			'OP-STACK-',
+			'OP-STK-',
 		);
 
 		return (array) apply_filters( 'opl_coa_banner_exclude_skus', $skus );
@@ -63,9 +84,16 @@ if ( ! function_exists( 'opl_coa_banner_applies' ) ) {
 			return false;
 		}
 
-		$sku = $product->get_sku();
-		if ( '' !== $sku && in_array( $sku, opl_coa_banner_excluded_skus(), true ) ) {
-			return false;
+		$sku = strtolower( (string) $product->get_sku() );
+		if ( '' !== $sku ) {
+			foreach ( opl_coa_banner_excluded_skus() as $fragment ) {
+				$fragment = strtolower( trim( (string) $fragment ) );
+				// Substring, not equality, so a prefix covers a whole product family —
+				// and so this matches what the catalog page's [data-name*=…] does.
+				if ( '' !== $fragment && false !== strpos( $sku, $fragment ) ) {
+					return false;
+				}
+			}
 		}
 
 		/**
