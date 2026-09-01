@@ -309,9 +309,9 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
   </div>
 
   <ul class="facts">
-    <li><b>39</b><span>products covered</span></li>
+    <li><b>29</b><span>products covered</span></li>
     <li><b>3</b><span>surfaces</span></li>
-    <li><b>1</b><span>excluded by SKU</span></li>
+    <li><b>10</b><span>excluded by SKU</span></li>
     <li><b>0</b><span>product records written</span></li>
   </ul>
 
@@ -320,11 +320,12 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
 
   <div class="card">
     <div class="card-head">
-      <p class="card-title">Product pages — 38 of 38</p>
+      <p class="card-title">Product pages — 29 of 39, 10 excluded</p>
       <span class="chip chip-ok">Verified</span>
     </div>
-    <p>Every product in the sitemap carries the banner between the title and the price.
-      Bacteriostatic Water is the one deliberate exclusion.</p>
+    <p>Every research material carries the banner between the title and the price. The
+      ten exclusions are Bacteriostatic Water and the nine multi-product bundles and
+      collections. No leaks, no misses.</p>
   </div>
 
   <div class="card">
@@ -332,18 +333,20 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
       <p class="card-title">Category listings — all six</p>
       <span class="chip chip-ok">Verified</span>
     </div>
-    <p>Pill counts: build-your-own-research-collection-eligible 16, metabolic-systems-research
-      16, research-catalog 16, metabolic-research 13, cellular-research 5,
-      research-compounds 1.</p>
+    <p>Pills fall below the card count exactly where a bundle sits: cellular-research 3
+      of 5, metabolic-systems-research 15 of 16. The rest are complete —
+      build-your-own-research-collection-eligible 16, research-catalog 16,
+      metabolic-research 13, research-compounds 1.</p>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <p class="card-title">/research-catalog/ — 42 of 43 cards</p>
+      <p class="card-title">/research-catalog/ — 33 of 43 cards</p>
       <span class="chip chip-ok">Verified</span>
     </div>
-    <p>Bacteriostatic Water correctly excluded. Confirmed by rendering the live page&rsquo;s
-      own cards against the stylesheet it actually shipped, not by reading the source.</p>
+    <p>The ten excluded are the nine bundles plus Bacteriostatic Water. Confirmed by
+      rendering the live page&rsquo;s own cards against the stylesheet it actually shipped
+      — an earlier escaping bug looked right in the source while matching nothing.</p>
   </div>
 
   <h2>Which products get it</h2>
@@ -355,9 +358,15 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
       including Cagrilintide, Retatrutide 20&nbsp;mg, BPC-157 and TB-500. The rule is now
       inverted: everything is covered, and only exceptions are named. New products are
       covered the moment they are published.</p>
-    <span class="label">Currently excluded</span>
-    <p><code>OP-AUX-BACWATER-10ML</code> — Bacteriostatic Water, shipped as research support
-      rather than an analysed research material.</p>
+    <span class="label">Currently excluded — 10 products, 4 fragments</span>
+    <p><code>OP-AUX-BACWATER-10ML</code> — Bacteriostatic Water, research support rather
+      than an analysed material.<br>
+      <code>OP-BUNDLE-</code>, <code>OP-STACK-</code>, <code>OP-STK-</code> — the three
+      Build Your Research Bundles, the four Collections, Advanced Multi-Pathway and the
+      Cellular Research Panel. One COA cannot describe a box the buyer composes.</p>
+    <p>Entries match as case-insensitive <strong>substrings</strong>, so those prefixes
+      cover the next bundle too. The 6-vial kits (<code>OP-KIT-*</code>) are deliberately
+      not excluded — six vials of one material, which a single COA does describe.</p>
     <span class="label">To exclude another</span>
     <pre><code>add_filter( 'opl_coa_banner_exclude_skus', function ( $skus ) {
     $skus[] = 'OP-MET-EXAMPLE-5MG';
@@ -397,9 +406,9 @@ curl -s -H 'Cache-Control: no-cache' \
       line 1&rdquo;. Check the last line reads <code>}</code> before saving.</p>
   </div>
 
-  <h2>Two things still need your call</h2>
-  <p class="section-note">Both are live on the site right now, so these are edits to make,
-    not decisions to make before shipping.</p>
+  <h2>One thing still needs your call</h2>
+  <p class="section-note">Live on the site right now, so this is an edit to make, not a
+    decision to make before shipping.</p>
 
   <div class="card">
     <div class="card-head">
@@ -411,16 +420,6 @@ curl -s -H 'Cache-Control: no-cache' \
       is not yet enabled&rdquo;. This banner states availability flatly, directly above it.</p>
     <p>Fine if a COA is genuinely on file for all of them. If any is record-pending, name it
       and it comes off the list — one line.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <p class="card-title">Bundles and collections claim a COA too</p>
-      <span class="chip chip-warn">Confirm</span>
-    </div>
-    <p>The Build Your Research Bundle items and the multi-product Collections carry the
-      banner along with everything else. If a single COA does not meaningfully apply to a
-      multi-product bundle, exclude them the same way Bacteriostatic Water is excluded.</p>
   </div>
 
   <h2>Undoing it</h2>

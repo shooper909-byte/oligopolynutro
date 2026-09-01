@@ -60,9 +60,17 @@ add_filter( 'opl_coa_banner_applies', function ( $applies, $product ) {
 }, 10, 2 );
 ```
 
-Verified 2026-09-01: 33 of the 43 catalog cards show the pill, 10 excluded (the four
-Collections, three Build-Your-Bundles, Advanced Multi-Pathway, Cellular Research
-Panel, Bacteriostatic Water).
+Verified live 2026-09-01, after the exclusions shipped:
+
+| Surface | Result |
+|---|---|
+| Product pages | 29 with banner, 10 excluded, 39 total, 0 problems |
+| Category archives | pills drop below card count exactly where bundles sit (cellular-research 3/5, metabolic-systems 15/16) |
+| `/research-catalog/` | 33 of 43 cards, the 10 excluded being the nine bundles plus Bacteriostatic Water |
+
+The catalog figure was confirmed by rendering the page's own stylesheet against the
+page's own cards in a browser, not by reading the markup — an earlier escaping bug
+looked correct in the source while matching nothing.
 
 ### The custom catalog page
 
