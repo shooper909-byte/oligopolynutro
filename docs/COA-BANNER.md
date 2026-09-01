@@ -121,8 +121,11 @@ curl -s -H 'Cache-Control: no-cache' \
 `grep -c` counts matching *lines*, and that page is minified onto one — use
 `grep -o ... | wc -l` when counting cards or pills there.
 
-Verified 2026-09-01: 38/38 products in the sitemap, all six product-category
-archives, and 42/43 catalog cards (Bacteriostatic Water correctly excluded).
+Verified 2026-09-01 after the escaping fix: **38/38** products in the sitemap
+(Bacteriostatic Water correctly excluded, one extra product restored to the catalogue
+that day), **all six** product-category archives, and **42/43** catalog cards —
+confirmed by rendering the live page's own cards against the stylesheet it actually
+shipped, not by reading the source.
 
 **If a listing pill does not appear** on some archive, that template is not using
 WooCommerce's own product loop and so never fires

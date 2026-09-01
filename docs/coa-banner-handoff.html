@@ -273,22 +273,21 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
   <header class="masthead">
     <p class="eyebrow">OligoPoly Laboratories · Handoff</p>
     <h1>Product COA banner</h1>
-    <p class="standfirst">A small purple “COA Available” banner between the product title
-      and the price, on the thirteen research products with certificate-of-analysis
-      documentation on file. <strong>Live since 1 September 2026</strong> — verified on all
-      thirteen pages, and confirmed absent from every product not on the list.</p>
+    <p class="standfirst">COA availability shown everywhere a product appears — a purple
+      banner on product pages, a pill on listing cards, and a pill in the custom catalog.
+      <strong>Live and verified on 1 September 2026</strong> across all three surfaces.</p>
     <div class="meta">
       <span><b>Branch</b> claude/wordpress-product-coa-banners-37qjtp</span>
       <span><b>Site</b> oligopolypeptides.com</span>
       <span><b>Status</b> live</span>
-      <span><b>Verified live</b> 2026-09-01</span>
+      <span><b>Verified</b> 2026-09-01</span>
     </div>
   </header>
 
   <h2>What it looks like</h2>
-  <p class="section-note">The real banner, rendered here with the production stylesheet
-    copied verbatim out of the snippet — not a screenshot. The column is set to 560px,
-    roughly the width of the product summary once the image gallery takes the other half.</p>
+  <p class="section-note">Both pieces, rendered here with the production stylesheet copied
+    verbatim out of the snippet — not screenshots. The column is 560px, roughly the product
+    summary once the image gallery takes the other half.</p>
 
   <div class="spec">
     <div class="spec-ground">
@@ -301,92 +300,106 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
           <span class="opl-coa-banner__cta" aria-hidden="true">View&nbsp;COA&nbsp;&rarr;</span>
         </a>
         <p class="spec-price">$—</p>
+        <p class="spec-title" style="font-size:1rem;margin-top:1.4rem;">Cagrilintide 5 mg Research Peptide</p>
+        <span class="opl-coa-pill">COA Available</span>
       </div>
     </div>
-    <p class="spec-caption">Longest title in the set. Hover or tab to it — it is a real link.</p>
+    <p class="spec-caption">Above: the product-page banner, on the longest title in the
+      catalogue. Below it: the listing pill. Hover or tab the banner — it is a real link.</p>
   </div>
 
   <ul class="facts">
-    <li><b>13</b><span>product pages</span></li>
-    <li><b>1</b><span>snippet to install</span></li>
-    <li><b>41px</b><span>banner height, 900–560px</span></li>
+    <li><b>39</b><span>products covered</span></li>
+    <li><b>3</b><span>surfaces</span></li>
+    <li><b>1</b><span>excluded by SKU</span></li>
     <li><b>0</b><span>product records written</span></li>
   </ul>
 
-  <h2>How it was installed</h2>
-  <p class="section-note">Done — recorded here for whoever has to repeat or undo it. The strip
-    under the product title is rendered by WooCommerce, not stored in the product description,
-    so there is nothing to paste per product. One install covers all thirteen and adding
-    another is one line.</p>
+  <h2>Where it shows</h2>
+  <p class="section-note">Verified live on 2026-09-01, cache-busted.</p>
 
   <div class="card">
     <div class="card-head">
-      <p class="card-title">Option A — WPCode / Code Snippets</p>
-      <span class="chip chip-ok">Recommended</span>
+      <p class="card-title">Product pages — 38 of 38</p>
+      <span class="chip chip-ok">Verified</span>
     </div>
-    <p>Survives theme changes and touches no theme files.</p>
-    <ol>
-      <li>Snippets → Add New → Add Your Own → <strong>PHP Snippet</strong>.</li>
-      <li>Title it <code>OligoPoly — product COA banner</code>.</li>
-      <li>Paste all of <code>wordpress/product-coa-banner.php</code>, <strong>without</strong>
-        the opening <code>&lt;?php</code> line — WPCode supplies it.</li>
-      <li>Insertion: <strong>Auto Insert → Run Everywhere</strong>. Save and activate.</li>
-    </ol>
+    <p>Every product in the sitemap carries the banner between the title and the price.
+      Bacteriostatic Water is the one deliberate exclusion.</p>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <p class="card-title">Option B — child theme</p>
-      <span class="chip chip-warn">Lost on theme change</span>
+      <p class="card-title">Category listings — all six</p>
+      <span class="chip chip-ok">Verified</span>
     </div>
-    <p>Append the same contents (minus the opening <code>&lt;?php</code>) to the child theme’s
-      <code>functions.php</code>. Do not put it in <code>hello-elementor</code> itself — the
-      parent theme is overwritten on update.</p>
+    <p>Pill counts: build-your-own-research-collection-eligible 16, metabolic-systems-research
+      16, research-catalog 16, metabolic-research 13, cellular-research 5,
+      research-compounds 1.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">/research-catalog/ — 42 of 43 cards</p>
+      <span class="chip chip-ok">Verified</span>
+    </div>
+    <p>Bacteriostatic Water correctly excluded. Confirmed by rendering the live page&rsquo;s
+      own cards against the stylesheet it actually shipped, not by reading the source.</p>
+  </div>
+
+  <h2>Which products get it</h2>
+  <p class="section-note">All of them, minus a named exclusion list.</p>
+
+  <div class="card">
+    <p>The snippet originally carried a hand-maintained list of thirteen SKUs. That meant
+      every product added or overlooked afterwards silently had no banner — 31 of 44,
+      including Cagrilintide, Retatrutide 20&nbsp;mg, BPC-157 and TB-500. The rule is now
+      inverted: everything is covered, and only exceptions are named. New products are
+      covered the moment they are published.</p>
+    <span class="label">Currently excluded</span>
+    <p><code>OP-AUX-BACWATER-10ML</code> — Bacteriostatic Water, shipped as research support
+      rather than an analysed research material.</p>
+    <span class="label">To exclude another</span>
+    <pre><code>add_filter( 'opl_coa_banner_exclude_skus', function ( $skus ) {
+    $skus[] = 'OP-MET-EXAMPLE-5MG';
+    return $skus;
+} );</code></pre>
+    <p>One list feeds all three surfaces, so a SKU added there drops out everywhere at once.</p>
   </div>
 
   <h2>Checking it, now or later</h2>
-  <p class="section-note">One product that should show the banner, one that should not.
-    <strong>Bust the cache</strong> — the site serves cached HTML to plain requests, which is
-    what made the banner look missing on the first check after install.</p>
+  <p class="section-note"><strong>Bust the cache.</strong> The site serves cached HTML to
+    plain requests — that is what made the banner look missing on the first check after
+    install. And <code>grep -c</code> counts matching <em>lines</em>; the catalog page is
+    minified onto one, so counting there needs <code>grep -o … | wc -l</code>.</p>
   <pre><code>curl -s -H 'Cache-Control: no-cache' \
-  "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/?nc=$(date +%s)" \
-  | grep -c 'class="opl-coa-banner"'    # expect 1
+  "https://www.oligopolypeptides.com/products/cagrilintide-5mg-research-peptide/?nc=$(date +%s)" \
+  | grep -c 'class="opl-coa-banner"'          # expect 1
 
 curl -s -H 'Cache-Control: no-cache' \
-  "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/?nc=$(date +%s)" \
-  | grep -c 'class="opl-coa-banner"'    # expect 0</code></pre>
-  <p class="section-note">Last run 2026-09-01: <strong>13/13</strong> listed pages carry exactly
-    one banner and one stylesheet, in the right place (title → banner → trust block → price);
-    <strong>0/4</strong> control products carry it.</p>
+  "https://www.oligopolypeptides.com/product-category/metabolic-research/?nc=$(date +%s)" \
+  | grep -o 'class="opl-coa-pill"' | wc -l    # expect one per card</code></pre>
 
-  <h2>Where it appears</h2>
-  <p class="section-note">Matched by SKU rather than post ID, so the list stays readable and
-    survives an ID change. Every SKU and ID below was read off the live site on 2026-08-31.</p>
+  <h2>How it was installed</h2>
+  <p class="section-note">Done — recorded for whoever repeats or undoes it. The strip under
+    the product title is rendered by WooCommerce, not stored in the product description, so
+    there is nothing to paste per product. One install covers the whole catalogue.</p>
 
-  <p class="group-label">Single vials · 7</p>
-  <ul class="prods">
-    <li class="prod"><span class="nm">KLOW Research Blend 80 mg</span><span class="sku">OP-REC-KLOW-80MG</span><span class="pid">1948</span></li>
-    <li class="prod"><span class="nm">GHK-Cu 50 mg</span><span class="sku">OP-LON-GHKCU-50MG</span><span class="pid">441</span></li>
-    <li class="prod"><span class="nm">NAD+ 500 mg</span><span class="sku">OP-AUX-NAD-500MG</span><span class="pid">63</span></li>
-    <li class="prod"><span class="nm">Retatrutide 5 mg</span><span class="sku">OP-MET-RETA-5MG</span><span class="pid">3395</span></li>
-    <li class="prod"><span class="nm">Selank 5 mg</span><span class="sku">OP-COG-SELANK-5MG</span><span class="pid">447</span></li>
-    <li class="prod"><span class="nm">Semaglutide 5 mg</span><span class="sku">OP-MET-SEMA-5MG</span><span class="pid">3397</span></li>
-    <li class="prod"><span class="nm">Tirzepatide 10 mg</span><span class="sku">OP-MET-TIRZ-10MG</span><span class="pid">39</span></li>
-  </ul>
-
-  <p class="group-label">6-vial kits · 6 · KLOW has no kit</p>
-  <ul class="prods">
-    <li class="prod"><span class="nm">GHK-Cu 50 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-GHKCU-50MG-6</span><span class="pid">3468</span></li>
-    <li class="prod"><span class="nm">NAD+ 500 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-NAD-500MG-6</span><span class="pid">3459</span></li>
-    <li class="prod"><span class="nm">Retatrutide 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-RETA-5MG-6</span><span class="pid">3465</span></li>
-    <li class="prod"><span class="nm">Selank 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-SELANK-5MG-6</span><span class="pid">3463</span></li>
-    <li class="prod"><span class="nm">Semaglutide 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-SEMA-5MG-6</span><span class="pid">3457</span></li>
-    <li class="prod"><span class="nm">Tirzepatide 10 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-TIRZ-10MG-6</span><span class="pid">3454</span></li>
-  </ul>
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">WPCode PHP snippet</p>
+      <span class="chip chip-ok">In use</span>
+    </div>
+    <p>Named <code>OligoPoly — product COA banner</code>, Auto Insert → Run Everywhere.
+      Paste <code>wordpress/product-coa-banner.php</code> <strong>without</strong> its
+      opening <code>&lt;?php</code> line — WPCode supplies its own.</p>
+    <p>Paste the whole file. A truncated paste leaves the opening <code>/**</code> comment
+      unclosed, and WPCode deactivates the snippet with &ldquo;Unterminated comment starting
+      line 1&rdquo;. Check the last line reads <code>}</code> before saving.</p>
+  </div>
 
   <h2>Two things still need your call</h2>
-  <p class="section-note">Both are live on the site right now, so these are edits to make, not
-    decisions to make before shipping.</p>
+  <p class="section-note">Both are live on the site right now, so these are edits to make,
+    not decisions to make before shipping.</p>
 
   <div class="card">
     <div class="card-head">
@@ -394,42 +407,46 @@ curl -s -H 'Cache-Control: no-cache' \
       <span class="chip chip-warn">Decide</span>
     </div>
     <p>The existing <code>opl-trust-status</code> section on these same pages is deliberately
-      hedged — “Product-level records where available”, “Exact-lot publishing is not yet
-      enabled”. This banner states availability flatly, directly above it.</p>
-    <p>Fine if a COA is genuinely on file for all thirteen. If any is record-pending, name it
+      hedged — &ldquo;Product-level records where available&rdquo;, &ldquo;Exact-lot publishing
+      is not yet enabled&rdquo;. This banner states availability flatly, directly above it.</p>
+    <p>Fine if a COA is genuinely on file for all of them. If any is record-pending, name it
       and it comes off the list — one line.</p>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <p class="card-title">The kits inherit their single vial’s claim</p>
+      <p class="card-title">Bundles and collections claim a COA too</p>
       <span class="chip chip-warn">Confirm</span>
     </div>
-    <p>The six kits carry the same banner on the assumption that a kit ships the same material
-      as its single vial, and therefore the same COA. If any kit is documented separately,
-      say which.</p>
+    <p>The Build Your Research Bundle items and the multi-product Collections carry the
+      banner along with everything else. If a single COA does not meaningfully apply to a
+      multi-product bundle, exclude them the same way Bacteriostatic Water is excluded.</p>
   </div>
 
   <h2>Undoing it</h2>
-  <p class="section-note">Deactivate the snippet, or delete the appended block. The banner and
-    its CSS disappear completely — nothing was written to product data, so there is nothing
-    else to unwind.</p>
+  <p class="section-note">Deactivate the snippet. The banner, both pills and their CSS
+    disappear completely — nothing was written to product data, so there is nothing else to
+    unwind.</p>
 
   <h2>What it does not touch</h2>
   <ul class="settled">
     <li><strong>Display only.</strong> No product data, price, inventory, cart, checkout,
       payment, shipping, tax, or WooCommerce setting is read or written.</li>
-    <li><strong>No sitewide CSS.</strong> The stylesheet is inline, <code>opl-coa-</code>
-      prefixed, and printed once per request, only on pages that actually render a banner.</li>
-    <li><strong>Contrast holds.</strong> White text clears 4.5:1 (WCAG AA) against both ends of
-      the <code>#9333ea → #ae3ada</code> gradient.</li>
-    <li><strong>Keyboard and motion.</strong> A real link with a visible focus ring, and it
-      honours <code>prefers-reduced-motion</code>.</li>
-    <li><strong>Accessible name.</strong> The visible line omits the product name — it sits
-      under the title already, and repeating it wrapped the CTA on the longer kit titles.
-      Screen readers still get the full name through <code>aria-label</code>.</li>
-    <li><strong>Preview cannot drift.</strong> <code>node build-coa-banner.js</code> regenerates
-      the QA preview by parsing the snippet itself, and fails rather than emitting an empty page.</li>
+    <li><strong>No sitewide CSS.</strong> Inline, <code>opl-coa-</code> prefixed, printed
+      once per request and only on pages that render something.</li>
+    <li><strong>Contrast holds.</strong> White text clears 4.5:1 (WCAG AA) against both ends
+      of the <code>#9333ea → #ae3ada</code> gradient, in the banner and both pills.</li>
+    <li><strong>Keyboard and motion.</strong> The banner is a real link with a visible focus
+      ring, and honours <code>prefers-reduced-motion</code>.</li>
+    <li><strong>Valid markup on listings.</strong> The listing pill is a <code>&lt;span&gt;</code>,
+      not a link — that hook fires inside WooCommerce&rsquo;s own product-card
+      <code>&lt;a&gt;</code>, and a nested anchor is invalid markup browsers silently
+      restructure.</li>
+    <li><strong>The catalog pill is an attachment.</strong> <code>/research-catalog/</code> is
+      rendered by a different snippet, so its pill is generated content on the badge row that
+      snippet already emits. If it stops emitting <code>data-name</code> or
+      <code>.oprc-badges</code>, that pill quietly disappears; product pages and category
+      archives are unaffected. Better long-term home: inside that snippet.</li>
   </ul>
 
   <footer>
