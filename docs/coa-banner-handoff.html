@@ -1,0 +1,429 @@
+<title>COA Banner Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<style>
+/* Tokens carried over from docs/handoff.html so the two handoff pages read as one set. */
+:root{
+  --ground:#faf9fc;
+  --surface:#ffffff;
+  --surface-2:#f4f2f8;
+  --line:#e2dfea;
+  --line-strong:#cbc6d9;
+  --ink:#1a1726;
+  --ink-2:#4a4459;
+  --muted:#726c85;
+  --accent:#6d28d9;
+  --accent-soft:#f1ebfd;
+  --ok:#146c52;
+  --ok-soft:#e3f3ed;
+  --warn:#8a5a00;
+  --warn-soft:#fcf0da;
+  --stop:#9c2f2f;
+  --stop-soft:#fbe9e9;
+  --shadow:0 1px 2px rgba(26,23,38,.06), 0 8px 24px -16px rgba(26,23,38,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#100e18;
+    --surface:#191626;
+    --surface-2:#211d31;
+    --line:#2e2942;
+    --line-strong:#413a5c;
+    --ink:#eceaf3;
+    --ink-2:#bdb7cd;
+    --muted:#948ca6;
+    --accent:#b492f8;
+    --accent-soft:#241c3d;
+    --ok:#6bd0ac;
+    --ok-soft:#13291f;
+    --warn:#e5b567;
+    --warn-soft:#2c2312;
+    --stop:#f08c8c;
+    --stop-soft:#2e1717;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#100e18;
+  --surface:#191626;
+  --surface-2:#211d31;
+  --line:#2e2942;
+  --line-strong:#413a5c;
+  --ink:#eceaf3;
+  --ink-2:#bdb7cd;
+  --muted:#948ca6;
+  --accent:#b492f8;
+  --accent-soft:#241c3d;
+  --ok:#6bd0ac;
+  --ok-soft:#13291f;
+  --warn:#e5b567;
+  --warn-soft:#2c2312;
+  --stop:#f08c8c;
+  --stop-soft:#2e1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,4vw,2rem) 5rem;}
+
+.masthead{border-bottom:1px solid var(--line);padding-bottom:2rem;margin-bottom:2.75rem;}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.72rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 .9rem;
+}
+h1{
+  font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;
+  font-size:clamp(1.9rem,4.4vw,2.7rem);line-height:1.15;letter-spacing:-.015em;
+  margin:0 0 .8rem;text-wrap:balance;
+}
+.standfirst{font-size:1.06rem;color:var(--ink-2);max-width:60ch;margin:0;}
+.meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.5rem;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.76rem;color:var(--muted);
+}
+.meta b{font-weight:500;color:var(--ink-2);}
+
+h2{
+  font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;
+  font-size:1.35rem;letter-spacing:-.01em;margin:3.25rem 0 .5rem;text-wrap:balance;
+}
+h2:first-of-type{margin-top:0;}
+.section-note{color:var(--muted);font-size:.94rem;margin:0 0 1.4rem;max-width:62ch;}
+
+.chip{
+  display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.68rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;
+  padding:.3rem .6rem;border-radius:5px;border:1px solid transparent;
+}
+.chip::before{content:"";width:.42rem;height:.42rem;border-radius:50%;background:currentColor;}
+.chip-ok{color:var(--ok);background:var(--ok-soft);border-color:currentColor;}
+.chip-warn{color:var(--warn);background:var(--warn-soft);border-color:currentColor;}
+
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:1.25rem 1.35rem;margin-bottom:.7rem;box-shadow:var(--shadow);
+}
+.card-head{display:flex;flex-wrap:wrap;gap:.6rem;align-items:baseline;justify-content:space-between;margin-bottom:.5rem;}
+.card-title{font-weight:600;font-size:1.02rem;color:var(--ink);margin:0;}
+.card p{margin:0 0 .7rem;color:var(--ink-2);font-size:.95rem;}
+.card p:last-child{margin-bottom:0;}
+.card ol,.card ul{margin:.2rem 0 .7rem;padding-left:1.15rem;color:var(--ink-2);font-size:.95rem;}
+.card li{margin-bottom:.35rem;}
+.card a{color:var(--accent);}
+
+code{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:.1em .38em;
+}
+pre{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.8rem;line-height:1.65;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+  padding:.9rem 1rem;overflow-x:auto;margin:.5rem 0 .9rem;color:var(--ink);
+}
+pre code{background:none;border:none;padding:0;font-size:1em;}
+.label{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.68rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  display:block;margin:.8rem 0 .25rem;
+}
+
+.facts{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;
+  margin:1.4rem 0 0;padding:0;list-style:none;
+}
+.facts li{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:.85rem 1rem;}
+.facts b{
+  display:block;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:1.15rem;font-weight:600;color:var(--accent);
+  font-variant-numeric:tabular-nums;margin-bottom:.15rem;
+}
+.facts span{font-size:.82rem;color:var(--muted);}
+
+/* ---- specimen: the live site is dark, so this panel stays dark in both themes ---- */
+.spec{
+  border:1px solid var(--line);border-radius:11px;overflow:hidden;
+  box-shadow:var(--shadow);margin-bottom:1.5rem;
+}
+.spec-ground{background:#0b1220;padding:1.4rem 1.5rem 1.5rem;}
+.spec-col{max-width:560px;}
+.spec-title{
+  font-family:"IBM Plex Sans",sans-serif;color:#f8fafc;
+  font-size:1.32rem;font-weight:600;line-height:1.25;margin:0;
+}
+.spec-price{color:#f8fafc;font-size:1.05rem;font-weight:600;margin:.15rem 0 0;}
+.spec-caption{
+  background:var(--surface-2);border-top:1px solid var(--line);
+  padding:.7rem 1.5rem;margin:0;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.72rem;color:var(--muted);
+}
+
+/* Production CSS, copied verbatim from wordpress/product-coa-banner.php.
+   Every rule is .opl-coa-banner scoped, so nothing here touches the page around it. */
+.opl-coa-banner{
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:12px 0 14px;
+  padding:9px 14px;
+  border:1px solid #d8b4fe;
+  border-radius:9px;
+  background:linear-gradient(100deg,#9333ea,#ae3ada);
+  box-shadow:0 0 0 1px rgba(216,180,254,.28), 0 6px 18px rgba(147,51,234,.34);
+  color:#fff!important;
+  text-decoration:none!important;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.4;
+  transition:box-shadow .18s ease, transform .18s ease;
+}
+.opl-coa-banner:hover,
+.opl-coa-banner:focus-visible{
+  transform:translateY(-1px);
+  box-shadow:0 0 0 1px #f0c8ff, 0 10px 24px rgba(147,51,234,.46);
+  text-decoration:none!important;
+}
+.opl-coa-banner:focus-visible{outline:2px solid #f0c8ff;outline-offset:2px;}
+.opl-coa-banner__badge{
+  flex:0 0 auto;
+  padding:3px 9px;
+  border-radius:999px;
+  background:#fff;
+  color:#7e22ce!important;
+  font-size:11px!important;
+  font-weight:800;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.opl-coa-banner__text{
+  flex:1 1 auto;
+  min-width:0;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:500;
+}
+.opl-coa-banner__cta{
+  flex:0 0 auto;
+  margin-left:auto;
+  color:#fff!important;
+  font-size:12px!important;
+  font-weight:700;
+  white-space:nowrap;
+  opacity:.95;
+}
+@media (max-width:480px){
+  .opl-coa-banner{gap:8px;padding:8px 11px;}
+  .opl-coa-banner__text{flex-basis:100%;font-size:12.5px!important;}
+}
+
+/* ---- product list ---- */
+.prods{display:flex;flex-direction:column;gap:.4rem;margin:0;padding:0;list-style:none;}
+.prod{
+  display:grid;grid-template-columns:1fr auto auto;gap:.35rem 1.1rem;align-items:baseline;
+  background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  padding:.7rem .95rem;
+}
+.prod .nm{font-size:.94rem;color:var(--ink);font-weight:500;}
+.prod .sku,.prod .pid{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.76rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.group-label{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.68rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin:1.5rem 0 .6rem;padding-bottom:.45rem;border-bottom:1px solid var(--line);
+}
+.group-label:first-child{margin-top:0;}
+
+.settled{margin:1.2rem 0 0;padding-left:1.15rem;color:var(--ink-2);font-size:.95rem;}
+.settled li{margin-bottom:.4rem;}
+.settled strong{color:var(--ink);font-weight:600;}
+
+footer{
+  margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid var(--line);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.74rem;color:var(--muted);
+}
+footer a{color:var(--accent);}
+
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+@media (max-width:560px){
+  .prod{grid-template-columns:1fr;}
+  .card-head{flex-direction:column;gap:.4rem;}
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">OligoPoly Laboratories · Handoff</p>
+    <h1>Product COA banner</h1>
+    <p class="standfirst">A small purple “COA Available” banner between the product title
+      and the price, on the thirteen research products with certificate-of-analysis
+      documentation on file. Built and pushed; one paste away from live.</p>
+    <div class="meta">
+      <span><b>Branch</b> claude/wordpress-product-coa-banners-37qjtp</span>
+      <span><b>Site</b> oligopolypeptides.com</span>
+      <span><b>Verified</b> 2026-08-31</span>
+    </div>
+  </header>
+
+  <h2>What it looks like</h2>
+  <p class="section-note">The real banner, rendered here with the production stylesheet
+    copied verbatim out of the snippet — not a screenshot. The column is set to 560px,
+    roughly the width of the product summary once the image gallery takes the other half.</p>
+
+  <div class="spec">
+    <div class="spec-ground">
+      <div class="spec-col">
+        <p class="spec-title">Tirzepatide 10 mg – 6 Vial Research Kit</p>
+        <a class="opl-coa-banner" href="https://www.oligopolypeptides.com/research-peptides-with-coa/"
+           aria-label="Certificate of Analysis available for Tirzepatide 10 mg – 6 Vial Research Kit — view documentation">
+          <span class="opl-coa-banner__badge">COA Available</span>
+          <span class="opl-coa-banner__text">Certificate of Analysis on file</span>
+          <span class="opl-coa-banner__cta" aria-hidden="true">View&nbsp;COA&nbsp;&rarr;</span>
+        </a>
+        <p class="spec-price">$—</p>
+      </div>
+    </div>
+    <p class="spec-caption">Longest title in the set. Hover or tab to it — it is a real link.</p>
+  </div>
+
+  <ul class="facts">
+    <li><b>13</b><span>product pages</span></li>
+    <li><b>1</b><span>snippet to install</span></li>
+    <li><b>41px</b><span>banner height, 900–560px</span></li>
+    <li><b>0</b><span>product records written</span></li>
+  </ul>
+
+  <h2>Install it</h2>
+  <p class="section-note">The strip under the product title is rendered by WooCommerce, not
+    stored in the product description, so there is nothing to paste per product. One install
+    covers all thirteen and adding another is one line.</p>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Option A — WPCode / Code Snippets</p>
+      <span class="chip chip-ok">Recommended</span>
+    </div>
+    <p>Survives theme changes and touches no theme files.</p>
+    <ol>
+      <li>Snippets → Add New → Add Your Own → <strong>PHP Snippet</strong>.</li>
+      <li>Title it <code>OligoPoly — product COA banner</code>.</li>
+      <li>Paste all of <code>wordpress/product-coa-banner.php</code>, <strong>without</strong>
+        the opening <code>&lt;?php</code> line — WPCode supplies it.</li>
+      <li>Insertion: <strong>Auto Insert → Run Everywhere</strong>. Save and activate.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">Option B — child theme</p>
+      <span class="chip chip-warn">Lost on theme change</span>
+    </div>
+    <p>Append the same contents (minus the opening <code>&lt;?php</code>) to the child theme’s
+      <code>functions.php</code>. Do not put it in <code>hello-elementor</code> itself — the
+      parent theme is overwritten on update.</p>
+  </div>
+
+  <h2>Then check it took</h2>
+  <p class="section-note">One product that should show the banner, one that should not.</p>
+  <pre><code>curl -s https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/ \
+  | grep -c opl-coa-banner    # expect &gt; 0
+
+curl -s https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/ \
+  | grep -c opl-coa-banner    # expect 0</code></pre>
+
+  <h2>Where it appears</h2>
+  <p class="section-note">Matched by SKU rather than post ID, so the list stays readable and
+    survives an ID change. Every SKU and ID below was read off the live site on 2026-08-31.</p>
+
+  <p class="group-label">Single vials · 7</p>
+  <ul class="prods">
+    <li class="prod"><span class="nm">KLOW Research Blend 80 mg</span><span class="sku">OP-REC-KLOW-80MG</span><span class="pid">1948</span></li>
+    <li class="prod"><span class="nm">GHK-Cu 50 mg</span><span class="sku">OP-LON-GHKCU-50MG</span><span class="pid">441</span></li>
+    <li class="prod"><span class="nm">NAD+ 500 mg</span><span class="sku">OP-AUX-NAD-500MG</span><span class="pid">63</span></li>
+    <li class="prod"><span class="nm">Retatrutide 5 mg</span><span class="sku">OP-MET-RETA-5MG</span><span class="pid">3395</span></li>
+    <li class="prod"><span class="nm">Selank 5 mg</span><span class="sku">OP-COG-SELANK-5MG</span><span class="pid">447</span></li>
+    <li class="prod"><span class="nm">Semaglutide 5 mg</span><span class="sku">OP-MET-SEMA-5MG</span><span class="pid">3397</span></li>
+    <li class="prod"><span class="nm">Tirzepatide 10 mg</span><span class="sku">OP-MET-TIRZ-10MG</span><span class="pid">39</span></li>
+  </ul>
+
+  <p class="group-label">6-vial kits · 6 · KLOW has no kit</p>
+  <ul class="prods">
+    <li class="prod"><span class="nm">GHK-Cu 50 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-GHKCU-50MG-6</span><span class="pid">3468</span></li>
+    <li class="prod"><span class="nm">NAD+ 500 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-NAD-500MG-6</span><span class="pid">3459</span></li>
+    <li class="prod"><span class="nm">Retatrutide 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-RETA-5MG-6</span><span class="pid">3465</span></li>
+    <li class="prod"><span class="nm">Selank 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-SELANK-5MG-6</span><span class="pid">3463</span></li>
+    <li class="prod"><span class="nm">Semaglutide 5 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-SEMA-5MG-6</span><span class="pid">3457</span></li>
+    <li class="prod"><span class="nm">Tirzepatide 10 mg – 6 Vial Research Kit</span><span class="sku">OP-KIT-TIRZ-10MG-6</span><span class="pid">3454</span></li>
+  </ul>
+
+  <h2>Two things still need your call</h2>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">The wording is firmer than the block below it</p>
+      <span class="chip chip-warn">Decide</span>
+    </div>
+    <p>The existing <code>opl-trust-status</code> section on these same pages is deliberately
+      hedged — “Product-level records where available”, “Exact-lot publishing is not yet
+      enabled”. This banner states availability flatly, directly above it.</p>
+    <p>Fine if a COA is genuinely on file for all thirteen. If any is record-pending, name it
+      and it comes off the list — one line.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <p class="card-title">The kits inherit their single vial’s claim</p>
+      <span class="chip chip-warn">Confirm</span>
+    </div>
+    <p>The six kits carry the same banner on the assumption that a kit ships the same material
+      as its single vial, and therefore the same COA. If any kit is documented separately,
+      say which.</p>
+  </div>
+
+  <h2>Undoing it</h2>
+  <p class="section-note">Deactivate the snippet, or delete the appended block. The banner and
+    its CSS disappear completely — nothing was written to product data, so there is nothing
+    else to unwind.</p>
+
+  <h2>What it does not touch</h2>
+  <ul class="settled">
+    <li><strong>Display only.</strong> No product data, price, inventory, cart, checkout,
+      payment, shipping, tax, or WooCommerce setting is read or written.</li>
+    <li><strong>No sitewide CSS.</strong> The stylesheet is inline, <code>opl-coa-</code>
+      prefixed, and printed once per request, only on pages that actually render a banner.</li>
+    <li><strong>Contrast holds.</strong> White text clears 4.5:1 (WCAG AA) against both ends of
+      the <code>#9333ea → #ae3ada</code> gradient.</li>
+    <li><strong>Keyboard and motion.</strong> A real link with a visible focus ring, and it
+      honours <code>prefers-reduced-motion</code>.</li>
+    <li><strong>Accessible name.</strong> The visible line omits the product name — it sits
+      under the title already, and repeating it wrapped the CTA on the longer kit titles.
+      Screen readers still get the full name through <code>aria-label</code>.</li>
+    <li><strong>Preview cannot drift.</strong> <code>node build-coa-banner.js</code> regenerates
+      the QA preview by parsing the snippet itself, and fails rather than emitting an empty page.</li>
+  </ul>
+
+  <footer>
+    Source: <code>wordpress/product-coa-banner.php</code> ·
+    docs: <code>docs/COA-BANNER.md</code> ·
+    this page: <code>docs/coa-banner-handoff.html</code> — republish that file to update this URL.
+  </footer>
+
+</div>

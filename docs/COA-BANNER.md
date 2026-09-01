@@ -3,6 +3,11 @@
 A small purple "COA Available" banner on thirteen research product pages, sitting
 between the product title and the price.
 
+Published handoff page:
+<https://claude.ai/code/artifact/a92860d7-3738-48a4-a17e-9738cf8e6e48>
+(source: [`coa-banner-handoff.html`](coa-banner-handoff.html) — republish that file to
+update the same URL)
+
 ![Desktop](../screenshots/coa-banner-desktop.png)
 
 ## Products it appears on

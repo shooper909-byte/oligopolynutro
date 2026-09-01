@@ -61,6 +61,9 @@ A separate, self-contained piece of work: a small purple "COA Available" banner 
 thirteen research product pages (seven single vials plus their 6-vial kits),
 between the product title and the price.
 
+- **Published handoff page** — https://claude.ai/code/artifact/a92860d7-3738-48a4-a17e-9738cf8e6e48
+  (source: [docs/coa-banner-handoff.html](docs/coa-banner-handoff.html); republish that file
+  to update the same URL)
 - **[docs/COA-BANNER.md](docs/COA-BANNER.md)** — install, verification, rollback, and
   the product list
 - [`wordpress/product-coa-banner.php`](wordpress/product-coa-banner.php) — the snippet
