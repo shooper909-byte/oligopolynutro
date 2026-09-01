@@ -27,18 +27,27 @@ if ( ! function_exists( 'opl_coa_banner_excluded_skus' ) ) {
 	/**
 	 * SKUs that must NOT show the banner.
 	 *
-	 * Empty by default: every product is covered. Add a SKU here to drop that one
-	 * product, or filter the list from elsewhere without editing this file:
+	 * Every other product is covered. Add a SKU here to drop one, or filter the
+	 * list from elsewhere without editing this file:
 	 *
 	 *     add_filter( 'opl_coa_banner_exclude_skus', function ( $skus ) {
-	 *         $skus[] = 'OP-SUP-BACWATER-10ML';
+	 *         $skus[] = 'OP-MET-EXAMPLE-5MG';
 	 *         return $skus;
 	 *     } );
+	 *
+	 * This list is also what builds the catalog-page exclusions in
+	 * opl_coa_banner_styles(), so a SKU added here drops out of every surface at
+	 * once rather than needing to be removed from two places.
 	 *
 	 * @return string[]
 	 */
 	function opl_coa_banner_excluded_skus() {
-		return (array) apply_filters( 'opl_coa_banner_exclude_skus', array() );
+		$skus = array(
+			// Shipped as research support, not as an analysed research material.
+			'OP-AUX-BACWATER-10ML',
+		);
+
+		return (array) apply_filters( 'opl_coa_banner_exclude_skus', $skus );
 	}
 }
 
@@ -144,6 +153,31 @@ if ( ! function_exists( 'opl_coa_banner_render_loop' ) ) {
 	add_action( 'woocommerce_after_shop_loop_item_title', 'opl_coa_banner_render_loop', 9 );
 }
 
+if ( ! function_exists( 'opl_coa_banner_catalog_pages' ) ) {
+	/**
+	 * Page slugs that render the custom `oprc-card` catalog.
+	 *
+	 * That catalog is built by a different snippet, not by WooCommerce's product
+	 * loop, so neither hook above fires there and the stylesheet would never be
+	 * printed. These pages get it explicitly.
+	 *
+	 * @return string[]
+	 */
+	function opl_coa_banner_catalog_pages() {
+		return (array) apply_filters( 'opl_coa_banner_catalog_pages', array( 'research-catalog' ) );
+	}
+
+	add_action(
+		'wp_head',
+		function () {
+			if ( is_page( opl_coa_banner_catalog_pages() ) ) {
+				opl_coa_banner_styles();
+			}
+		},
+		20
+	);
+}
+
 if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 	/**
 	 * Print the stylesheet once per request, and only when something renders.
@@ -157,6 +191,21 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 			return;
 		}
 		$done = true;
+
+		/*
+		 * The custom catalog's cards are rendered by another snippet with no hook to
+		 * attach to, so its pill is generated content on the badge row the card
+		 * already has. Each card's data-name carries the lowercased SKU, which is what
+		 * lets the excluded products be filtered out here too — built from the same
+		 * list as everything else, so there is still one source of truth.
+		 */
+		$card_selector = '.oprc-card';
+		foreach ( opl_coa_banner_excluded_skus() as $sku ) {
+			$safe = preg_replace( '/[^a-z0-9_-]/', '', strtolower( (string) $sku ) );
+			if ( '' !== $safe ) {
+				$card_selector .= sprintf( ':not([data-name*="%s"])', $safe );
+			}
+		}
 		?>
 		<style id="opl-coa-banner-styles">
 		/* Purple fill runs #9333ea -> #ae3ada. White text clears 4.5:1 (WCAG AA)
@@ -246,6 +295,26 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 			white-space:nowrap;
 			vertical-align:middle;
 		}
+		/* Custom catalog page. Matches the listing pill, and sits in the card's own
+		   badge row beside "Research Use Only" and "Available". */
+		<?php echo esc_html( $card_selector ); ?> .oprc-badges::after{
+			content:"COA Available";
+			display:inline-block;
+			padding:3px 9px;
+			border-radius:999px;
+			border:1px solid #d8b4fe;
+			background:linear-gradient(100deg,#9333ea,#ae3ada);
+			box-shadow:0 0 0 1px rgba(216,180,254,.22);
+			color:#fff;
+			font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+			font-size:10.5px;
+			font-weight:800;
+			line-height:1.5;
+			letter-spacing:.07em;
+			text-transform:uppercase;
+			white-space:nowrap;
+		}
+
 		@media (prefers-reduced-motion:reduce){
 			.opl-coa-banner{transition:none;}
 			.opl-coa-banner:hover,

@@ -4,6 +4,7 @@ COA availability shown everywhere a product appears:
 
 - **single product pages** — a purple banner between the title and the price
 - **shop / category / search / related-product listings** — a compact pill on the card
+- **`/research-catalog/`** — a pill in each card's existing badge row
 
 **Status: live since 2026-09-01.** Widened from thirteen products to the whole
 catalogue on 2026-09-01.
@@ -12,7 +13,9 @@ catalogue on 2026-09-01.
 
 ## Which products get it
 
-**All of them.** The rule is an exclusion list, not an inclusion list.
+**All of them except Bacteriostatic Water** (`OP-AUX-BACWATER-10ML`), which ships as
+research support rather than an analysed research material. The rule is an exclusion
+list, not an inclusion list.
 
 It originally carried a hand-maintained list of thirteen SKUs. That meant every
 product added afterwards silently had no banner — which is exactly what happened,
@@ -42,9 +45,23 @@ add_filter( 'opl_coa_banner_applies', function ( $applies, $product ) {
 }, 10, 2 );
 ```
 
-**Worth deciding:** Bacteriostatic Water and the multi-product bundles and
-collections currently carry the banner along with everything else. If a COA is not
-genuinely on file for those, exclude them.
+**Worth deciding:** the multi-product bundles and collections still carry the banner.
+If a COA is not genuinely on file for those, exclude them the same way.
+
+### The custom catalog page
+
+`/research-catalog/` is not a WooCommerce archive — its `oprc-card` markup comes from
+a separate snippet, so neither hook fires there. Its pill is generated content on the
+badge row each card already has, and the exclusions are compiled into that selector
+from the same SKU list, so there is still one source of truth:
+
+    .oprc-card:not([data-name*="op-aux-bacwater-10ml"]) .oprc-badges::after
+
+The stylesheet is printed there via `wp_head`, gated on the page slug — add more
+slugs with the `opl_coa_banner_catalog_pages` filter if that catalog appears
+elsewhere. If the other snippet ever stops emitting `data-name` or `.oprc-badges`,
+this pill silently disappears; the product pages and WooCommerce archives are
+unaffected. Better long-term: add the badge inside that snippet directly.
 
 The banner links to `/research-peptides-with-coa/` (override with the
 `opl_coa_banner_doc_url` filter).
@@ -88,11 +105,19 @@ curl -s -H 'Cache-Control: no-cache' \
   | grep -c 'class="opl-coa-pill"'
 ```
 
-**If the listing pill does not appear**, the archive is being rendered by an
-Elementor loop template rather than WooCommerce's own product loop, which does not
-fire `woocommerce_after_shop_loop_item_title`. The single-product banner is
-unaffected. Fix by adding the pill to the Elementor loop template, or by hooking
-whatever the template does emit.
+```sh
+# custom catalog page — expect 1 (the stylesheet carrying the ::after rule)
+curl -s -H 'Cache-Control: no-cache' \
+  "https://www.oligopolypeptides.com/research-catalog/?nc=$(date +%s)" \
+  | grep -c 'id="opl-coa-banner-styles"'
+```
+
+Verified 2026-09-01: 38/38 products in the sitemap, all six product-category
+archives, and 42/43 catalog cards (Bacteriostatic Water correctly excluded).
+
+**If a listing pill does not appear** on some archive, that template is not using
+WooCommerce's own product loop and so never fires
+`woocommerce_after_shop_loop_item_title`. The single-product banner is unaffected.
 
 ## Rollback
 
