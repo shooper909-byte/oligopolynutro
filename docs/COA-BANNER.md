@@ -3,6 +3,9 @@
 A small purple "COA Available" banner on thirteen research product pages, sitting
 between the product title and the price.
 
+**Status: live since 2026-09-01.** Verified on all thirteen pages, and confirmed
+absent from every product not on the list.
+
 Published handoff page:
 <https://claude.ai/code/artifact/a92860d7-3738-48a4-a17e-9738cf8e6e48>
 (source: [`coa-banner-handoff.html`](coa-banner-handoff.html) — republish that file to
@@ -64,10 +67,22 @@ After activating, load any of the URLs above and confirm the banner appears
 under the title. Then load a product that is *not* on the list (e.g.
 `/products/bpc-157-10mg-research-peptide/`) and confirm it does **not**.
 
+**Bust the cache when you check.** The site serves cached HTML to plain requests —
+that is what made the banner look missing on the first check after install. Add a
+unique query string and a no-cache header:
+
 ```sh
-curl -s https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/ | grep -c opl-coa-banner   # expect >0
-curl -s https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/ | grep -c opl-coa-banner # expect 0
+curl -s -H 'Cache-Control: no-cache' \
+  "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/?nc=$(date +%s)" \
+  | grep -c 'class="opl-coa-banner"'    # expect 1
+
+curl -s -H 'Cache-Control: no-cache' \
+  "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/?nc=$(date +%s)" \
+  | grep -c 'class="opl-coa-banner"'    # expect 0
 ```
+
+Last run 2026-09-01: 13/13 listed pages carry exactly one banner and one stylesheet,
+in the right DOM position (title → banner → trust block → price); 0/4 controls.
 
 ## Changing the list
 

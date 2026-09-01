@@ -59,7 +59,7 @@ wordpress/research-partner-program.analytics.html  analytics (FAQ schema is gene
 
 A separate, self-contained piece of work: a small purple "COA Available" banner on
 thirteen research product pages (seven single vials plus their 6-vial kits),
-between the product title and the price.
+between the product title and the price. **Live since 2026-09-01.**
 
 - **Published handoff page** — https://claude.ai/code/artifact/a92860d7-3738-48a4-a17e-9738cf8e6e48
   (source: [docs/coa-banner-handoff.html](docs/coa-banner-handoff.html); republish that file

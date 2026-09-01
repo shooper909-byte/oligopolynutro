@@ -275,11 +275,13 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     <h1>Product COA banner</h1>
     <p class="standfirst">A small purple “COA Available” banner between the product title
       and the price, on the thirteen research products with certificate-of-analysis
-      documentation on file. Built and pushed; one paste away from live.</p>
+      documentation on file. <strong>Live since 1 September 2026</strong> — verified on all
+      thirteen pages, and confirmed absent from every product not on the list.</p>
     <div class="meta">
       <span><b>Branch</b> claude/wordpress-product-coa-banners-37qjtp</span>
       <span><b>Site</b> oligopolypeptides.com</span>
-      <span><b>Verified</b> 2026-08-31</span>
+      <span><b>Status</b> live</span>
+      <span><b>Verified live</b> 2026-09-01</span>
     </div>
   </header>
 
@@ -311,10 +313,11 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     <li><b>0</b><span>product records written</span></li>
   </ul>
 
-  <h2>Install it</h2>
-  <p class="section-note">The strip under the product title is rendered by WooCommerce, not
-    stored in the product description, so there is nothing to paste per product. One install
-    covers all thirteen and adding another is one line.</p>
+  <h2>How it was installed</h2>
+  <p class="section-note">Done — recorded here for whoever has to repeat or undo it. The strip
+    under the product title is rendered by WooCommerce, not stored in the product description,
+    so there is nothing to paste per product. One install covers all thirteen and adding
+    another is one line.</p>
 
   <div class="card">
     <div class="card-head">
@@ -341,13 +344,20 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
       parent theme is overwritten on update.</p>
   </div>
 
-  <h2>Then check it took</h2>
-  <p class="section-note">One product that should show the banner, one that should not.</p>
-  <pre><code>curl -s https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/ \
-  | grep -c opl-coa-banner    # expect &gt; 0
+  <h2>Checking it, now or later</h2>
+  <p class="section-note">One product that should show the banner, one that should not.
+    <strong>Bust the cache</strong> — the site serves cached HTML to plain requests, which is
+    what made the banner look missing on the first check after install.</p>
+  <pre><code>curl -s -H 'Cache-Control: no-cache' \
+  "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/?nc=$(date +%s)" \
+  | grep -c 'class="opl-coa-banner"'    # expect 1
 
-curl -s https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/ \
-  | grep -c opl-coa-banner    # expect 0</code></pre>
+curl -s -H 'Cache-Control: no-cache' \
+  "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/?nc=$(date +%s)" \
+  | grep -c 'class="opl-coa-banner"'    # expect 0</code></pre>
+  <p class="section-note">Last run 2026-09-01: <strong>13/13</strong> listed pages carry exactly
+    one banner and one stylesheet, in the right place (title → banner → trust block → price);
+    <strong>0/4</strong> control products carry it.</p>
 
   <h2>Where it appears</h2>
   <p class="section-note">Matched by SKU rather than post ID, so the list stays readable and
@@ -375,6 +385,8 @@ curl -s https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide
   </ul>
 
   <h2>Two things still need your call</h2>
+  <p class="section-note">Both are live on the site right now, so these are edits to make, not
+    decisions to make before shipping.</p>
 
   <div class="card">
     <div class="card-head">
