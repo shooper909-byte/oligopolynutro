@@ -198,12 +198,17 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 		 * already has. Each card's data-name carries the lowercased SKU, which is what
 		 * lets the excluded products be filtered out here too — built from the same
 		 * list as everything else, so there is still one source of truth.
+		 *
+		 * Single quotes in the attribute selector, and printed raw below: this is CSS
+		 * inside a <style> block, not HTML, so an HTML escaper would emit &quot;
+		 * entities that a CSS parser reads literally and the rule would match nothing.
+		 * The SKU is stripped to [a-z0-9_-] instead, which cannot escape the selector.
 		 */
 		$card_selector = '.oprc-card';
 		foreach ( opl_coa_banner_excluded_skus() as $sku ) {
 			$safe = preg_replace( '/[^a-z0-9_-]/', '', strtolower( (string) $sku ) );
 			if ( '' !== $safe ) {
-				$card_selector .= sprintf( ':not([data-name*="%s"])', $safe );
+				$card_selector .= sprintf( ":not([data-name*='%s'])", $safe );
 			}
 		}
 		?>
@@ -297,7 +302,7 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 		}
 		/* Custom catalog page. Matches the listing pill, and sits in the card's own
 		   badge row beside "Research Use Only" and "Available". */
-		<?php echo esc_html( $card_selector ); ?> .oprc-badges::after{
+		<?php echo $card_selector; // Sanitized above to [a-z0-9_-]; CSS, not HTML. ?> .oprc-badges::after{
 			content:"COA Available";
 			display:inline-block;
 			padding:3px 9px;

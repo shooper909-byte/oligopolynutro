@@ -124,7 +124,7 @@ body{margin:0;padding:28px 18px 48px;background:#030712;color:#e2e8f0;
 		}
 		/* Custom catalog page. Matches the listing pill, and sits in the card's own
 		   badge row beside "Research Use Only" and "Available". */
-		<?php echo esc_html( $card_selector ); ?> .oprc-badges::after{
+		<?php echo $card_selector; // Sanitized above to [a-z0-9_-]; CSS, not HTML. ?> .oprc-badges::after{
 			content:"COA Available";
 			display:inline-block;
 			padding:3px 9px;

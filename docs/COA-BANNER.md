@@ -55,7 +55,13 @@ a separate snippet, so neither hook fires there. Its pill is generated content o
 badge row each card already has, and the exclusions are compiled into that selector
 from the same SKU list, so there is still one source of truth:
 
-    .oprc-card:not([data-name*="op-aux-bacwater-10ml"]) .oprc-badges::after
+    .oprc-card:not([data-name*='op-aux-bacwater-10ml']) .oprc-badges::after
+
+Note the **single quotes** in that attribute selector, and that it is printed raw.
+This is CSS inside a `<style>` block, not HTML: running it through an HTML escaper
+emits `&quot;` entities that a CSS parser reads literally, and the rule then matches
+nothing. The SKU is stripped to `[a-z0-9_-]` instead, which cannot escape the
+selector.
 
 The stylesheet is printed there via `wp_head`, gated on the page slug — add more
 slugs with the `opl_coa_banner_catalog_pages` filter if that catalog appears
@@ -111,6 +117,9 @@ curl -s -H 'Cache-Control: no-cache' \
   "https://www.oligopolypeptides.com/research-catalog/?nc=$(date +%s)" \
   | grep -c 'id="opl-coa-banner-styles"'
 ```
+
+`grep -c` counts matching *lines*, and that page is minified onto one — use
+`grep -o ... | wc -l` when counting cards or pills there.
 
 Verified 2026-09-01: 38/38 products in the sitemap, all six product-category
 archives, and 42/43 catalog cards (Bacteriostatic Water correctly excluded).
