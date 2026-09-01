@@ -1,10 +1,15 @@
 <?php
 /**
- * OligoPoly — "COA Available" product banner.
+ * OligoPoly — "COA Available" banner.
  *
- * Renders a small purple banner directly under the product title on the research
- * products that have certificate-of-analysis documentation on file: seven single
- * vials plus the six 6-vial kits of the same materials.
+ * Shows COA availability everywhere a product appears:
+ *   - single product pages: a purple banner between the title and the price
+ *   - shop / category / search / related-product listings: a compact pill on the card
+ *
+ * Applies to every product by default. It used to carry a hand-maintained list of
+ * thirteen SKUs, which meant every product added afterwards silently had no banner;
+ * the rule is now inverted, so new products are covered automatically and only the
+ * exceptions need naming. See opl_coa_banner_excluded_skus() to exclude any.
  *
  * Scope: front-end display only. This does not touch product data, pricing,
  * inventory, cart, checkout, or any WooCommerce setting. Removing the snippet
@@ -18,53 +23,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'opl_coa_banner_products' ) ) {
+if ( ! function_exists( 'opl_coa_banner_excluded_skus' ) ) {
 	/**
-	 * The products that carry the banner, keyed by SKU.
+	 * SKUs that must NOT show the banner.
 	 *
-	 * Keyed by SKU rather than post ID so the list stays readable and survives a
-	 * post-ID change. `id` is recorded only as a comment aid — matching is by SKU.
+	 * Empty by default: every product is covered. Add a SKU here to drop that one
+	 * product, or filter the list from elsewhere without editing this file:
 	 *
-	 * To add a product: add a row. To remove one: delete its row.
+	 *     add_filter( 'opl_coa_banner_exclude_skus', function ( $skus ) {
+	 *         $skus[] = 'OP-SUP-BACWATER-10ML';
+	 *         return $skus;
+	 *     } );
 	 *
-	 * 'label' is the material name, used for the banner's accessible name (the
-	 * visible text does not repeat it — see opl_coa_banner_render). 'href' is the
-	 * documentation target; omit it to fall back to the documentation library.
-	 *
-	 * @return array<string, array{label:string, id:int}>
+	 * @return string[]
 	 */
-	function opl_coa_banner_products() {
-		$products = array(
-			// Single vials.
-			'OP-REC-KLOW-80MG'    => array( 'label' => 'KLOW Research Blend 80 mg', 'id' => 1948 ),
-			'OP-LON-GHKCU-50MG'   => array( 'label' => 'GHK-Cu 50 mg',              'id' => 441 ),
-			'OP-AUX-NAD-500MG'    => array( 'label' => 'NAD+ 500 mg',               'id' => 63 ),
-			'OP-MET-RETA-5MG'     => array( 'label' => 'Retatrutide 5 mg',          'id' => 3395 ),
-			'OP-COG-SELANK-5MG'   => array( 'label' => 'Selank 5 mg',               'id' => 447 ),
-			'OP-MET-SEMA-5MG'     => array( 'label' => 'Semaglutide 5 mg',          'id' => 3397 ),
-			'OP-MET-TIRZ-10MG'    => array( 'label' => 'Tirzepatide 10 mg',         'id' => 39 ),
+	function opl_coa_banner_excluded_skus() {
+		return (array) apply_filters( 'opl_coa_banner_exclude_skus', array() );
+	}
+}
 
-			// 6-vial kits of the same materials. KLOW has no kit.
-			'OP-KIT-GHKCU-50MG-6' => array( 'label' => 'GHK-Cu 50 mg – 6 Vial Research Kit',      'id' => 3468 ),
-			'OP-KIT-NAD-500MG-6'  => array( 'label' => 'NAD+ 500 mg – 6 Vial Research Kit',       'id' => 3459 ),
-			'OP-KIT-RETA-5MG-6'   => array( 'label' => 'Retatrutide 5 mg – 6 Vial Research Kit',  'id' => 3465 ),
-			'OP-KIT-SELANK-5MG-6' => array( 'label' => 'Selank 5 mg – 6 Vial Research Kit',       'id' => 3463 ),
-			'OP-KIT-SEMA-5MG-6'   => array( 'label' => 'Semaglutide 5 mg – 6 Vial Research Kit',  'id' => 3457 ),
-			'OP-KIT-TIRZ-10MG-6'  => array( 'label' => 'Tirzepatide 10 mg – 6 Vial Research Kit', 'id' => 3454 ),
-		);
+if ( ! function_exists( 'opl_coa_banner_applies' ) ) {
+	/**
+	 * Whether a given product should carry the banner.
+	 *
+	 * @param mixed $product Expected to be a WC_Product; anything else is rejected.
+	 * @return bool
+	 */
+	function opl_coa_banner_applies( $product ) {
+		if ( ! $product instanceof WC_Product ) {
+			return false;
+		}
+
+		$sku = $product->get_sku();
+		if ( '' !== $sku && in_array( $sku, opl_coa_banner_excluded_skus(), true ) ) {
+			return false;
+		}
 
 		/**
-		 * Filter the SKU list, so the set can be changed without editing this file.
+		 * Final say on whether this product shows the banner, for rules a SKU list
+		 * cannot express (a category, a stock state, a custom field).
 		 *
-		 * @param array $products Banner products keyed by SKU.
+		 * @param bool       $applies Whether to show it.
+		 * @param WC_Product $product The product being rendered.
 		 */
-		return apply_filters( 'opl_coa_banner_products', $products );
+		return (bool) apply_filters( 'opl_coa_banner_applies', true, $product );
 	}
 }
 
 if ( ! function_exists( 'opl_coa_banner_doc_url' ) ) {
 	/**
-	 * Where the banner's link points. Site-relative so it follows the domain.
+	 * Where the banner's link points. Built from home_url() so it follows the domain.
 	 *
 	 * @return string
 	 */
@@ -75,7 +83,7 @@ if ( ! function_exists( 'opl_coa_banner_doc_url' ) ) {
 
 if ( ! function_exists( 'opl_coa_banner_render' ) ) {
 	/**
-	 * Print the banner on a single-product page, if this product is on the list.
+	 * Print the full banner on a single-product page.
 	 *
 	 * Hooked at priority 6: WooCommerce prints the title at 5 and the price at 10,
 	 * so the banner lands between the two.
@@ -83,19 +91,9 @@ if ( ! function_exists( 'opl_coa_banner_render' ) ) {
 	function opl_coa_banner_render() {
 		global $product;
 
-		if ( ! $product instanceof WC_Product ) {
+		if ( ! opl_coa_banner_applies( $product ) ) {
 			return;
 		}
-
-		$sku      = $product->get_sku();
-		$products = opl_coa_banner_products();
-
-		if ( '' === $sku || ! isset( $products[ $sku ] ) ) {
-			return;
-		}
-
-		$label = $products[ $sku ]['label'];
-		$href  = isset( $products[ $sku ]['href'] ) ? $products[ $sku ]['href'] : opl_coa_banner_doc_url();
 
 		opl_coa_banner_styles();
 
@@ -108,8 +106,8 @@ if ( ! function_exists( 'opl_coa_banner_render' ) ) {
 		 */
 		?>
 		<a class="opl-coa-banner"
-		   href="<?php echo esc_url( $href ); ?>"
-		   aria-label="<?php echo esc_attr( sprintf( 'Certificate of Analysis available for %s — view documentation', $label ) ); ?>">
+		   href="<?php echo esc_url( opl_coa_banner_doc_url() ); ?>"
+		   aria-label="<?php echo esc_attr( sprintf( 'Certificate of Analysis available for %s — view documentation', $product->get_name() ) ); ?>">
 			<span class="opl-coa-banner__badge">COA Available</span>
 			<span class="opl-coa-banner__text">Certificate of Analysis on file</span>
 			<span class="opl-coa-banner__cta" aria-hidden="true">View&nbsp;COA&nbsp;&rarr;</span>
@@ -119,9 +117,36 @@ if ( ! function_exists( 'opl_coa_banner_render' ) ) {
 	add_action( 'woocommerce_single_product_summary', 'opl_coa_banner_render', 6 );
 }
 
+if ( ! function_exists( 'opl_coa_banner_render_loop' ) ) {
+	/**
+	 * Print the compact pill on a product card in shop / category / search listings.
+	 *
+	 * Deliberately a <span>, not a link: this hook fires inside WooCommerce's own
+	 * product-card <a>, and nesting an anchor there is invalid markup that browsers
+	 * silently restructure. The card's existing link already takes the reader to the
+	 * product, where the full banner links on to the documentation.
+	 *
+	 * Priority 9 puts it after the title and rating (5) and before the price (10),
+	 * matching the single-product placement.
+	 */
+	function opl_coa_banner_render_loop() {
+		global $product;
+
+		if ( ! opl_coa_banner_applies( $product ) ) {
+			return;
+		}
+
+		opl_coa_banner_styles();
+		?>
+		<span class="opl-coa-pill">COA Available</span>
+		<?php
+	}
+	add_action( 'woocommerce_after_shop_loop_item_title', 'opl_coa_banner_render_loop', 9 );
+}
+
 if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 	/**
-	 * Print the banner stylesheet once per request, and only when a banner renders.
+	 * Print the stylesheet once per request, and only when something renders.
 	 *
 	 * Kept inline and `opl-coa-` prefixed so nothing loads sitewide and nothing can
 	 * collide with theme or plugin CSS.
@@ -197,6 +222,29 @@ if ( ! function_exists( 'opl_coa_banner_styles' ) ) {
 		@media (max-width:480px){
 			.opl-coa-banner{gap:8px;padding:8px 11px;}
 			.opl-coa-banner__text{flex-basis:100%;font-size:12.5px!important;}
+		}
+
+		/* Listing pill. A product card is small and repeats down a grid, so this is
+		   the badge alone — no supporting line, no CTA — sized to sit on one line at
+		   any card width. */
+		.opl-coa-pill{
+			display:inline-block;
+			margin:6px 0 4px;
+			padding:3px 9px;
+			border-radius:999px;
+			border:1px solid #d8b4fe;
+			background:linear-gradient(100deg,#9333ea,#ae3ada);
+			box-shadow:0 0 0 1px rgba(216,180,254,.22);
+			color:#fff!important;
+			font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+			font-size:10.5px!important;
+			font-weight:800;
+			line-height:1.5;
+			letter-spacing:.07em;
+			text-transform:uppercase;
+			text-decoration:none!important;
+			white-space:nowrap;
+			vertical-align:middle;
 		}
 		@media (prefers-reduced-motion:reduce){
 			.opl-coa-banner{transition:none;}

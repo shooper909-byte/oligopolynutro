@@ -57,9 +57,10 @@ wordpress/research-partner-program.analytics.html  analytics (FAQ schema is gene
 
 ## Product COA banner
 
-A separate, self-contained piece of work: a small purple "COA Available" banner on
-thirteen research product pages (seven single vials plus their 6-vial kits),
-between the product title and the price. **Live since 2026-09-01.**
+A separate, self-contained piece of work: COA availability shown everywhere a
+product appears — a purple banner between the title and price on single product
+pages, and a compact pill on the product cards in shop and category listings.
+Applies to the whole catalogue; exclude a product by SKU. **Live since 2026-09-01.**
 
 - **Published handoff page** — https://claude.ai/code/artifact/a92860d7-3738-48a4-a17e-9738cf8e6e48
   (source: [docs/coa-banner-handoff.html](docs/coa-banner-handoff.html); republish that file
@@ -71,7 +72,7 @@ between the product title and the price. **Live since 2026-09-01.**
 - `node build-coa-banner.js` — regenerates `preview/coa-banner-preview.html` from that
   snippet for visual QA
 
-Display only, matched by SKU. No product, cart, or WooCommerce data is written.
+Display only. No product, cart, or WooCommerce data is written.
 
 ## Ground rules this work respected
 
