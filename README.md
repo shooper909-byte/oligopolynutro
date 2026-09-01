@@ -74,6 +74,18 @@ Applies to the whole catalogue; exclude a product by SKU. **Live since 2026-09-0
 
 Display only. No product, cart, or WooCommerce data is written.
 
+## Collection & bundle contents
+
+Bundles and collections showed nothing about what they hold. This renders the real
+contents — read from each product's own Mix and Match configuration, never inferred —
+on the product page and on listing cards.
+
+- **[docs/COLLECTION-CONTENTS.md](docs/COLLECTION-CONTENTS.md)** — install, what the
+  live catalogue actually holds, and **four data problems it exposed** (two
+  collections have no contents configured at all)
+- [`wordpress/collection-contents.php`](wordpress/collection-contents.php) — a second,
+  independent snippet
+
 ## Ground rules this work respected
 
 No product data, cart, checkout, payment, shipping, tax, WooCommerce, customer-account,
