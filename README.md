@@ -85,6 +85,9 @@ on the product page and on listing cards.
   collections have no contents configured at all)
 - [`wordpress/collection-contents.php`](wordpress/collection-contents.php) — a second,
   independent snippet
+- **[docs/CODEX-BRIEF.md](docs/CODEX-BRIEF.md)** — work order for an agent with WP-CLI
+  or database access: fix the collection data, repair the corrupted copy, install the
+  snippet, verify the Mix and Match reads
 
 ## Ground rules this work respected
 
