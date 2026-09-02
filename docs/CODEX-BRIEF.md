@@ -55,7 +55,12 @@ Child products, verified live 2026-09-02:
 ### Decisions taken 2026-09-02
 
 **Retatrutide 20 mg** (`OP-MET-RETA-20MG`, #3396, $179.99). The owner delegated the
-choice. Reasoning: the product is named "Advanced" and is currently the most
+choice.
+
+> **On "Retatrutide has 5 mg, 10 mg and 20 mg products":** only **two** are publicly
+> buyable. Retatrutide 10 mg is product #12 and it is shadowed exactly the way
+> product 55 was — see Task 6. Do not use #12 as a child product; a panel containing
+> an unreachable product is worse than the gap it fills. Reasoning: the product is named "Advanced" and is currently the most
 expensive non-kit item in the catalogue, and pairing that with the entry-level 5 mg
 undercuts the positioning; the Metabolic Pathways Collection already carries the
 5 mg, so using 20 mg here differentiates the two rather than adding a second pair of
@@ -81,6 +86,30 @@ title and description clears all nine `<head>` instances at once (Task 3e-ii).
 "Cellular Bioenergetics Research Panel" (NAD+ 500 mg `OP-AUX-NAD-500MG` #63 +
 GHK-Cu 50 mg `OP-LON-GHKCU-50MG` #441). It was described, not requested. Do not
 create it without an explicit instruction.
+
+### The $262.99 vs $299 question — keep $262.99, and fix the copy last
+
+Three reasons to keep the displayed price and correct the prose, rather than raising
+the price to match the prose:
+
+1. **$262.99 is what is actually charged**, and what sits in the page's structured
+   data. $299 appears only in body text. Editing prose to match reality is a
+   correction; raising the charged price is a pricing decision the owner has not
+   made.
+2. **$262.99 fits the catalogue's own model better.** Against $149.98 of components
+   it is a 1.75x multiplier; Metabolic Pathways runs about 1.65x. $299 would be
+   1.99x — an outlier.
+3. It is the lower-risk edit. Nothing about a text fix can change what a customer
+   is billed.
+
+**Sequence this last.** Converting product 468 to Mix and Match may recompute its
+price (see below), so a prose price written before the conversion can be stale
+again within the hour. Apply the conversion, read the resulting live price, *then*
+correct the copy to match.
+
+**Better still, remove the price from the prose entirely.** A hardcoded price in body
+copy is exactly how this drift happened, and it will happen again on the next price
+change. Prices belong in the price field, which the page already renders.
 
 ### Check the price before and after configuring — this will probably move
 
@@ -460,6 +489,61 @@ curl -s -H 'Cache-Control: no-cache' \
 curl -s -H 'Cache-Control: no-cache' \
   "https://www.oligopolypeptides.com/products/cellular-research-panel/?nc=$(date +%s)" \
   | grep -c 'class="opl-cc"'      # expect 0 until Task 1 is done
+```
+
+---
+
+## Task 6 — Retatrutide 10 mg is listed for sale but unreachable
+
+**Found 2026-09-02 while resolving Task 1. Same bug as product 55, still open.**
+
+| | |
+|---|---|
+| Product | Retatrutide 10 mg Research Peptide |
+| ID | 12 |
+| Listed at | `$139.00` on `/research-catalog/`, with a working Add to Cart form (`add-to-cart" value="12"`) |
+| Permalink | `/products/retatrutide-10mg-research-peptide/` → **301** → `/retatrutide-source/` (an article) |
+| `?p=12` | → **301** → `/retatrutide-source/` |
+| In sitemap | no |
+
+A customer browsing the catalogue sees the product at $139.00 and can click Add to
+Cart. Every route to the product itself lands on an article instead. This is the
+identical failure that took the BPC-157 + TB-500 blend off sale: a redirect rule
+shadowing a live product's own URL.
+
+**What to do** — same as product 55:
+
+1. Find it: `wp post get 12 --field=post_status` and
+   `wp db query "SELECT ID, post_name, post_status FROM $(wp db prefix)posts WHERE ID = 12;"`
+2. If it should be on sale: restore `publish`, and delete the redirect rule sending
+   its slug to `/retatrutide-source/` (Rank Math → Redirections).
+3. If discontinued: remove it from the catalogue listing so it stops advertising a
+   price and an Add to Cart button, and point the redirect at a live product —
+   Retatrutide 5 mg (#3395) or 20 mg (#3396) — rather than an article.
+
+Either way it must stop being *listed and priced but unbuyable*, which is the worst
+of both.
+
+**Verify**
+
+```sh
+curl -s -o /dev/null -w '%{http_code} -> %{url_effective}\n' -L \
+  "https://www.oligopolypeptides.com/?p=12"
+# expect 200 at a /products/ URL, or the product gone from the catalogue entirely
+```
+
+**Worth a sweep:** two instances of this bug have now been found by accident. Before
+closing out, check whether any other product is listed in the catalogue but
+redirects away from its own permalink:
+
+```sh
+curl -s "https://www.oligopolypeptides.com/research-catalog/" \
+  | grep -oE 'https://www\.oligopolypeptides\.com/products/[a-z0-9-]+/' | sort -u \
+  | while read -r u; do
+      c=$(curl -s -o /dev/null -w '%{http_code}' "$u")
+      [ "$c" != "200" ] && echo "$c  $u"
+    done
+# expect no output
 ```
 
 ---
