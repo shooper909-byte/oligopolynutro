@@ -178,6 +178,101 @@ done
 
 ---
 
+## Task 3e — Follow-up: two gaps this brief caused
+
+Added 2026-09-02 after verifying the first pass. Both gaps are defects in **this
+brief**, not in the work done against it. The agent applied the 20 rules exactly as
+written, verified them, and correctly refused to broaden scope when the rules did
+not match — which is what it was told to do.
+
+Everything below is scoped to **post 468 only**. No other product is affected: a
+scan of all 39 products found body damage on 468 alone and metadata damage on 468
+alone.
+
+### 3e-i. The ampersand rule never matched — wrong encoding
+
+Task 3a listed:
+
+    Longevity Research & Repair Research Research Panel
+
+The database stores the ampersand **encoded**, so an exact match on a literal `&`
+finds nothing and the rule silently no-ops. Two instances remain in post 468's
+FAQ. Run all three encodings; the ones that do not match cost nothing:
+
+```sh
+PFX=$(wp db prefix)
+for AMP in '&amp;' '&#038;' '&'; do
+  wp db query "UPDATE ${PFX}posts
+    SET post_content = REPLACE(post_content,
+      'Longevity Research ${AMP} Repair Research Research Panel',
+      'Longevity Research ${AMP} Repair Panel')
+    WHERE ID = 468;"
+done
+```
+
+Both instances sit inside the phantom-product FAQ (Task 3d) and mention a
+`$349` product that is not in the catalogue. Repairing the doubled noun is safe and
+independent of that decision — the sentence is malformed either way. If the owner
+later deletes the paragraph, this edit is simply discarded with it.
+
+### 3e-ii. SEO metadata was never in scope — it lives in postmeta
+
+This brief scoped every rule to `post_content` and `post_excerpt`. Rank Math keeps
+its own title and description in **`wp_postmeta`**, which those rules never
+touched. Post 468 therefore still ships:
+
+    <title>Longevity Research Research Panel | OligoPoly Laboratories</title>
+
+Nine instances in total: `<title>`, `meta description`, `og:title`,
+`og:description`, `twitter:title`, `twitter:description`, and three inside the
+JSON-LD `Product` and `WebPage` blocks. The JSON-LD is generated from the same
+fields, so fixing the meta rows fixes all nine.
+
+This is the page title Google indexes and shows, so it is the most publicly visible
+instance of the damage that remains.
+
+The `post_title` itself is **clean** (`Cellular Research Panel`) — do not change it.
+
+```sh
+PFX=$(wp db prefix)
+
+# 1. See which meta keys hold it, before writing anything.
+wp db query "SELECT meta_id, meta_key FROM ${PFX}postmeta
+  WHERE post_id = 468 AND meta_value LIKE '%Research Research Panel%';"
+
+# 2. Apply, scoped to post 468.
+wp db query "UPDATE ${PFX}postmeta
+  SET meta_value = REPLACE(meta_value,
+    'Longevity Research Research Panel', 'Longevity Research Panel')
+  WHERE post_id = 468 AND meta_value LIKE '%Longevity Research Research Panel%';"
+
+# 3. Flush caches so the head regenerates.
+wp cache flush
+wp rankmath sitemap generate 2>/dev/null || true
+```
+
+### Verify 3e
+
+```sh
+U="https://www.oligopolypeptides.com/products/cellular-research-panel/?nc=$(date +%s)"
+curl -s -H 'Cache-Control: no-cache' "$U" | grep -o '<title>[^<]*'
+# expect: <title>Cellular Research Panel | OligoPoly Laboratories
+#     or: <title>Longevity Research Panel | OligoPoly Laboratories
+#     NOT: Longevity Research Research Panel
+
+curl -s -H 'Cache-Control: no-cache' "$U" \
+  | grep -oE 'Research Research Panel' | wc -l
+# expect 0 — this counts head and body together
+```
+
+### Still not in scope
+
+Task 3d (the five phantom products with prices, and the 10 mL / 30 mL / slug
+disagreement on product 816) and the $262.99-vs-$299 price conflict on 468 remain
+owner decisions. Do not resolve them by guessing.
+
+---
+
 ## Task 4 — Install the collection-contents snippet
 
 Source: `wordpress/collection-contents.php` in this repo (branch

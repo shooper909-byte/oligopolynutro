@@ -90,10 +90,21 @@ curl -s -H 'Cache-Control: no-cache' \
   | grep -c 'class="opl-cc"'        # expect 0 — nothing configured to show
 ```
 
-**Untested against a live WooCommerce install.** The Mix and Match reads
-(`get_child_items`, `get_min_container_size`, `get_max_container_size`) are guarded
-with `method_exists` so a plugin change degrades to rendering nothing rather than
-erroring, but the first load after activating still needs a look.
+**Verified against the live install 2026-09-02.** The Mix and Match reads
+(`get_child_items`, `get_min_container_size`, `get_max_container_size`) work against
+the installed plugin version. Live results:
+
+| Product | Renders |
+|---|---|
+| Metabolic Pathways | What this contains · 6 materials |
+| Cellular Energy | What this contains · 4 materials |
+| Neurocognitive Pathways | What this contains · 3 materials |
+| Regenerative Biology | What this contains · 3 materials |
+| Build Your Bundle 3 / 9 | What you choose from · pick 3 of 24 / pick 9 of 24 |
+| Advanced Multi-Pathway, Cellular Research Panel | nothing — no contents configured |
+
+The reads stay guarded with `method_exists`, so a future plugin change degrades to
+rendering nothing rather than erroring.
 
 ## Rollback
 
