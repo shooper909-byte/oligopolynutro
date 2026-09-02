@@ -39,8 +39,8 @@ before any write — see "Before applying" below. Everything else is settled.
 
 | Product | ID | SKU | Contents |
 |---|---|---|---|
-| Advanced Multi-Pathway | 70 | `OP-STK-ADVANCED-MULTIPATHWAY` | Retatrutide **(strength TBC)** + Cagrilintide 5 mg |
-| Cellular Biology Research Panel | 468 | `OP-STK-LONGEVITY` | GHK-Cu 50 mg + BPC-157 5 mg |
+| Advanced Multi-Pathway | 70 | `OP-STK-ADVANCED-MULTIPATHWAY` | Retatrutide 20 mg + Cagrilintide 5 mg |
+| Cellular Research Panel | 468 | `OP-STK-LONGEVITY` | GHK-Cu 50 mg + BPC-157 5 mg |
 
 Child products, verified live 2026-09-02:
 
@@ -52,24 +52,57 @@ Child products, verified live 2026-09-02:
 | Retatrutide 5 mg Research Peptide | `OP-MET-RETA-5MG` | 3395 |
 | Retatrutide 20 mg Research Peptide | `OP-MET-RETA-20MG` | 3396 |
 
-### Before applying — three things to confirm with the owner
+### Decisions taken 2026-09-02
 
-1. **Which Retatrutide.** The owner wrote "Retatrutide" without a strength. Two are
-   live — 5 mg (3395) and 20 mg (3396) — at materially different prices. The 10 mg
-   URL 301-redirects and is not a product. **Do not pick one.** This decides what a
-   customer receives.
+**Retatrutide 20 mg** (`OP-MET-RETA-20MG`, #3396, $179.99). The owner delegated the
+choice. Reasoning: the product is named "Advanced" and is currently the most
+expensive non-kit item in the catalogue, and pairing that with the entry-level 5 mg
+undercuts the positioning; the Metabolic Pathways Collection already carries the
+5 mg, so using 20 mg here differentiates the two rather than adding a second pair of
+collections with overlapping contents. This is positioning logic, **not** a margin
+calculation — no COGS data was available. Changing it later is one child-product
+swap.
 
-2. **Which name for product 468.** Three names are currently in play for the same
-   product: `post_title` is "Cellular Research Panel", the Rank Math SEO title says
-   "Longevity Research Panel" (see Task 3e-ii), and the owner's grouping calls it
-   "Cellular Biology Research Panel". Settle on one and apply it to `post_title`,
-   the Rank Math title/description, and the body copy together — otherwise 3e-ii
-   just re-introduces a different mismatch.
+**"Cellular Research Panel"** for product 468. The owner asked for whichever is
+easiest, and this one measurably is:
 
-3. **The draft third panel.** The owner mentioned a *draft* "Cellular Bioenergetics
-   Research Panel" (NAD+ 500 mg `OP-AUX-NAD-500MG` #63 + GHK-Cu 50 mg
-   `OP-LON-GHKCU-50MG` #441). It was described, not requested. Do not create it
-   without an explicit instruction.
+| Candidate | post_title | URL slug | Redirect needed | Text to change |
+|---|---|---|---|---|
+| **Cellular Research Panel** | already correct | already correct | **no** | 12 body mentions + Rank Math meta |
+| Longevity Research Panel | needs change | mismatched | yes, or a confusing URL | 4 body mentions + post_title |
+| Cellular Biology Research Panel | needs change | needs change | yes | all 16 + slug |
+
+"Cellular Research Panel" is already the title, the H1 and the URL, so it is the only
+option needing **no slug change and no redirect** — which matters on this site
+specifically, given the 404 that a previous slug change caused. Fixing the Rank Math
+title and description clears all nine `<head>` instances at once (Task 3e-ii).
+
+**The draft third panel is not to be created.** The owner mentioned a *draft*
+"Cellular Bioenergetics Research Panel" (NAD+ 500 mg `OP-AUX-NAD-500MG` #63 +
+GHK-Cu 50 mg `OP-LON-GHKCU-50MG` #441). It was described, not requested. Do not
+create it without an explicit instruction.
+
+### Check the price before and after configuring — this will probably move
+
+The four already-configured collections all display a **computed price range**, not a
+fixed price. Metabolic Pathways shows `$932.93 – $1,126.13`. Products 70 and 468
+currently show single fixed prices — $499.99 and $262.99.
+
+So converting them to Mix and Match will most likely **replace those fixed prices
+with a computed range**, and the result may not be what is on the page today. For
+reference, the component list prices are:
+
+| Panel | Components | Sum of component list prices | Price shown today |
+|---|---|---|---|
+| Advanced Multi-Pathway (70) | Retatrutide 20 mg $179.99 + Cagrilintide 5 mg $109.99 | $289.98 | $499.99 |
+| Cellular Research Panel (468) | GHK-Cu 50 mg $89.99 + BPC-157 5 mg $59.99 | $149.98 | $262.99 |
+
+Note the existing collections also price **above** the sum of their components
+(Metabolic's components list at ~$564 against a $932.93 floor), so pricing above
+component value is this catalogue's deliberate model, not an anomaly — do not
+"correct" it. The point is only that the number may change when the product type
+does. **Record the price before the change, apply the configuration, then check the
+price again and confirm with the owner before leaving it live.**
 
 ### Applying it
 
