@@ -1,11 +1,30 @@
 # Brief: fix collection data and install the contents snippet
 
 Work order for an agent with WP-CLI or database access to
-**oligopolypeptides.com**. Every fact below was read off the live site on
-2026-09-01/02 and is reproducible with the commands given.
+**oligopolypeptides.com**. Every fact below was read off the live site and is
+reproducible with the commands given.
 
-Tasks are ordered by risk. **Tasks 1 and 2 need a decision from the site owner
-before any write.** Do not start there if you cannot get one — do Task 3 onward.
+## Start here — status as of 2026-09-02
+
+**This is a work order to implement, not a document to review.** Do the tasks marked
+READY, in the order listed. Follow the Ground rules for every write.
+
+| Task | State | Do now? |
+|---|---|---|
+| **3e** — finish the copy repair (2 body strings + SEO metadata) | **READY** | **Yes — start here.** Smallest, fully specified, no decisions left |
+| **1** — configure the two empty collections | **READY** | **Yes.** Contents, Retatrutide strength and product name were all supplied by the owner; see "Decisions taken" |
+| **6** — Retatrutide 10 mg listed but unreachable | **READY** | **Yes.** Found 2026-09-02; same bug as product 55 |
+| 2 — Neurocognitive and Regenerative hold identical materials | BLOCKED | No. The owner has not said what each should contain |
+| 3d — five phantom products, and the 10 mL / 30 mL conflict | BLOCKED | No. Owner decision |
+| 3a–3c — the 20 exact replacements | **DONE** 2026-09-02 | — |
+| 4 — install the contents snippet | **DONE** 2026-09-02 (snippet 3763) | — |
+| 5 — verify the Mix and Match reads | **DONE** — verified working against the live plugin | — |
+
+Two questions were raised and are answered in place: the Retatrutide strength
+(20 mg — and note only two are buyable, see Task 6) and the $262.99 vs $299 price
+(keep $262.99, fix the prose, and do it last). Both are inside Task 1.
+
+Report per task, with before/after counts, and stop at anything marked BLOCKED.
 
 ---
 
