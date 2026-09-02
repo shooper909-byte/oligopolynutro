@@ -32,7 +32,90 @@ before any write.** Do not start there if you cannot get one — do Task 3 onwar
 
 ## Task 1 — Two collections have no contents configured
 
-**Blocked on the owner. Do not invent contents.**
+**Contents supplied by the owner 2026-09-02.** One detail still needs confirming
+before any write — see "Before applying" below. Everything else is settled.
+
+### The groupings
+
+| Product | ID | SKU | Contents |
+|---|---|---|---|
+| Advanced Multi-Pathway | 70 | `OP-STK-ADVANCED-MULTIPATHWAY` | Retatrutide **(strength TBC)** + Cagrilintide 5 mg |
+| Cellular Biology Research Panel | 468 | `OP-STK-LONGEVITY` | GHK-Cu 50 mg + BPC-157 5 mg |
+
+Child products, verified live 2026-09-02:
+
+| Material | SKU | ID |
+|---|---|---|
+| Cagrilintide 5 mg Research Peptide | `OP-MET-CAGRI-5MG` | 436 |
+| GHK-Cu 50 mg Research Peptide | `OP-LON-GHKCU-50MG` | 441 |
+| BPC-157 5 mg Research Peptide | `OP-REC-BPC157-5MG` | 3398 |
+| Retatrutide 5 mg Research Peptide | `OP-MET-RETA-5MG` | 3395 |
+| Retatrutide 20 mg Research Peptide | `OP-MET-RETA-20MG` | 3396 |
+
+### Before applying — three things to confirm with the owner
+
+1. **Which Retatrutide.** The owner wrote "Retatrutide" without a strength. Two are
+   live — 5 mg (3395) and 20 mg (3396) — at materially different prices. The 10 mg
+   URL 301-redirects and is not a product. **Do not pick one.** This decides what a
+   customer receives.
+
+2. **Which name for product 468.** Three names are currently in play for the same
+   product: `post_title` is "Cellular Research Panel", the Rank Math SEO title says
+   "Longevity Research Panel" (see Task 3e-ii), and the owner's grouping calls it
+   "Cellular Biology Research Panel". Settle on one and apply it to `post_title`,
+   the Rank Math title/description, and the body copy together — otherwise 3e-ii
+   just re-introduces a different mismatch.
+
+3. **The draft third panel.** The owner mentioned a *draft* "Cellular Bioenergetics
+   Research Panel" (NAD+ 500 mg `OP-AUX-NAD-500MG` #63 + GHK-Cu 50 mg
+   `OP-LON-GHKCU-50MG` #441). It was described, not requested. Do not create it
+   without an explicit instruction.
+
+### Applying it
+
+Both become **fixed two-item sets**, so set min = max = 2 and attach both children.
+
+1. Product type → **Mix and Match** (product 70 already carries the type but has no
+   children; product 468 is currently `simple` and needs the type set).
+2. Attach the two child products named above.
+3. Min container size = 2, max container size = 2.
+
+Once done, the contents snippet renders `Contains 2 materials: …` automatically —
+no code change needed.
+
+### Wording constraint — carries into the copy
+
+The owner's instruction: these **remain separately packaged research materials** and
+must **not be described as a combined blend** unless there is a manufactured,
+documented blended vial.
+
+This matters because the catalogue genuinely contains both kinds. Real single-vial
+blends exist (`BPC-157 10 mg + TB-500 10 mg Research Blend`, KLOW, the
+Semaglutide + Cagrilintide blend) and must keep reading as blends; these panels must
+not.
+
+The contents display already complies — it renders `Contains 2 materials: GHK-Cu
+50 mg…`, which lists separate items and never says "blend". **The body copy is what
+needs checking.** Product 468's current description says it covers "GHK-Cu, NAD+, and
+BPC-157", which contradicts the new two-item grouping (NAD+ moves to the draft
+Bioenergetics panel). Update the description to match the configured contents, and
+make sure neither page implies a single combined vial.
+
+### Verify
+
+```sh
+for u in advanced-multi-pathway-research-collection cellular-research-panel; do
+  echo -n "$u: "
+  curl -s -H 'Cache-Control: no-cache' \
+    "https://www.oligopolypeptides.com/products/$u/?nc=$(date +%s)" \
+    | grep -o 'opl-cc__count">[^<]*' | sed 's/.*">//'
+done
+# expect "2 materials" for both once configured
+```
+
+### Original finding, for reference
+
+**Do not invent contents.**
 
 | Product | ID | SKU | Price | Mix and Match form | Child products |
 |---|---|---|---|---|---|
