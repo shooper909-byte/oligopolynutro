@@ -7,6 +7,8 @@ Remediation tracking for the VERIFIED / Stripe RUO website review of
   replacement copy. Start here.
 - **[P0-FIX.md](P0-FIX.md)** — copy-paste markup for the P0 fix, and why it could not be
   applied through the WordPress connection.
+- **[VERIFIED-NAMING-REQUEST.md](VERIFIED-NAMING-REQUEST.md)** — draft email to VERIFIED
+  requesting accepted nomenclature. The long-lead item; send it first.
 - **[scan.py](scan.py)** — re-runnable scanner. The requirement doc makes ongoing
   monitoring a merchant obligation (§5), so this exists to be run again, not once.
 
