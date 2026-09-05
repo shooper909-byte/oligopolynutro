@@ -5,6 +5,8 @@ Remediation tracking for the VERIFIED / Stripe RUO website review of
 
 - **[AUDIT-2026-09-05.md](AUDIT-2026-09-05.md)** — findings, priorities, and drop-in
   replacement copy. Start here.
+- **[P0-FIX.md](P0-FIX.md)** — copy-paste markup for the P0 fix, and why it could not be
+  applied through the WordPress connection.
 - **[scan.py](scan.py)** — re-runnable scanner. The requirement doc makes ongoing
   monitoring a merchant obligation (§5), so this exists to be run again, not once.
 
