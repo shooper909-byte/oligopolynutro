@@ -1,0 +1,202 @@
+[
+ {
+  "term_id": 508,
+  "name": "Vitamins &amp; Wellness",
+  "slug": "vitamins-wellness",
+  "parent": 504,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/",
+  "products": 0,
+  "why": "supplement framing; contradicts RUO",
+  "tier": "child"
+ },
+ {
+  "term_id": 509,
+  "name": "Bone &amp; Immune Support",
+  "slug": "bone-and-immune-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/bone-and-immune-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 510,
+  "name": "Daily Foundation",
+  "slug": "daily-foundation",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/daily-foundation/",
+  "products": 0,
+  "why": "implies daily human consumption",
+  "tier": "child"
+ },
+ {
+  "term_id": 511,
+  "name": "Immune &amp; Antioxidant",
+  "slug": "immune-and-antioxidant",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/immune-and-antioxidant/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 512,
+  "name": "Cardiovascular &amp; Brain Support",
+  "slug": "cardiovascular-and-brain-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/cardiovascular-and-brain-support/",
+  "products": 0,
+  "why": "human organ-system benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 513,
+  "name": "Energy &amp; Cognitive Support",
+  "slug": "energy-and-cognitive-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/energy-and-cognitive-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 514,
+  "name": "Immune &amp; Metabolic Support",
+  "slug": "immune-and-metabolic-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/immune-and-metabolic-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 515,
+  "name": "Mitochondrial &amp; Cardiovascular",
+  "slug": "mitochondrial-and-cardiovascular",
+  "parent": 180,
+  "url": "https://www.oligopolypeptides.com/product-category/longevity/mitochondrial-and-cardiovascular/",
+  "products": 0,
+  "why": "'cardiovascular' implies human organ-system benefit",
+  "tier": "child"
+ },
+ {
+  "term_id": 516,
+  "name": "Gut Health",
+  "slug": "gut-health",
+  "parent": 506,
+  "url": "https://www.oligopolypeptides.com/product-category/wellness/gut-health/",
+  "products": 0,
+  "why": "human health claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 517,
+  "name": "Digestive &amp; Immune Support",
+  "slug": "digestive-and-immune-support",
+  "parent": 516,
+  "url": "https://www.oligopolypeptides.com/product-category/wellness/gut-health/digestive-and-immune-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 518,
+  "name": "Strength &amp; Athletic Performance",
+  "slug": "strength-and-athletic-performance",
+  "parent": 183,
+  "url": "https://www.oligopolypeptides.com/product-category/performance/strength-and-athletic-performance/",
+  "products": 0,
+  "why": "muscle-building / athletic performance claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 519,
+  "name": "Sleep Support",
+  "slug": "sleep-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/sleep-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 520,
+  "name": "Stress &amp; Adaptogen Support",
+  "slug": "stress-and-adaptogen-support",
+  "parent": 505,
+  "url": "https://www.oligopolypeptides.com/product-category/cognitive-support/stress-and-adaptogen-support/",
+  "products": 0,
+  "why": "human benefit claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 521,
+  "name": "Bone &amp; Muscle Support",
+  "slug": "bone-and-muscle-support",
+  "parent": 508,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/vitamins-wellness/bone-and-muscle-support/",
+  "products": 0,
+  "why": "muscle-building claim",
+  "tier": "child"
+ },
+ {
+  "term_id": 616,
+  "name": "615",
+  "slug": "615",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/615/",
+  "products": 0,
+  "why": "junk term from a data error - no real name",
+  "tier": "child"
+ },
+ {
+  "term_id": 504,
+  "name": "Vitamins",
+  "slug": "vitamins",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/vitamins/",
+  "products": 0,
+  "why": "supplement framing; own URL already 410 but the term still exists",
+  "tier": "parent"
+ },
+ {
+  "term_id": 506,
+  "name": "Wellness",
+  "slug": "wellness",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/wellness/",
+  "products": 0,
+  "why": "supplement framing; own URL already 410 but the term still exists",
+  "tier": "parent"
+ },
+ {
+  "term_id": 183,
+  "name": "Performance",
+  "slug": "performance",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/performance/",
+  "products": 0,
+  "why": "performance claim; own URL already 410 but the term still exists",
+  "tier": "parent"
+ },
+ {
+  "term_id": 180,
+  "name": "Longevity",
+  "slug": "longevity",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/longevity/",
+  "products": 0,
+  "why": "duplicate of Longevity Research (219); empty; own URL already 410 but the term still exists",
+  "tier": "parent"
+ },
+ {
+  "term_id": 505,
+  "name": "Cognitive Support",
+  "slug": "cognitive-support",
+  "parent": 0,
+  "url": "https://www.oligopolypeptides.com/product-category/cognitive-support/",
+  "products": 0,
+  "why": "human benefit claim; own URL already 410 but the term still exists",
+  "tier": "parent"
+ }
+]

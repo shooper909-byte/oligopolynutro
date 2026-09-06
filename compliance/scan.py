@@ -59,6 +59,16 @@ CHECKS = [
     ("benefit-framing", "P1", "Benefit-framed naming or heading",
      r"(?i)\b(fat[- ]loss|anti-?aging|appetite suppress\w*|peak weight loss|"
      r"muscle (growth|gain|building)|lean mass|libido|erectile)\b"),
+    # Consumer-wellness vocabulary. Vestigial WooCommerce categories carried
+    # supplement-store names ("Sleep Support", "Strength & Athletic Performance")
+    # that read as human-benefit claims on an RUO site.
+    ("wellness-framing", "P1", "Consumer-wellness / supplement framing",
+     r"(?i)\b(sleep support|gut health|athletic performance|daily foundation|"
+     r"vitamins?\s*(&amp;|&|and)\s*wellness|stress\s*(&amp;|&|and)\s*adaptogen|"
+     r"immune\s*(&amp;|&|and)\s*antioxidant|bone\s*(&amp;|&|and)\s*muscle|"
+     r"energy\s*(&amp;|&|and)\s*cognitive|cardiovascular\s*(&amp;|&|and)\s*brain|"
+     r"digestive\s*(&amp;|&|and)\s*immune|bone\s*(&amp;|&|and)\s*immune|"
+     r"immune\s*(&amp;|&|and)\s*metabolic)\b"),
     ("dosing-admin", "P2", "Dosing / administration / self-administration guidance",
      r"(?i)\b(dosage (chart|guide|calculator)|injection (site|schedule|protocol)|"
      r"subcutaneous(ly)?|intramuscular(ly)?|self-?administ\w*|insulin syringe|"
@@ -103,6 +113,22 @@ def discover():
             continue
         urls.update(re.findall(r"<loc>([^<]+)</loc>", xml))
     urls.add(f"{SITE}/")
+    # Taxonomy archives are NOT all in the sitemap. Vestigial WooCommerce
+    # categories from an earlier configuration stayed live and reachable while
+    # being invisible to every sitemap-scoped scan. Enumerate them directly.
+    for tax in ("product_cat", "category"):
+        for page in (1, 2):
+            try:
+                req = urllib.request.Request(
+                    f"{SITE}/wp-json/wp/v2/{tax}?per_page=100&page={page}&_fields=link",
+                    headers={"User-Agent": UA})
+                with urllib.request.urlopen(req, timeout=45) as r:
+                    terms = json.loads(r.read())
+            except Exception:                                 # noqa: BLE001
+                break
+            if not terms:
+                break
+            urls.update(t["link"] for t in terms if t.get("link"))
     return sorted(urls)
 
 
