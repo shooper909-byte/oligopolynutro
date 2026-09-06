@@ -9,6 +9,10 @@ Remediation tracking for the VERIFIED / Stripe RUO website review of
   applied through the WordPress connection.
 - **[VERIFIED-NAMING-REQUEST.md](VERIFIED-NAMING-REQUEST.md)** — draft email to VERIFIED
   requesting accepted nomenclature. The long-lead item; send it first.
+- **[NAMING-OPTIONS.md](NAMING-OPTIONS.md)** — candidate naming schemes for the restricted
+  metabolic compounds, and the editorial-corpus decision that determines whether a rename works.
+- **[PRODUCT-DATA-FIXES.md](PRODUCT-DATA-FIXES.md)** — bacteriostatic water volume/SKU
+  conflict and the Retatrutide 10 mg title. Catalog accuracy, not compliance.
 - **[scan.py](scan.py)** — re-runnable scanner. The requirement doc makes ongoing
   monitoring a merchant obligation (§5), so this exists to be run again, not once.
 

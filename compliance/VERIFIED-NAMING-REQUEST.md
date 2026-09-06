@@ -52,7 +52,7 @@ requiring pre-clearance.
 | Tirzepatide 20 mg Research Peptide | OP-MET-TIRZ-20MG | `/products/tirzepatide-20-mg-research-peptide/` |
 | Tirzepatide 10 mg — 6 Vial Research Kit | OP-KIT-TIRZ-10MG-6 | `/products/tirzepatide-10-mg-6-vial-research-kit/` |
 | Cagrilintide 5 mg — 6 Vial Research Kit | OP-KIT-CAGRI-5MG-6 | `/products/cagrilintide-5-mg-6-vial-research-kit/` |
-| Bacteriostatic Water 30 mL Research Support | OP-AUX-BACWATER-10ML | `/products/bacteriostatic-water-30ml-research-support/` |
+| Bacteriostatic Water 10 mL Research Support | OP-AUX-BACWATER-10ML | `/products/bacteriostatic-water-30ml-research-support/` |
 
 **Editorial and educational content**, where restricted names appear in articles, comparison
 guides and reference pages rather than product listings:
@@ -74,6 +74,20 @@ Our questions:
 1. **What is the currently accepted naming convention for each of the compounds above?** We
    will apply exactly what you specify and will not substitute our own alternatives.
 
+   So there is something concrete to approve or correct, this is the scheme we would propose
+   for the metabolic compounds — internal catalog code as the customer-facing handle, with a
+   receptor-class descriptor and the CAS number from our COA carrying compound identity:
+
+   | Current | Proposed |
+   |---|---|
+   | Semaglutide 5 mg Research Peptide | OP-MET-201 · GLP-1 Receptor Agonist Peptide, 5 mg |
+   | Tirzepatide 20 mg Research Peptide | OP-MET-202 · Dual Receptor Agonist Peptide, 20 mg |
+   | Retatrutide 10 mg Research Peptide | OP-MET-203 · Triple Receptor Agonist Peptide, 10 mg |
+   | Cagrilintide 5 mg Research Kit | OP-MET-204 · Amylin Receptor Agonist Peptide, 5 mg |
+
+   If the receptor-class descriptors are themselves a problem, we are happy to drop them and
+   let the catalog code and CAS number stand alone.
+
 2. **Does the requirement apply to editorial content as well as product listings?** A large
    share of our exposure is in comparison guides and receptor-pharmacology reference pages
    that do not sell the compound. If educational mentions are treated differently from
@@ -82,6 +96,10 @@ Our questions:
 3. **How far into the page does the requirement reach?** Specifically: URL slugs, SKUs, meta
    titles and descriptions, image filenames and alt text, structured data, and internal link
    anchors. Slug changes need 301 redirects, so we would like to plan those once.
+
+   On SKUs specifically: several encode an abbreviated compound name (`OP-MET-SEMA-5MG`).
+   Changing them breaks order history and COA batch traceability, so we would prefer to keep
+   them and would appreciate knowing whether that is acceptable.
 
 4. **Is "GLP-1" restricted in all uses, or only in product-facing contexts?** Most of our
    usage is receptor nomenclature — "GLP-1R agonism", "the GLP-1 receptor pathway" — in
