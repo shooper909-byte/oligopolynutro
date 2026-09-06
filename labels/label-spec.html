@@ -1,0 +1,775 @@
+<title>OligoPoly Label Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f7fb; --panel:#ffffff; --panel-2:#eef0f7;
+  --ink-1:#141621; --ink-2:#4c5164; --ink-3:#7e8398;
+  --rule:#dadeea; --rule-soft:#e8ebf3;
+  --violet:#7b2fd4; --violet-soft:#f3e9fd; --violet-line:#d4b6ef;
+  --flag:#9c4c05; --flag-soft:#fdf1e3; --flag-line:#eccfa8;
+  --ok:#1c6a4e;
+  --grid:#e9ecf4;
+  --shadow:0 1px 2px rgba(20,22,33,.06), 0 10px 28px -16px rgba(20,22,33,.32);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0b0c12; --panel:#13151e; --panel-2:#191c27;
+    --ink-1:#eceff7; --ink-2:#a6acc0; --ink-3:#757b90;
+    --rule:#262a38; --rule-soft:#1e212c;
+    --violet:#c48af2; --violet-soft:#241535; --violet-line:#4b2d6a;
+    --flag:#e6a95c; --flag-soft:#2a1e10; --flag-line:#5c421f;
+    --ok:#6fc9a4;
+    --grid:#1b1e29;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -16px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0b0c12; --panel:#13151e; --panel-2:#191c27;
+  --ink-1:#eceff7; --ink-2:#a6acc0; --ink-3:#757b90;
+  --rule:#262a38; --rule-soft:#1e212c;
+  --violet:#c48af2; --violet-soft:#241535; --violet-line:#4b2d6a;
+  --flag:#e6a95c; --flag-soft:#2a1e10; --flag-line:#5c421f;
+  --ok:#6fc9a4;
+  --grid:#1b1e29;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -16px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink-1);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.6; margin:0; -webkit-font-smoothing:antialiased;
+}
+.sheet{max-width:1140px;margin:0 auto;padding:40px 28px 96px}
+@media (max-width:640px){.sheet{padding:28px 16px 72px}}
+
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2;font-family:"Archivo",system-ui,sans-serif}
+h2{font-size:22px;font-weight:600;letter-spacing:-.015em}
+h3{font-size:14.5px;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.dim{color:var(--ink-2)} .faint{color:var(--ink-3)}
+.note{font-size:13.5px;color:var(--ink-2);max-width:74ch}
+a{color:var(--violet)}
+strong{font-weight:600;color:var(--ink-1)}
+
+.mast{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:space-between;
+  padding-bottom:20px;border-bottom:2px solid var(--ink-1)}
+.mast-id{display:flex;align-items:center;gap:15px}
+.mast h1{font-size:27px;font-weight:600;letter-spacing:-.025em}
+.mast-meta{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;
+  color:var(--ink-3);text-align:right;line-height:1.9;letter-spacing:.02em}
+.mast-meta b{color:var(--ink-2);font-weight:500}
+
+.asks{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin:28px 0 0;border-radius:3px;overflow:hidden}
+@media (max-width:760px){.asks{grid-template-columns:1fr}}
+.ask{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:5px}
+.ask-q{font-size:12.5px;color:var(--ink-3)}
+.ask-a{font-size:16px;font-weight:600;line-height:1.35}
+.ask-a small{display:block;font-weight:400;font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.tick{color:var(--ok);font-weight:700}
+
+section{margin-top:56px}
+.sec-head{display:flex;align-items:baseline;gap:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--rule);margin-bottom:22px;flex-wrap:wrap}
+.sec-head h2{flex:1 1 auto}
+
+.frame{background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% 8px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/8px 100%,
+    var(--panel);
+  border:1px solid var(--rule);border-radius:3px;padding:24px;overflow-x:auto}
+.frame-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.drawings{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:960px){.drawings{grid-template-columns:1fr}}
+
+.proofs{display:flex;flex-direction:column;border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;background:var(--panel)}
+.proof{display:grid;grid-template-columns:minmax(0,auto) minmax(200px,1fr);gap:26px;
+  padding:24px;border-bottom:1px solid var(--rule-soft);align-items:center}
+.proof:last-child{border-bottom:0}
+@media (max-width:900px){.proof{grid-template-columns:1fr;gap:16px}}
+.proof-art{overflow-x:auto;padding:2px}
+.proof-art svg{display:block;box-shadow:var(--shadow);border-radius:3px}
+.proof-facts{display:flex;flex-direction:column;gap:8px;min-width:0}
+.proof-name{font-family:"Archivo",sans-serif;font-size:15px;font-weight:600}
+.kv{display:grid;grid-template-columns:64px 1fr;gap:4px 12px;font-size:12.5px;margin:0}
+.kv dt{color:var(--ink-3);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;
+  letter-spacing:.09em;text-transform:uppercase;padding-top:2px}
+.kv dd{margin:0;color:var(--ink-2);font-variant-numeric:tabular-nums;word-break:break-word}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;letter-spacing:.05em;
+  border:1px solid var(--rule);border-radius:2px;padding:2px 7px;color:var(--ink-2)}
+.swatch{width:9px;height:9px;border-radius:50%;border:1px solid rgba(128,128,128,.55)}
+
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+thead th{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  background:var(--panel-2);border-bottom:1px solid var(--rule);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+td.spec{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+tbody tr.total td{background:var(--panel-2);font-weight:600;color:var(--ink-1);border-top:1px solid var(--rule)}
+.rowlab{font-weight:600}
+.rowlab small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
+
+.flag{border:1px solid var(--flag-line);background:var(--flag-soft);border-radius:3px;
+  padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+.flag .eyebrow{color:var(--flag)}
+.flag ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2);
+  display:flex;flex-direction:column;gap:6px}
+
+.calc-controls{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;padding:18px 20px;
+  background:var(--panel-2);border:1px solid var(--rule);border-bottom:0;border-radius:3px 3px 0 0}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.field input{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;
+  font-variant-numeric:tabular-nums;width:112px;padding:7px 10px;
+  background:var(--panel);color:var(--ink-1);border:1px solid var(--rule);border-radius:2px}
+.field input:focus-visible{outline:2px solid var(--violet);outline-offset:1px;border-color:var(--violet)}
+.field .hint{font-size:11.5px;color:var(--ink-3)}
+#qtyTable{border-radius:0 0 3px 3px}
+
+.copybox{border:1px solid var(--rule);border-radius:3px;background:var(--panel);overflow:hidden}
+.copybar{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--rule)}
+.copybox pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;line-height:1.75;color:var(--ink-2);white-space:pre-wrap;word-break:break-word}
+button.copy{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;padding:6px 12px;border:1px solid var(--violet);border-radius:2px;
+  background:transparent;color:var(--violet);cursor:pointer}
+button.copy:hover{background:var(--violet-soft)}
+button.copy:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:12.5px;color:var(--ink-2);margin-top:14px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.lk{width:22px;height:0;border-top-width:2px;border-top-style:solid;display:inline-block}
+
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:820px){.cols2{grid-template-columns:1fr}}
+.card{border:1px solid var(--rule);border-radius:3px;background:var(--panel);padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:14.5px}
+.card p{font-size:13.5px;color:var(--ink-2)}
+.pattern{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;color:var(--ink-1);
+  background:var(--panel-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;
+  overflow-x:auto;white-space:nowrap}
+.pattern b{color:var(--violet);font-weight:500}
+
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);font-size:12.5px;
+  color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="sheet">
+
+<!-- ══════════ MASTHEAD ══════════ -->
+<header class="mast">
+  <div class="mast-id">
+    <svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 5 89 27.5 89 72.5 50 95 11 72.5 11 27.5Z" fill="none"
+            stroke="var(--violet)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M50 50 50 31M50 50 50 69M50 50 32 50M50 50 68 50"
+            stroke="var(--violet)" stroke-width="5" stroke-linecap="round"/>
+      <g fill="var(--violet)"><circle cx="50" cy="50" r="10.5"/><circle cx="50" cy="29" r="6.5"/>
+        <circle cx="50" cy="71" r="6.5"/><circle cx="29" cy="50" r="6.5"/><circle cx="71" cy="50" r="6.5"/></g>
+    </svg>
+    <div>
+      <p class="eyebrow">OligoPoly Laboratories · Prepress pack 001</p>
+      <h1>Vial &amp; Carton Label Spec</h1>
+    </div>
+  </div>
+  <div class="mast-meta">
+    <b>TEMPLATE</b> mock_E_minimal<br>
+    <b>SKUS</b> 5 · <b>DIES</b> 3 · <b>REV</b> A<br>
+    <b>STATUS</b> for supplier quotation
+  </div>
+</header>
+
+<!-- ══════════ THE THREE ASKS ══════════ -->
+<div class="asks">
+  <div class="ask">
+    <p class="ask-q">1 &nbsp;Label design / template</p>
+    <p class="ask-a"><span class="tick">✓</span> mock_E, applied to all 5<small>Your existing minimal template, laid out per SKU in §4 and §5.</small></p>
+  </div>
+  <div class="ask">
+    <p class="ask-q">2 &nbsp;Required dimensions</p>
+    <p class="ask-a"><span class="tick">✓</span> <span class="mono">42×20</span> · <span class="mono">64×28</span> · <span class="mono">75×45</span> mm<small>Three dies: small vial, large vial, carton. Die-lines in §3.</small></p>
+  </div>
+  <div class="ask">
+    <p class="ask-q">3 &nbsp;Quantity</p>
+    <p class="ask-a">Set in §6<small>Live from kits per SKU. Figures shown are a pilot assumption — confirm before quoting.</small></p>
+  </div>
+</div>
+
+<p class="note" style="margin-top:18px">Five SKUs, 10 vials per kit. The <span class="mono">mock_E_minimal</span> layout is carried
+across every one: same lockup, same violet rule, same three-field batch row, same research-use-only block top right.
+Product identity is carried by chemical designation and CAS number only — nothing on these labels states a dose,
+a route, or an effect.</p>
+
+<!-- ══════════ §1 TEMPLATE FIT ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§1</p><h2>How mock_E fits each die</h2></div>
+  <p class="note" style="margin-bottom:20px">One thing to settle before anything is cut. The mock_E layout needs
+  <strong>about 62 mm of width</strong> to hold its three batch fields at legible type — <span class="mono">OP-MET-RETA-10MG</span>
+  alone is 16 characters, and at the 5 pt floor that is 17 mm before the other two fields and their gutters.
+  A 2R vial is only 50 mm around. So the template runs at full strength on the large vial and the carton,
+  and takes two documented cuts on the small vial.</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Element</th><th>Die A — 42 × 20</th><th>Die B — 64 × 28</th><th>Die C — 75 × 45</th></tr></thead>
+      <tbody>
+        <tr><td class="rowlab">Hex mark + OLIGOPOLY</td><td>full</td><td>full</td><td>full</td></tr>
+        <tr><td class="rowlab">LABORATORIES sublabel</td><td class="dim"><strong>dropped</strong> — would fall to 3.1 pt</td><td>full</td><td>full</td></tr>
+        <tr><td class="rowlab">Research-use-only block</td><td>full</td><td>full</td><td>full, plus long-form line</td></tr>
+        <tr><td class="rowlab">Product name + strength</td><td>full</td><td>full</td><td>full</td></tr>
+        <tr><td class="rowlab">RESEARCH PEPTIDE / LYOPHILIZED POWDER</td><td class="dim">one line, single-column</td><td>full, two lines</td><td>full, two lines</td></tr>
+        <tr><td class="rowlab">Batch row — LOT / SKU / MFG</td><td>all three, SKU shortened to product + strength</td><td>full</td><td>full</td></tr>
+        <tr><td class="rowlab">COA · oligopolypeptides.com</td><td class="dim"><strong>dropped</strong> — no vertical room</td><td class="dim"><strong>dropped</strong> — no vertical room</td><td>full</td></tr>
+        <tr><td class="rowlab">GS1 barcode zone</td><td class="dim">—</td><td class="dim">—</td><td>41 × 11 mm reserved</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flag" style="margin-top:20px">
+    <p class="eyebrow">The one decision that changes the dies</p>
+    <ul>
+      <li><strong>Which vial are the four 5–10 mg products actually in?</strong> This pack assumes a 2R
+        (Ø16 × 35 mm), which forces Die A's compressions. If they are in a 10R (Ø24 × 45 mm) like the Glutathione,
+        <strong>Die A disappears</strong> — all five vials run on Die B at full mock_E, one die instead of two,
+        and one less tooling charge. Measure one vial and tell us the outside diameter.</li>
+      <li>A 1 mm error in vial diameter is a <strong>3.1 mm error in label width</strong>. Measure, do not assume.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ §2 SKU SCHEDULE ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§2</p><h2>SKU schedule</h2></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Product</th><th>Chemical designation</th><th class="num">Fill</th><th>CAS</th>
+        <th>Vial</th><th>Die</th><th>SKU</th><th>Cap seal</th></tr></thead>
+      <tbody id="skuTable"></tbody>
+    </table>
+  </div>
+
+  <div class="cols2" style="margin-top:20px">
+    <div class="card">
+      <h3>SKU pattern</h3>
+      <p>Extended from <span class="mono">OP-MET-TIRZ-20MG</span> in your mock.</p>
+      <div class="pattern">OP – <b>CAT</b> – <b>PROD</b> – <b>STRENGTH</b></div>
+      <p><span class="mono">CAT</span> is the three-letter category: <span class="mono">MET</span> metabolic ·
+      <span class="mono">COS</span> cosmetic · <span class="mono">REP</span> repair ·
+      <span class="mono">ANT</span> antioxidant. These four are inferred from the one example — confirm the real
+      code list before any SKU is printed.</p>
+    </div>
+    <div class="card">
+      <h3>Lot pattern</h3>
+      <p>Extended from <span class="mono">TZ-2609-014</span> in your mock.</p>
+      <div class="pattern"><b>XX</b> – <b>YYMM</b> – <b>NNN</b></div>
+      <p>Two-letter product code, year and month of manufacture, then a three-digit sequence within that month.
+      Nothing on the printed label carries this — it is overprinted at fill.</p>
+    </div>
+  </div>
+  <p class="note" style="margin-top:16px">Cap-seal colours are a suggestion, not a requirement. Flip-off seals cost the
+  same in any stock colour, and they make a mis-picked vial obvious on the bench before the label is ever read.</p>
+</section>
+
+<!-- ══════════ §3 DIMENSIONS ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§3</p><h2>Dimensions &amp; die-lines</h2></div>
+
+  <div class="drawings">
+    <div><div class="frame">
+      <svg viewBox="-14 -12 82 52" width="100%" style="max-width:540px;min-width:390px" role="img"
+           aria-label="Die-line for the 42 by 20 millimetre small-vial label: 1.5 millimetre bleed, trim line, and safe zone.">
+        <g font-family="IBM Plex Mono, monospace" font-size="3" fill="var(--ink-3)">
+          <rect x="-1.5" y="-1.5" width="45" height="23" rx="2.6" fill="none"
+                stroke="var(--flag)" stroke-width=".35" stroke-dasharray="1.6 1.2"/>
+          <rect x="0" y="0" width="42" height="20" rx="2" fill="var(--panel-2)"
+                stroke="var(--violet)" stroke-width=".55"/>
+          <rect x="2" y="1.5" width="38" height="17" rx="1" fill="none"
+                stroke="var(--ink-3)" stroke-width=".3" stroke-dasharray="1 1"/>
+          <g stroke="var(--ink-2)" stroke-width=".3" fill="none">
+            <path d="M0 26 L42 26"/><path d="M0 24.4 L0 27.6M42 24.4 L42 27.6"/>
+            <path d="M2 26.9 L0 26 2 25.1M40 26.9 L42 26 40 25.1"/>
+          </g>
+          <text x="21" y="31.4" text-anchor="middle" fill="var(--ink-1)" font-size="3.4">42.0 mm</text>
+          <g stroke="var(--ink-2)" stroke-width=".3" fill="none">
+            <path d="M-6 0 L-6 20"/><path d="M-7.6 0 L-4.4 0M-7.6 20 L-4.4 20"/>
+            <path d="M-6.9 2 L-6 0 -5.1 2M-6.9 18 L-6 20 -5.1 18"/>
+          </g>
+          <text x="-8.4" y="10" text-anchor="middle" fill="var(--ink-1)" font-size="3.4"
+                transform="rotate(-90 -8.4 10)">20.0 mm</text>
+          <path d="M43.5 -1.5 L52 -6" stroke="var(--flag)" stroke-width=".3" fill="none"/>
+          <text x="52.6" y="-5.2" fill="var(--flag)">bleed 1.5</text>
+          <path d="M42 3 L52 1.5" stroke="var(--violet)" stroke-width=".3" fill="none"/>
+          <text x="52.6" y="2.3" fill="var(--violet)">die / trim</text>
+          <path d="M40 9 L52 9.5" stroke="var(--ink-3)" stroke-width=".3" fill="none"/>
+          <text x="52.6" y="10.3">safe 2.0 × 1.5</text>
+          <path d="M40.6 19.4 L52 16.5" stroke="var(--ink-3)" stroke-width=".3" fill="none"/>
+          <text x="52.6" y="17.3">R 2.0</text>
+        </g>
+      </svg>
+      <div class="frame-cap"><span>Die A — small vial (2R)</span><span class="mono">1 : 1 nominal</span></div>
+    </div></div>
+
+    <div><div class="frame">
+      <svg viewBox="-16 -20 92 68" width="100%" style="max-width:540px;min-width:390px" role="img"
+           aria-label="Top-down wrap geometry: a 16 millimetre vial wrapped by a 42 millimetre label, leaving a 7.9 millimetre inspection window.">
+        <g font-family="IBM Plex Mono, monospace" font-size="3" fill="var(--ink-3)">
+          <circle cx="22" cy="14" r="8" fill="var(--panel-2)" stroke="var(--ink-3)" stroke-width=".4"/>
+          <path d="M 28.96 17.96 A 8 8 0 1 0 28.96 10.04" fill="none"
+                stroke="var(--violet)" stroke-width="1.5"/>
+          <path d="M28.96 10.04 L28.96 17.96" stroke="var(--flag)" stroke-width=".45" stroke-dasharray="1 .8"/>
+          <path d="M40 14 L30.4 14" stroke="var(--flag)" stroke-width=".3"/>
+          <text x="40.8" y="12.4" fill="var(--flag)">inspection window</text>
+          <text x="40.8" y="16.4" fill="var(--flag)">7.9 mm chord · 59.2°</text>
+          <path d="M14.6 8.6 L6 3" stroke="var(--violet)" stroke-width=".3" fill="none"/>
+          <text x="-14" y="1.6" fill="var(--violet)">label wrap 300.8° · 42.0 mm</text>
+          <text x="22" y="14.9" text-anchor="middle">Ø16</text>
+          <g transform="translate(-14,30)" fill="var(--ink-2)" font-size="3.2">
+            <text y="0"><tspan fill="var(--ink-3)">circumference </tspan>π × 16.0 = 50.27 mm</text>
+            <text y="5.4"><tspan fill="var(--ink-3)">label width  </tspan>50.27 − 8.3 = 42.0 mm</text>
+            <text y="10.8"><tspan fill="var(--ink-3)">overlap      </tspan>none — butt wrap, must not self-overlap</text>
+          </g>
+        </g>
+      </svg>
+      <div class="frame-cap"><span>Wrap geometry — why 42 mm, not 50 mm</span><span class="mono">top view</span></div>
+    </div></div>
+  </div>
+
+  <p class="note" style="margin:18px 0 20px">The label deliberately stops short of a full wrap. A lyophilized cake has to
+  be inspected in the vial — for cake collapse and meltback, and for particulates once it is reconstituted — so the
+  artwork leaves an uncovered window down the length of the vial rather than overlapping onto itself.</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Die</th><th>Applies to</th><th class="num">Trim (W × H)</th><th class="num">Bleed</th>
+        <th class="num">Safe (H × V)</th><th class="num">Corner R</th><th class="num">Window</th></tr></thead>
+      <tbody>
+        <tr><td class="rowlab">A<small>small vial</small></td>
+            <td>2R vial, Ø16 × 35 mm — Retatrutide, SNAP-8, TB-500, Tesamorelin</td>
+            <td class="num">42.0 × 20.0 mm</td><td class="num">1.5 mm</td><td class="num">2.0 × 1.5 mm</td>
+            <td class="num">2.0 mm</td><td class="num">7.9 mm</td></tr>
+        <tr><td class="rowlab">B<small>large vial</small></td>
+            <td>10R vial, Ø24 × 45 mm — Glutathione 600 mg</td>
+            <td class="num">64.0 × 28.0 mm</td><td class="num">1.5 mm</td><td class="num">2.5 × 2.0 mm</td>
+            <td class="num">2.5 mm</td><td class="num">11.0 mm</td></tr>
+        <tr><td class="rowlab">C<small>carton</small></td>
+            <td>10-vial carton, front face — all five SKUs</td>
+            <td class="num">75.0 × 45.0 mm</td><td class="num">1.5 mm</td><td class="num">3.0 × 3.0 mm</td>
+            <td class="num">3.0 mm</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><i class="lk" style="border-color:var(--flag);border-top-style:dashed"></i> bleed — artwork runs here, gets cut off</span>
+    <span><i class="lk" style="border-color:var(--violet)"></i> die / trim — the cut line</span>
+    <span><i class="lk" style="border-color:var(--ink-3);border-top-style:dotted"></i> safe zone — no text crosses this</span>
+  </div>
+
+  <div class="flag" style="margin-top:22px">
+    <p class="eyebrow">Confirm before tooling</p>
+    <ul>
+      <li>Die A's vertical safe zone is <strong>1.5 mm, not 2 mm</strong>. On a 20 mm label the mock_E stack will not
+        fit inside 2 mm, and vertical registration on a wrap applicator is the easy axis. Tell us if your press
+        cannot hold it.</li>
+      <li>Die C is sized for an <strong>84 × 40 mm carton face</strong>. Send the carton's real face dimensions
+        before the die is cut.</li>
+      <li>Three dies means <strong>three one-time tooling charges</strong> — quote die and plate charges separately
+        from the per-thousand price. If §1's vial question collapses Die A into Die B, that drops to two.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ §4 VIAL ARTWORK ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§4</p><h2>Vial label artwork</h2>
+    <p class="mono faint" style="font-size:11.5px">shown at 100 %</p></div>
+  <div class="proofs" id="vialProofs"></div>
+  <p class="note" style="margin-top:14px">Every white element is <strong>unprinted substrate</strong> — a knockout,
+  0 % ink. The charcoal is a flood and the violet is a single spot, so each label is a two-ink job on white stock
+  with nothing reversed in white ink and no foil.</p>
+</section>
+
+<!-- ══════════ §5 CARTON ARTWORK ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§5</p><h2>Carton label artwork</h2>
+    <p class="mono faint" style="font-size:11.5px">shown at 100 %</p></div>
+  <div class="proofs" id="cartonProofs"></div>
+</section>
+
+<!-- ══════════ §6 QUANTITY ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§6</p><h2>Quantity</h2></div>
+  <p class="note" style="margin-bottom:18px">Vial labels run at 10 per kit, carton labels at 1 per kit. Overage covers
+  press make-ready and application rejects — 10 % is normal for narrow-web. Short runs still hit the supplier's
+  minimum, so the order quantity is whichever of the two is larger.</p>
+
+  <div class="calc-controls">
+    <div class="field"><label for="kits">Kits per SKU</label>
+      <input id="kits" type="number" min="1" max="100000" step="10" value="100">
+      <span class="hint">10 vials each</span></div>
+    <div class="field"><label for="over">Overage %</label>
+      <input id="over" type="number" min="0" max="50" step="1" value="10">
+      <span class="hint">press + application waste</span></div>
+    <div class="field"><label for="moq">Supplier MOQ</label>
+      <input id="moq" type="number" min="0" max="20000" step="50" value="500">
+      <span class="hint">per design, per die</span></div>
+  </div>
+  <div class="tw" id="qtyTable">
+    <table>
+      <thead><tr><th>SKU</th><th>Die</th><th class="num">Vials</th><th class="num">+ overage</th>
+        <th class="num">Vial labels</th><th class="num">Carton labels</th></tr></thead>
+      <tbody id="qtyBody"></tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:12px" id="qtyNote"></p>
+</section>
+
+<!-- ══════════ §7 PRINT SPEC ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§7</p><h2>Print specification</h2></div>
+  <div class="tw">
+    <table>
+      <tbody>
+        <tr><td class="rowlab" style="width:210px">Face stock</td><td>Matte white BOPP, 50 µm (2 mil). Not paper — these vials get condensation coming out of the freezer.</td></tr>
+        <tr><td class="rowlab">Adhesive</td><td><strong>Permanent acrylic, cryogenic grade.</strong> Service range −80 °C to +40 °C, minimum application temperature +5 °C. Hot-melt rubber adhesive is <em>not</em> acceptable — these ship on cold packs and store at −20 °C, and rubber releases in the freezer.</td></tr>
+        <tr><td class="rowlab">Liner</td><td>1 mil PET or glassine, roll form.</td></tr>
+        <tr><td class="rowlab">Print method</td><td>Narrow-web flexo or digital (HP Indigo class). Digital preferred at these run lengths — no plate charge across five SKUs.</td></tr>
+        <tr><td class="rowlab">Colours — two inks</td>
+            <td>Charcoal flood <span class="spec">#1B1C22</span> · one spot violet.<br>
+            <strong>All white text and rules are knockouts to the bare white substrate</strong> — do not print white ink, and do not build the charcoal as a rich black behind fine reversed type.</td></tr>
+        <tr><td class="rowlab">Spot violet</td>
+            <td>Target <span class="spec">#9B4DF5</span>, with the deeper rule tint at <span class="spec">#7B2FD4</span> — the same spot at 80 % plus 15 % K, <strong>not a second plate</strong>.<br>
+            <span class="dim" style="font-size:13px"><strong>This colour is outside CMYK gamut</strong> and prints grey and dull if built from process inks. It must run as a spot. Nearest common guide reference to start from is Pantone 2592 C — match against a physical guide and send a drawdown before plate release. Tolerance ΔE ≤ 2.0.</span></td></tr>
+        <tr><td class="rowlab">Finish</td><td>Matte UV varnish or matte lamination over the full face. Must survive <strong>30 wipes with 70 % IPA</strong> without ink lift or gloss change — vials are swabbed before entering a hood.</td></tr>
+        <tr><td class="rowlab">Minimum type</td><td>5.0 pt (1.76 mm). Minimum rule weight 0.25 pt. Nothing in this pack is set smaller.</td></tr>
+        <tr><td class="rowlab">Artwork supplied as</td><td>Vector PDF/X-4, fonts outlined, spot named <span class="spec">OP Violet</span>, die-line on a separate <span class="spec">CutContour</span> spot layer set to overprint.</td></tr>
+        <tr><td class="rowlab">Variable data</td><td><strong>Left blank.</strong> Lot, SKU and manufacture date are assigned at fill, after the labels are printed, so the dotted rules stay empty and are overprinted in-house — thermal transfer, <strong>resin ribbon</strong> (wax will not survive the IPA wipe). Do not print them on press.</td></tr>
+        <tr><td class="rowlab">Barcode zone</td><td>Die C only — 41 × 11 mm clear area, GS1-128 carrying (01) GTIN, (10) lot, (17) expiry. X-dimension 0.25 mm, quiet zone 10 × X, grade ≥ 1.5 / C per ISO 15416. <strong>Leave unprinted</strong> until the GS1 prefix is issued.</td></tr>
+        <tr><td class="rowlab">Roll format</td><td>Wound out, <strong>position 1</strong> (label reads left-to-right, top edge leaves the roll first). 76 mm (3 in) core, 300 mm maximum OD, 1 000 labels per roll, 3 mm gap. Required for automated wrap application.</td></tr>
+        <tr><td class="rowlab">Tolerances</td><td>Die-cut registration ±0.5 mm · print-to-die registration ±0.3 mm · splices ≤ 1 per roll, flagged.</td></tr>
+        <tr><td class="rowlab">Pre-production</td><td>Required before the full run: printed proof on the actual substrate, plus a <strong>freeze/thaw adhesion test</strong> — 5 cycles between −20 °C and +25 °C on a glass vial, no edge lift.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ §8 VERIFY ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§8</p><h2>Verify before plate release</h2></div>
+  <div class="flag">
+    <p class="eyebrow">Placeholders and inferences in the artwork above</p>
+    <ul>
+      <li><strong>Vial outside diameter</strong> for the four small SKUs — the §1 question. Everything else waits on it.</li>
+      <li><strong>The typeface.</strong> These proofs are set in Archivo as a stand-in. Production PDFs must be
+        generated from your mock_E source file so the real face is preserved, then outlined.</li>
+      <li><strong>The violet and the charcoal</strong> were sampled by eye from the mock_E PNG. Pull the exact values
+        from the source file before a spot colour is mixed.</li>
+      <li><strong>Every CAS number.</strong> The values shown are the commonly cited ones, but salt and acetate forms
+        carry different registry numbers. Check each against the supplier's Certificate of Analysis — a wrong CAS on
+        a printed label is a full reprint.</li>
+      <li><strong>The purity figure.</strong> Artwork reads ≥ 99.0 % (HPLC) throughout. If any CoA states a lower
+        specification, that SKU's label changes to match it.</li>
+      <li><strong>The SKU category codes</strong> (<span class="mono">MET / COS / REP / ANT</span>) are inferred from
+        the single <span class="mono">OP-MET-TIRZ-20MG</span> example. Send the real code list.</li>
+      <li><strong>The shortened vial SKU.</strong> A 42 mm label cannot hold the full code at 5 pt, so Die A carries
+        product and strength only (<span class="mono">RETA-10MG</span>) while the carton carries the full
+        <span class="mono">OP-MET-RETA-10MG</span>. Confirm that split works for your stock system.</li>
+      <li><strong>The research-use wording.</strong> Vials carry your mock's "NOT FOR HUMAN USE"; the carton has room
+        for the longer form used on your compliance page, which also excludes veterinary use. Confirm you want both.</li>
+      <li><strong>GTIN / GS1 company prefix</strong>, or confirmation that the Die C barcode zone stays blank this run.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ §9 REPLY ══════════ -->
+<section>
+  <div class="sec-head"><p class="eyebrow">§9</p><h2>Reply to send</h2></div>
+  <div class="copybox">
+    <div class="copybar">
+      <span class="eyebrow">Answers their three questions · tracks §6</span>
+      <button class="copy" id="copyBtn" type="button">Copy</button>
+    </div>
+    <pre id="supplierMsg"></pre>
+  </div>
+</section>
+
+<footer>
+  <span>OligoPoly Laboratories · Prepress pack 001 · Rev A · template mock_E_minimal</span>
+  <span class="mono">All products supplied for in-vitro laboratory research only</span>
+</footer>
+</div>
+
+<script>
+/* ══ SKU data ══════════════════════════════════════════════════════════════ */
+var SKUS=[
+ {n:"RETATRUTIDE",chem:"LY3437943",             mg:"10 MG", cas:"2381089-83-2",die:"A",
+  sku:"OP-MET-RETA-10MG", skuShort:"RETA-10MG", lot:"RT-2609-014", cap:"Violet",capHex:"#8b3fe8",vial:"2R · Ø16 × 35 mm"},
+ {n:"SNAP-8",     chem:"Acetyl Octapeptide-3",  mg:"10 MG", cas:"868844-74-0", die:"A",
+  sku:"OP-COS-SNAP8-10MG", skuShort:"SNAP8-10MG",lot:"SN-2609-007", cap:"Silver",capHex:"#c3cad6",vial:"2R · Ø16 × 35 mm"},
+ {n:"TB-500",     chem:"Thymosin β4 Acetate",   mg:"5 MG",  cas:"77591-33-4",  die:"A",
+  sku:"OP-REP-TB500-5MG", skuShort:"TB500-5MG", lot:"TB-2609-011", cap:"White", capHex:"#f2f4f8",vial:"2R · Ø16 × 35 mm"},
+ {n:"TESAMORELIN",chem:"TH9507",                mg:"5 MG",  cas:"218949-48-5", die:"A",
+  sku:"OP-MET-TESA-5MG", skuShort:"TESA-5MG",  lot:"TS-2609-005", cap:"Blue",  capHex:"#2f6fc9",vial:"2R · Ø16 × 35 mm"},
+ {n:"GLUTATHIONE",chem:"L-Glutathione, Reduced",mg:"600 MG",cas:"70-18-8",     die:"B",
+  sku:"OP-ANT-GSH-600MG", skuShort:"GSH-600MG", lot:"GS-2609-022", cap:"Black", capHex:"#20232c",vial:"10R · Ø24 × 45 mm"}
+];
+
+/* Printed-piece colours — fixed to the artwork, never follow the page theme. */
+var BG="#1b1c22", WH="#ffffff", GY="#a9afbd", GY2="#8f95a4",
+    VI="#9b4df5", VI2="#7b2fd4";
+var AR='Archivo, "Helvetica Neue", Arial, sans-serif';
+var MO='"IBM Plex Mono", ui-monospace, monospace';
+
+function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+function grad(id){
+  return '<defs><linearGradient id="g'+id+'" x1="0" y1="0" x2="1" y2="0">'+
+    '<stop offset="0" stop-color="'+VI+'"/><stop offset=".55" stop-color="'+VI2+'"/>'+
+    '<stop offset="1" stop-color="'+VI2+'" stop-opacity=".35"/></linearGradient></defs>';
+}
+/* Hex-and-molecule mark, drawn in a 100-unit box, scaled to s mm. */
+function mark(x,y,s){
+  var k=s/100, w=100*k;
+  return '<g transform="translate('+x+','+y+') scale('+k+')" fill="none">'+
+    '<path d="M50 6 88 28 88 72 50 94 12 72 12 28Z" stroke="'+VI+'" stroke-width="6.5" stroke-linejoin="round"/>'+
+    '<path d="M50 50 50 32M50 50 50 68M50 50 33 50M50 50 67 50" stroke="'+VI+'" stroke-width="5" stroke-linecap="round"/>'+
+    '<g fill="'+VI+'"><circle cx="50" cy="50" r="10"/><circle cx="50" cy="30" r="6.4"/>'+
+    '<circle cx="50" cy="70" r="6.4"/><circle cx="30" cy="50" r="6.4"/><circle cx="70" cy="50" r="6.4"/></g></g>';
+}
+/* Dotted fill-in rule, matching the mock. */
+function dots(x1,x2,y){
+  return '<path d="M'+x1+' '+y+' H'+x2+'" stroke="'+GY2+'" stroke-width=".22" '+
+         'stroke-dasharray=".55 .75" stroke-linecap="round"/>';
+}
+function field(x,w,lab,val,yLab,yVal,fsL,fsV){
+  return '<text x="'+x+'" y="'+yLab+'" font-family="'+MO+'" font-size="'+fsL+'" letter-spacing=".1" fill="'+GY2+'">'+lab+'</text>'+
+         '<text x="'+x+'" y="'+yVal+'" font-family="'+MO+'" font-size="'+fsV+'" letter-spacing=".02" fill="'+WH+'">'+val+'</text>'+
+         dots(x,x+w,yVal+1.0);
+}
+
+/* ── Die A · 42 × 20 mm — compressed mock_E ───────────────────────────────── */
+function vialA(s,i){
+  var W=42,H=20,id="a"+i;
+  var o='<svg width="'+(W*3.7795)+'" height="'+(H*3.7795)+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+
+    esc(s.n)+' vial label, 42 by 20 millimetres">'+grad(id)+
+    '<rect width="'+W+'" height="'+H+'" rx="2" fill="'+BG+'"/>';
+  o+=mark(2.2,1.5,3.5);
+  o+='<text x="6.8" y="4.3" font-family="'+AR+'" font-weight="700" font-size="2.05" letter-spacing=".12" fill="'+WH+'">OLIGOPOLY</text>';
+  o+='<text x="39.8" y="3.0" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="1.72" letter-spacing=".05" fill="'+WH+'">RESEARCH USE ONLY</text>';
+  o+='<text x="39.8" y="5.1" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="1.72" letter-spacing=".05" fill="'+WH+'">NOT FOR HUMAN USE</text>';
+  o+='<path d="M2.2 6.1 H39.8" stroke="url(#g'+id+')" stroke-width=".42"/>';
+  o+='<text x="2.2" y="10.2" font-family="'+AR+'" font-weight="700" font-size="3.6" letter-spacing="-.02" fill="'+WH+'">'+esc(s.n)+'</text>';
+  o+='<text x="2.2" y="13.0" font-family="'+AR+'" font-weight="700" font-size="2.4" letter-spacing=".01" fill="'+VI+'">'+s.mg+'</text>';
+  o+='<text x="39.8" y="13.0" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="1.72" letter-spacing=".06" fill="'+GY+'">LYOPHILIZED POWDER</text>';
+  o+='<path d="M2.2 14.4 H39.8" stroke="'+GY2+'" stroke-width=".16" opacity=".55"/>';
+  o+=field(2.2, 12.6,"LOT/BATCH", s.lot,      16.0,18.0,1.72,1.85);
+  o+=field(15.6,11.6,"SKU",       s.skuShort, 16.0,18.0,1.72,1.85);
+  o+=field(28.4,11.4,"MFG DATE",  "09/2026",  16.0,18.0,1.72,1.85);
+  return o+'</svg>';
+}
+
+/* ── Die B · 64 × 28 mm — full mock_E ─────────────────────────────────────── */
+function vialB(s,i){
+  var W=64,H=28,id="b"+i;
+  var o='<svg width="'+(W*3.7795)+'" height="'+(H*3.7795)+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+
+    esc(s.n)+' vial label, 64 by 28 millimetres">'+grad(id)+
+    '<rect width="'+W+'" height="'+H+'" rx="2.5" fill="'+BG+'"/>';
+  o+=mark(3.2,2.2,5.8);
+  o+='<text x="10.6" y="6.2" font-family="'+AR+'" font-weight="700" font-size="3.1" letter-spacing=".15" fill="'+WH+'">OLIGOPOLY</text>';
+  o+='<text x="11.0" y="9.2" font-family="'+AR+'" font-weight="600" font-size="1.8" letter-spacing=".46" fill="'+VI+'">LABORATORIES</text>';
+  o+='<text x="60.8" y="5.0" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="1.95" letter-spacing=".05" fill="'+WH+'">RESEARCH USE ONLY</text>';
+  o+='<text x="60.8" y="7.5" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="1.95" letter-spacing=".05" fill="'+WH+'">NOT FOR HUMAN USE</text>';
+  o+='<path d="M3.2 10.9 H60.8" stroke="url(#g'+id+')" stroke-width=".55"/>';
+  o+='<text x="3.2" y="17.0" font-family="'+AR+'" font-weight="700" font-size="5.2" letter-spacing="-.025" fill="'+WH+'">'+esc(s.n)+'</text>';
+  o+='<text x="3.2" y="21.0" font-family="'+AR+'" font-weight="700" font-size="3.1" fill="'+VI+'">'+s.mg+'</text>';
+  o+='<text x="60.8" y="15.2" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="1.9" letter-spacing=".07" fill="'+GY+'">RESEARCH PEPTIDE</text>';
+  o+='<text x="60.8" y="17.9" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="1.9" letter-spacing=".07" fill="'+GY+'">LYOPHILIZED POWDER</text>';
+  o+='<path d="M3.2 22.2 H60.8" stroke="'+GY2+'" stroke-width=".18" opacity=".55"/>';
+  o+=field(3.2, 18.0,"LOT / BATCH", s.lot,   24.0,26.0,1.8,2.0);
+  o+=field(24.6,20.6,"SKU",         s.sku,   24.0,26.0,1.8,2.0);
+  o+=field(48.4,12.4,"MFG DATE",    "09/2026",24.0,26.0,1.8,2.0);
+  return o+'</svg>';
+}
+
+/* ── Die C · 75 × 45 mm carton — full mock_E + barcode + COA ──────────────── */
+function carton(s,i){
+  var W=75,H=45,id="c"+i;
+  var o='<svg width="'+(W*3.7795)+'" height="'+(H*3.7795)+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+
+    esc(s.n)+' carton label, 75 by 45 millimetres">'+grad(id)+
+    '<rect width="'+W+'" height="'+H+'" rx="3" fill="'+BG+'"/>';
+  o+=mark(3.4,3.0,8.4);
+  o+='<text x="14.2" y="7.9" font-family="'+AR+'" font-weight="700" font-size="3.9" letter-spacing=".16" fill="'+WH+'">OLIGOPOLY</text>';
+  o+='<text x="14.7" y="11.7" font-family="'+AR+'" font-weight="600" font-size="2.2" letter-spacing=".52" fill="'+VI+'">LABORATORIES</text>';
+  o+='<text x="71.6" y="6.6" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="2.3" letter-spacing=".05" fill="'+WH+'">RESEARCH USE ONLY</text>';
+  o+='<text x="71.6" y="9.6" text-anchor="end" font-family="'+AR+'" font-weight="600" font-size="2.3" letter-spacing=".05" fill="'+WH+'">NOT FOR HUMAN USE</text>';
+  o+='<path d="M3.4 13.6 H71.6" stroke="url(#g'+id+')" stroke-width=".6"/>';
+  o+='<text x="3.4" y="21.2" font-family="'+AR+'" font-weight="700" font-size="6.4" letter-spacing="-.03" fill="'+WH+'">'+esc(s.n)+'</text>';
+  o+='<text x="3.4" y="26.2" font-family="'+AR+'" font-weight="700" font-size="3.8" fill="'+VI+'">'+s.mg+'</text>';
+  o+='<text x="71.6" y="19.0" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="2.2" letter-spacing=".07" fill="'+GY+'">RESEARCH PEPTIDE</text>';
+  o+='<text x="71.6" y="22.2" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="2.2" letter-spacing=".07" fill="'+GY+'">LYOPHILIZED POWDER</text>';
+  o+='<text x="71.6" y="26.2" text-anchor="end" font-family="'+AR+'" font-weight="500" font-size="2.2" letter-spacing=".03" fill="'+GY+'">10 VIALS · CAS '+s.cas+' · ≥ 99.0 % HPLC</text>';
+  o+='<path d="M3.4 28.4 H71.6" stroke="'+GY2+'" stroke-width=".2" opacity=".55"/>';
+  o+=field(3.4, 17.6,"LOT / BATCH", s.lot,    31.0,33.4,2.0,2.2);
+  o+=field(24.0,23.4,"SKU",         s.sku,    31.0,33.4,2.0,2.2);
+  o+=field(49.4,13.6,"MFG DATE",    "09/2026",31.0,33.4,2.0,2.2);
+  /* barcode reserve + COA footer */
+  o+='<rect x="3.4" y="36.4" width="26" height="5.6" rx=".5" fill="none" stroke="'+GY2+'" stroke-width=".2" stroke-dasharray=".8 .6"/>';
+  o+='<text x="16.4" y="40.0" text-anchor="middle" font-family="'+MO+'" font-size="1.85" letter-spacing=".06" fill="'+GY2+'">GS1-128 RESERVED</text>';
+  o+='<text x="31.6" y="38.4" font-family="'+MO+'" font-size="1.85" letter-spacing=".08" fill="'+GY+'">COA · OLIGOPOLYPEPTIDES.COM</text>';
+  o+='<text x="31.6" y="41.4" font-family="'+AR+'" font-weight="500" font-size="1.7" letter-spacing=".04" fill="'+GY2+'">STORE −20 °C · PROTECT FROM LIGHT</text>';
+  o+='<rect x="63.6" y="40.0" width="8" height="1.4" rx=".3" fill="'+VI+'"/>';
+  return o+'</svg>';
+}
+
+/* ══ §2 table ══ */
+(function(){
+  var h="";
+  for(var i=0;i<SKUS.length;i++){var s=SKUS[i];
+    h+='<tr><td class="rowlab">'+esc(s.n)+'</td><td class="dim">'+esc(s.chem)+'</td>'+
+       '<td class="num">'+s.mg.replace(" MG"," mg")+'</td><td class="spec">'+s.cas+'</td>'+
+       '<td class="spec">'+s.vial+'</td>'+
+       '<td class="spec">'+s.die+' · '+(s.die==="A"?"42 × 20":"64 × 28")+'</td>'+
+       '<td class="spec">'+s.sku+'</td>'+
+       '<td><span class="chip"><i class="swatch" style="background:'+s.capHex+'"></i>'+s.cap+'</span></td></tr>';
+  }
+  document.getElementById("skuTable").innerHTML=h;
+})();
+
+/* ══ §4 / §5 proofs ══ */
+(function(){
+  function facts(s,die,dims,extra){
+    return '<div class="proof-facts"><p class="proof-name">'+esc(s.n)+'</p><dl class="kv">'+
+      '<dt>Die</dt><dd>'+die+' — '+dims+'</dd>'+
+      '<dt>Vial</dt><dd>'+s.vial+'</dd>'+
+      '<dt>SKU</dt><dd class="mono">'+s.sku+'</dd>'+
+      '<dt>CAS</dt><dd class="mono">'+s.cas+'</dd>'+
+      '<dt>Cap</dt><dd>'+s.cap+' flip-off</dd>'+extra+'</dl></div>';
+  }
+  var v="",c="";
+  for(var i=0;i<SKUS.length;i++){var s=SKUS[i];
+    var art=(s.die==="A")?vialA(s,i):vialB(s,i);
+    var cut=(s.die==="A")
+      ? '<dt>Cuts</dt><dd>LABORATORIES, COA line; SKU shortened to <span class="mono">'+s.skuShort+'</span></dd>'
+      : '<dt>Cuts</dt><dd>COA line only</dd>';
+    v+='<div class="proof"><div class="proof-art">'+art+'</div>'+
+       facts(s,s.die,(s.die==="A"?"42 × 20 mm":"64 × 28 mm"),cut)+'</div>';
+    c+='<div class="proof"><div class="proof-art">'+carton(s,i)+'</div>'+
+       facts(s,"C","75 × 45 mm",'<dt>Cuts</dt><dd>none — full template</dd>')+'</div>';
+  }
+  document.getElementById("vialProofs").innerHTML=v;
+  document.getElementById("cartonProofs").innerHTML=c;
+})();
+
+/* ══ §6 quantity ══ */
+var kitsEl=document.getElementById("kits"),
+    overEl=document.getElementById("over"),
+    moqEl =document.getElementById("moq");
+function num(el,f){var v=parseInt(el.value,10);return (isNaN(v)||v<0)?f:v;}
+function fmt(n){return n.toLocaleString("en-US");}
+
+function compute(){
+  var kits=Math.max(1,num(kitsEl,100)),over=num(overEl,10),moq=num(moqEl,500);
+  var m=1+over/100,rows=[],tv=0,tc=0;
+  for(var i=0;i<SKUS.length;i++){
+    var s=SKUS[i],vials=kits*10;
+    var withOver=Math.ceil(vials*m/50)*50;
+    var vialQty=Math.max(withOver,moq);
+    var cartonQty=Math.max(Math.ceil(kits*m/50)*50,moq);
+    tv+=vialQty; tc+=cartonQty;
+    rows.push({s:s,vials:vials,withOver:withOver,vialQty:vialQty,cartonQty:cartonQty});
+  }
+  return {kits:kits,over:over,moq:moq,rows:rows,tv:tv,tc:tc};
+}
+
+function render(){
+  var r=compute(),h="";
+  for(var i=0;i<r.rows.length;i++){var x=r.rows[i];
+    h+='<tr><td class="rowlab">'+esc(x.s.n)+'<small>'+x.s.mg.replace(" MG"," mg")+' · '+x.s.sku+'</small></td>'+
+       '<td class="spec">'+x.s.die+'</td><td class="num dim">'+fmt(x.vials)+'</td>'+
+       '<td class="num dim">'+fmt(x.withOver)+'</td><td class="num">'+fmt(x.vialQty)+'</td>'+
+       '<td class="num">'+fmt(x.cartonQty)+'</td></tr>';
+  }
+  h+='<tr class="total"><td>Order total</td><td class="spec">A×4 B×1 C×5</td>'+
+     '<td class="num">'+fmt(r.kits*50)+'</td><td class="num"></td>'+
+     '<td class="num">'+fmt(r.tv)+'</td><td class="num">'+fmt(r.tc)+'</td></tr>';
+  document.getElementById("qtyBody").innerHTML=h;
+
+  document.getElementById("qtyNote").innerHTML=
+    'At <strong>'+fmt(r.kits)+' kits per SKU</strong> that is <strong>'+fmt(r.tv+r.tc)+' labels in total</strong> — '+
+    fmt(r.tv)+' vial and '+fmt(r.tc)+' carton — across 3 dies. Quantities round up to the nearest 50 and are floored '+
+    'at the '+fmt(r.moq)+'-piece minimum. Ask for per-thousand pricing at this volume and at 2× and 5× it, with die '+
+    'and plate charges itemised separately.';
+
+  document.getElementById("supplierMsg").textContent=
+"Thanks — here is everything for the label order.\n\n"+
+"1) DESIGN / TEMPLATE\n"+
+"   Our existing minimal template, laid out for all five products.\n"+
+"   Full artwork proof and written print spec: <paste this page's URL>\n"+
+"   Print-ready PDF/X-4 with die-lines follows once the dimensions below are confirmed.\n\n"+
+"2) DIMENSIONS — three dies\n"+
+"   Die A  42.0 x 20.0 mm  small vial (2R, O16 x 35 mm)  - Retatrutide, SNAP-8, TB-500, Tesamorelin\n"+
+"   Die B  64.0 x 28.0 mm  large vial (10R, O24 x 45 mm) - Glutathione 600 mg\n"+
+"   Die C  75.0 x 45.0 mm  10-vial carton face           - all five SKUs\n"+
+"   All dies: 1.5 mm bleed, 2-3 mm safe zone, 2-3 mm corner radius, rounded rectangle.\n"+
+"   Vial labels are a PARTIAL wrap - they leave an inspection window and must not\n"+
+"   overlap themselves. Please confirm your die-cut registration holds +/-0.5 mm.\n\n"+
+"3) QUANTITY — "+fmt(r.kits)+" kits per SKU, "+r.over+"% overage, "+fmt(r.moq)+" MOQ\n"+
+   r.rows.map(function(x){
+     return "   "+(x.s.n+"              ").slice(0,13)+" die "+x.s.die+
+            "   vial "+("      "+fmt(x.vialQty)).slice(-6)+
+            "   carton "+("      "+fmt(x.cartonQty)).slice(-6);
+   }).join("\n")+"\n"+
+"   TOTAL         vial "+fmt(r.tv)+"   carton "+fmt(r.tc)+"   ("+fmt(r.tv+r.tc)+" labels)\n\n"+
+"KEY SPEC POINTS\n"+
+"   - Face stock: matte white BOPP, 50 um. Two inks only: a charcoal flood (#1B1C22)\n"+
+"     plus ONE spot violet. All white text is a KNOCKOUT to bare substrate - do not\n"+
+"     print white ink, and do not build the charcoal as a rich black behind fine\n"+
+"     reversed type.\n"+
+"   - The violet (#9B4DF5) is outside CMYK gamut. It must run as a spot, not built\n"+
+"     from process. Nearest guide reference to start from is Pantone 2592 C - please\n"+
+"     send a drawdown on the real substrate before plates. Tolerance dE <= 2.0.\n"+
+"     Deeper rule tint = same spot at 80% + 15% K. Do not add a second violet plate.\n"+
+"   - Adhesive MUST be permanent acrylic, cryogenic grade, -80 C to +40 C service.\n"+
+"     Hot-melt rubber is not acceptable; these store at -20 C and rubber releases.\n"+
+"   - Finish: matte varnish or lamination, must survive 30 wipes of 70% IPA.\n"+
+"   - LOT / SKU / MFG DATE fields stay BLANK - we overprint in-house at fill.\n"+
+"   - Barcode zone on die C stays blank on this run.\n"+
+"   - Roll: wound out, position 1, 76 mm core, 1000/roll, 3 mm gap.\n\n"+
+"PLEASE QUOTE\n"+
+"   a) Per-thousand at the quantities above, and at 2x and 5x.\n"+
+"   b) Die and plate charges, itemised separately (3 dies).\n"+
+"   c) Lead time from artwork approval.\n"+
+"   d) Cost to add a printed proof on the actual substrate plus a freeze/thaw\n"+
+"      adhesion test (5 cycles, -20 C to +25 C on glass) before the full run.\n";
+}
+kitsEl.addEventListener("input",render);
+overEl.addEventListener("input",render);
+moqEl.addEventListener("input",render);
+render();
+
+document.getElementById("copyBtn").addEventListener("click",function(){
+  var btn=this,t=document.getElementById("supplierMsg").textContent;
+  function done(ok){btn.textContent=ok?"Copied":"Select and copy";
+    setTimeout(function(){btn.textContent="Copy";},1800);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){done(true);},function(){done(false);});
+  } else {done(false);}
+});
+</script>
