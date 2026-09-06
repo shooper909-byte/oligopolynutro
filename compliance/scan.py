@@ -111,8 +111,14 @@ def slug(url):
 
 
 def visible(markup):
+    # Keep JSON-LD before stripping <script>. FAQPage schema repeats the page's
+    # claims in machine-readable form: invisible to a reader, fully visible to a
+    # compliance scanner. Dropping it here under-reports the real exposure.
+    ld = " ".join(re.findall(
+        r'(?is)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', markup))
     for tag in ("script", "style", "noscript"):
         markup = re.sub(rf"(?is)<{tag}[^>]*>.*?</{tag}>", " ", markup)
+    markup += " " + re.sub(r'[{}"\[\]]', " ", ld)
     markup = re.sub(r"(?is)<!--.*?-->", " ", markup)
     markup = re.sub(r"(?is)<(br|/p|/div|/li|/h[1-6]|/td|/tr)[^>]*>", "\n", markup)
     markup = re.sub(r"(?is)<[^>]+>", " ", markup)

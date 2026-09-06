@@ -13,6 +13,8 @@ Remediation tracking for the VERIFIED / Stripe RUO website review of
   metabolic compounds, and the editorial-corpus decision that determines whether a rename works.
 - **[PRODUCT-DATA-FIXES.md](PRODUCT-DATA-FIXES.md)** — bacteriostatic water volume/SKU
   conflict and the Retatrutide 10 mg title. Catalog accuracy, not compliance.
+- **[../codex/RUNBOOK.md](../codex/RUNBOOK.md)** — standalone execution runbook plus
+  `remediate.py`, which applies P0/P1 over the REST API. Hand this to an agent to execute.
 - **[scan.py](scan.py)** — re-runnable scanner. The requirement doc makes ongoing
   monitoring a merchant obligation (§5), so this exists to be run again, not once.
 
@@ -35,13 +37,13 @@ Exit status is **1** when any P0 or P1 finding remains, so it can gate a deploy 
 ```
 Scanned 234 pages · 71 boilerplate sentences excluded
 [P0] Internal build note published live:                 10 instances / 5 pages
-[P1] Human weight-loss / body-composition outcome figure: 17 instances / 13 pages
-[P1] Benefit-framed naming or heading:                    15 instances / 14 pages
+[P1] Human weight-loss / body-composition outcome figure: 22 instances / 13 pages
+[P1] Benefit-framed naming or heading:                    21 instances / 14 pages
 [P2] Dosing / administration guidance:                     1 instance  / 1 page
 [P2] Cycle / stack / personal-use protocol content:       clean
 [P0] Dosing or reconstitution calculator:                 clean
-[P2] Restricted product naming (flag to VERIFIED):      1591 instances / 153 pages
-FAIL: 42 P0/P1 instance(s) outstanding.
+[P2] Restricted product naming (flag to VERIFIED):      1885 instances / 153 pages
+FAIL: 53 P0/P1 instance(s) outstanding.
 ```
 
 ## Reading the output

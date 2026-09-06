@@ -1,0 +1,311 @@
+[
+ {
+  "id": 1411,
+  "slug": "what-is-retatrutide",
+  "kind": "table_header",
+  "find": "<th>Peak Weight Loss Data</th>",
+  "label": "Peak Weight Loss Data"
+ },
+ {
+  "id": 1411,
+  "slug": "what-is-retatrutide",
+  "kind": "prose",
+  "find": "<p><strong>Key insight:</strong> The glucagon receptor was deliberately added to the incretin platform precisely because glucagon receptor agonism increases energy expenditure through thermogenic pathways \u2014 an effect neither GLP-1R nor GIPR agonism provides. This is why retatrutide consistently shows greater weight reduction in published data compared to tirzepatide and semaglutide.</p></div>\n\n<h2>Retatrutide vs Semaglutide vs Tirzepatide</h2>\n<div class=\"pl-table-wrap\"><table class=\"pl-table\">\n<tr><th>Compound</th><th>Class</th><th>Receptors</th><th>Peak Weight Loss Data</th></tr>\n<tr><td>Semaglutide</td><td>GLP-1 mono-agonist</td><td>GLP-1R only</td><td>~15% (72wk)</td></tr>\n<tr><td>Tirzepatide</td><td>GLP-1/GIP dual agonist</td><td>GLP-1R + GIPR</td><td>~22% (72wk)</td></tr>\n<tr><td class=\"win\">Retatrutide</td><td class=\"win\">Triple agonist</td><td class=\"win\">GLP-1R + GIPR + GCGR</td><td class=\"win\">~28.7% (68wk)</td></tr>\n</table></div>\n\n<h2>Retatrutide in Laboratory Research</h2>\n<p>As a research-use-only compound, retatrutide is used in preclinical and in vitro laboratory settings to study:</p>",
+  "match": "Weight Loss Data</th></tr> <tr><td>Semaglutide</td><td>GLP-1 mono-agonist</td><td>GLP-1R only</td><td>~15%"
+ },
+ {
+  "id": 1411,
+  "slug": "what-is-retatrutide",
+  "kind": "prose",
+  "find": "<p>As a research-use-only compound, retatrutide is used in preclinical and in vitro laboratory settings to study:</p>\n<ul>\n<li><strong>Multi-receptor metabolic pathway co-activation</strong> \u2014 examining how simultaneous GLP-1R, GIPR, and GCGR engagement differs from dual or single receptor activation</li>\n<li><strong>Hepatic fat reduction mechanisms</strong> \u2014 Phase 2 data showed up to 82% liver fat reduction, making it a key compound for MASH/NAFLD pathway research</li>\n<li><strong>Comparative incretin pharmacology</strong> \u2014 using retatrutide alongside tirzepatide and semaglutide to isolate receptor-specific contributions</li>\n<li><strong>Energy expenditure pathway research</strong> \u2014 studying GCGR-mediated thermogenesis within a controlled incretin context</li>\n<li><strong>Adipose tissue lipolysis signaling</strong> \u2014 GCGR effects on adipocyte lipid mobilization</li>\n</ul>\n\n<h2>Sourcing Retatrutide for Research</h2>\n<p>OligoPoly Laboratories supplies retatrutide as a lyophilized research peptide with a theoretical MW of 4,731.33 g/mol. Testing documentation is provided only when available for the specific released lot. A batch-specific Certificate of Analysis available via our <a href=\"/research-peptides-with-coa/\">online COA verification system</a>. Ships from Houston, TX with 1\u20133 business day processing.</p>",
+  "match": "fat reduction mechanisms</strong> \u2014 Phase 2 data showed up to 82%"
+ },
+ {
+  "id": 1411,
+  "slug": "what-is-retatrutide",
+  "kind": "benefit_term",
+  "find": "Peak Weight Loss",
+  "context": "e-wrap\"><table class=\"pl-table\"> <tr><th>Compound</th><th>Class</th><th>Receptors</th><th>Peak Weight Loss Data</th></tr> <tr><td>Semaglutide</td><td>GLP-1 mono-agonist</td><td>GLP-1R only</td><td"
+ },
+ {
+  "id": 1412,
+  "slug": "retatrutide-vs-semaglutide",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~15%</strong><span>Semaglutide Weight Loss</span></div>",
+  "value": "~15%",
+  "label": "Semaglutide Weight Loss"
+ },
+ {
+  "id": 1412,
+  "slug": "retatrutide-vs-semaglutide",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~28.7%</strong><span>Retatrutide Weight Loss</span></div>",
+  "value": "~28.7%",
+  "label": "Retatrutide Weight Loss"
+ },
+ {
+  "id": 1414,
+  "slug": "multi-pathway-peptide-research",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": "telomerase, neuroendocrine, and ECM pathways</li> <li><strong><a href=\"/Research Panels/\">Anti-Aging &amp; Repair Research Panel</a></strong> \u2014 Epitalon + GHK-Cu + Thymosin Beta-4 + BPC-157<"
+ },
+ {
+  "id": 1414,
+  "slug": "multi-pathway-peptide-research",
+  "kind": "benefit_term",
+  "find": "fat-loss",
+  "context": "/a> \u2014 Most-studied dual recovery protocol</li> <li><a href=\"/best-peptide-Research Panels-fat-loss/\">Best Peptide Research Panels for Fat Loss Research</a> \u2014 Metabolic combination protocol"
+ },
+ {
+  "id": 1414,
+  "slug": "multi-pathway-peptide-research",
+  "kind": "benefit_term",
+  "find": "Fat Loss",
+  "context": "i> <li><a href=\"/best-peptide-Research Panels-fat-loss/\">Best Peptide Research Panels for Fat Loss Research</a> \u2014 Metabolic combination protocols</li> </ul> <div class=\"pl-ruo\"><p><strong"
+ },
+ {
+  "id": 1534,
+  "slug": "semaglutide-vs-tirzepatide",
+  "kind": "table_header",
+  "find": "<td>Body Weight Reduction</td>",
+  "label": "Body Weight Reduction"
+ },
+ {
+  "id": 1534,
+  "slug": "semaglutide-vs-tirzepatide",
+  "kind": "table_header",
+  "find": "<td>Responders &gt;15% loss</td>",
+  "label": "Responders &gt;15% loss"
+ },
+ {
+  "id": 1534,
+  "slug": "semaglutide-vs-tirzepatide",
+  "kind": "prose",
+  "find": "<p>Published Phase 2/3 clinical data shows tirzepatide achieving approximately 20\u201322% body weight reduction at highest doses versus 12\u201315% for semaglutide at equivalent dosing intensity. The ~7\u20139% differential is the subject of significant mechanistic research, with adipose GIPR signaling (particularly via cAMP/PKA suppression of lipogenesis) implicated as a key pathway.</p>",
+  "match": "22% body weight reduction"
+ },
+ {
+  "id": 1534,
+  "slug": "semaglutide-vs-tirzepatide",
+  "kind": "prose",
+  "find": "<p>The SUSTAIN program (semaglutide) and SURPASS program (tirzepatide) provide the primary published efficacy and safety datasets for these compounds. Key published findings from peer-reviewed literature:</p>\n<div class=\"cp-tbl-wrap\"><table class=\"cp-tbl\"><thead><tr><th>Metric</th><th>Semaglutide (2.4mg/wk)</th><th>Tirzepatide (15mg/wk)</th></tr></thead><tbody>\n<tr><td>Body Weight Reduction</td><td class=\"win\">~14.9% (STEP 1)</td><td class=\"win\">~20.9% (SURMOUNT-1)</td></tr>\n<tr><td>HbA1c Reduction</td><td>~1.6%</td><td class=\"win\">~2.0\u20132.3%</td></tr>\n<tr><td>Responders &gt;15% loss</td><td>~37%</td><td class=\"win\">~57%</td></tr>\n<tr><td>GI Adverse Events</td><td class=\"neu\">~40%</td><td class=\"neu\">~40-44%</td></tr>\n</tbody></table></div>\n<p>These are clinical endpoints in human subjects \u2014 not direct predictors of in vitro or preclinical outcomes. They do, however, validate the physiological relevance of the receptor mechanisms studied in preclinical research using these compounds.</p>",
+  "match": "Body Weight Reduction</td><td class=\"win\">~14.9%"
+ },
+ {
+  "id": 1536,
+  "slug": "cagrilintide-vs-semaglutide",
+  "kind": "prose",
+  "find": "<p>CagriSema is Novo Nordisk&#8217;s fixed-ratio combination of cagrilintide and semaglutide in Phase 3 trials (REDEFINE program). Phase 2 data published in NEJM (2023) showed ~15.6% body weight reduction with CagriSema vs ~8% for cagrilintide alone and ~5.1% for semaglutide at matched doses \u2014 suggesting genuine additive or synergistic interaction.</p>",
+  "match": "~15.6% body weight reduction"
+ },
+ {
+  "id": 1536,
+  "slug": "cagrilintide-vs-semaglutide",
+  "kind": "benefit_term",
+  "find": "appetite suppression",
+  "context": "urrently in Phase 3 clinical trials. The hypothesis is additive or synergistic effects on appetite suppression, body weight, and glycemic control through non-competing pathways \u2014 a hypothesis that mak"
+ },
+ {
+  "id": 1543,
+  "slug": "retatrutide-vs-cagrilintide",
+  "kind": "prose",
+  "find": "<p>Published Phase 2 data for retatrutide showed ~28.7% mean body weight reduction at 68 weeks \u2014 substantially exceeding tirzepatide (~22.5%) and semaglutide (~14.9%). The incremental effect above tirzepatide is largely attributed to GCGR activation. This makes GCGR contribution a high-value mechanistic research target, and retatrutide the only available research peptide that provides GCGR agonism in the context of full GLP-1/GIP co-activation.</p>",
+  "match": "~28.7% mean body weight reduction"
+ },
+ {
+  "id": 1544,
+  "slug": "cjc-1295-vs-tesamorelin",
+  "kind": "prose",
+  "find": "<p>The PRIME trial (tesamorelin for visceral adiposity) provides a key published dataset: 26-week treatment produced ~15% visceral adipose tissue reduction and significant IGF-1 elevation above baseline. For preclinical researchers studying visceral adipose metabolism, GH/IGF-1 axis modulation, or hepatic lipid effects, tesamorelin provides a sustained-stimulation model with a robust published clinical comparator.</p>",
+  "match": "~15% visceral adipose tissue"
+ },
+ {
+  "id": 1654,
+  "slug": "research-peptides-houston",
+  "kind": "prose",
+  "find": "<p>Retatrutide (LY-3437943) is the most searched research peptide in the Houston area and nationally, driven by its triple agonist mechanism (GLP-1/GIP/glucagon receptor co-activation) and its published Phase 2 clinical data showing ~28.7% mean body weight reduction at 68 weeks \u2014 the highest recorded for any single compound in this class. As a GLP-1 class peptide researcher in Houston, Retatrutide is the essential third-generation comparator compound.</p>",
+  "match": "~28.7% mean body weight reduction"
+ },
+ {
+  "id": 2073,
+  "slug": "research-peptide-research-panels-guide",
+  "kind": "benefit_term",
+  "find": "anti-aging",
+  "context": "anel product page</td> </tr> <tr> <td><a href=\"https://www.oligopolypeptides.com/products/anti-aging-repair-research-Research Panel/\">Anti-Aging &amp; Repair Research Research Panel 2026 | G"
+ },
+ {
+  "id": 2073,
+  "slug": "research-peptide-research-panels-guide",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": "f=\"https://www.oligopolypeptides.com/products/anti-aging-repair-research-Research Panel/\">Anti-Aging &amp; Repair Research Research Panel 2026 | GHK-Cu, NAD+ &amp; BPC-157 Research Bundle</a"
+ },
+ {
+  "id": 2078,
+  "slug": "mots-c-ss-31-research-comparison",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": "Research Research Panel () &#8211; broadest coordinated longevity pathway bundle</li> <li>Anti-Aging &amp; Repair Research Research Panel () &#8211; longevity + repair pathway cross-category"
+ },
+ {
+  "id": 2079,
+  "slug": "epitalon-pinealon-research-comparison",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": " Research Panel () &#8211; comprehensive multi-compound longevity pathway bundle</li> <li>Anti-Aging &amp; Repair Research Research Panel () &#8211; longevity + repair pathway cross-category"
+ },
+ {
+  "id": 2223,
+  "slug": "research-peptide-research-panels-how-to-choose",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": "ed in telomere biology, mitochondrial signaling, and aging-pathway models.</p> <p><strong>Anti-Aging &#038; Repair Research Research Panel \u2014 $349</strong><br />A coordinated longevity and re"
+ },
+ {
+  "id": 480,
+  "slug": "cellular-longevity-hub",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": ".org\", \"@type\": \"Article\", \"headline\": \"Cellular Longevity Hub u2014 NAD+, Epitalon & Anti-Aging Peptides\", \"url\": \"https://www.oligopolypeptides.com/cellular-longevity-hub/\", \"publi"
+ },
+ {
+  "id": 554,
+  "slug": "peptide-science",
+  "kind": "benefit_term",
+  "find": "fat-loss",
+  "context": "is-retatrutide/\">What Is Retatrutide?</a></li> <li><a href=\"/best-peptide-Research Panels-fat-loss/\">Best Peptide Research Panels for Fat Loss Research</a></li> </ul> <p style=\"margin-top:"
+ },
+ {
+  "id": 554,
+  "slug": "peptide-science",
+  "kind": "benefit_term",
+  "find": "Fat Loss",
+  "context": "i> <li><a href=\"/best-peptide-Research Panels-fat-loss/\">Best Peptide Research Panels for Fat Loss Research</a></li> </ul> <p style=\"margin-top:12px\"><a href=\"/research-library/\">\u2192 Browse "
+ },
+ {
+  "id": 723,
+  "slug": "research-peptides-guide",
+  "kind": "benefit_term",
+  "find": "fat loss",
+  "context": "h>Research Goal</th><th>Primary Compounds</th><th>Mechanism</th></tr> <tr><td>Metabolic / fat loss pathways</td><td><a href=\"/?add-to-cart=12\">Retatrutide</a>, Tirzepatide, Semaglutide, Ca"
+ },
+ {
+  "id": 732,
+  "slug": "cellular-research",
+  "kind": "benefit_term",
+  "find": "Anti-Aging",
+  "context": "el</a> \u2014 SS-31 + Epitalon + Pinealon + GHK-Cu | $299</li> <li><a href=\"/Research Panels/\">Anti-Aging &amp; Repair Research Panel</a> \u2014 Epitalon + GHK-Cu + Thymosin Beta-4 + BPC-157 | $349</l"
+ },
+ {
+  "id": 751,
+  "slug": "retatrutide-vs-tirzepatide",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~28.7%</strong><span>Retatrutide Weight Loss (68wk)</span></div>",
+  "value": "~28.7%",
+  "label": "Retatrutide Weight Loss (68wk)"
+ },
+ {
+  "id": 751,
+  "slug": "retatrutide-vs-tirzepatide",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~22%</strong><span>Tirzepatide Weight Loss (72wk)</span></div>",
+  "value": "~22%",
+  "label": "Tirzepatide Weight Loss (72wk)"
+ },
+ {
+  "id": 751,
+  "slug": "retatrutide-vs-tirzepatide",
+  "kind": "table_header",
+  "find": "<td>Weight loss (highest dose, ~72wk)</td>",
+  "label": "Weight loss (highest dose, ~72wk)"
+ },
+ {
+  "id": 751,
+  "slug": "retatrutide-vs-tirzepatide",
+  "kind": "table_header",
+  "find": "<td>Absolute weight reduction (meta-analysis)</td>",
+  "label": "Absolute weight reduction (meta-analysis)"
+ },
+ {
+  "id": 752,
+  "slug": "metabolic-peptide-comparison",
+  "kind": "table_header",
+  "find": "<th>Peak Weight Loss</th>",
+  "label": "Peak Weight Loss"
+ },
+ {
+  "id": 752,
+  "slug": "metabolic-peptide-comparison",
+  "kind": "prose",
+  "find": "<p>GCGR activation (retatrutide vs tirzepatide) adds thermogenic energy expenditure via brown adipose tissue, enhanced hepatic lipid oxidation, and direct adipocyte lipolysis \u2014 effects neither GLP-1R nor GIPR agonism provides. The insulinotropic counterbalancing effect of GLP-1R/GIPR co-activation maintains glycemic stability while GCGR&#8217;s thermogenic effects are retained. Published network meta-analysis data shows retatrutide outperforms tirzepatide by approximately \u22124.5 kg absolute weight reduction.</p>",
+  "match": "\u22124.5 kg absolute weight reduction"
+ },
+ {
+  "id": 752,
+  "slug": "metabolic-peptide-comparison",
+  "kind": "benefit_term",
+  "find": "Peak Weight Loss",
+  "context": "neration</th><th>Compound</th><th>GLP-1R</th><th>GIPR</th><th>GCGR</th><th>Amylin</th><th>Peak Weight Loss</th></tr> <tr><td>1st \u2014 Mono</td><td>Semaglutide</td><td class=\"win\">\u2713</td><td>\u2717</td><td>"
+ },
+ {
+  "id": 754,
+  "slug": "triple-agonist-peptides",
+  "kind": "table_header",
+  "find": "<th>Peak Weight Loss</th>",
+  "label": "Peak Weight Loss"
+ },
+ {
+  "id": 754,
+  "slug": "triple-agonist-peptides",
+  "kind": "benefit_term",
+  "find": "Peak Weight Loss",
+  "context": "pl-table\"> <tr><th>Class</th><th>GLP-1R</th><th>GIPR</th><th>GCGR</th><th>Example</th><th>Peak Weight Loss</th></tr> <tr><td>Single agonist</td><td class=\"win\">\u2713</td><td>\u2717</td><td>\u2717</td><td>Semagl"
+ },
+ {
+  "id": 757,
+  "slug": "single-vs-dual-agonist-peptides",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~7%</strong><span>Added weight loss vs sema</span></div>",
+  "value": "~7%",
+  "label": "Added weight loss vs sema"
+ },
+ {
+  "id": 763,
+  "slug": "tirzepatide-vs-semaglutide-research",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~7%</strong><span>Extra weight loss vs Sema</span></div>",
+  "value": "~7%",
+  "label": "Extra weight loss vs Sema"
+ },
+ {
+  "id": 763,
+  "slug": "tirzepatide-vs-semaglutide-research",
+  "kind": "table_header",
+  "find": "<td>Peak weight loss data</td>",
+  "label": "Peak weight loss data"
+ },
+ {
+  "id": 763,
+  "slug": "tirzepatide-vs-semaglutide-research",
+  "kind": "benefit_term",
+  "find": "Peak weight loss",
+  "context": "</td><td>Higher (dose-dependent)</td><td class=\"win\">Attenuated by GIPR</td></tr> <tr><td>Peak weight loss data</td><td>~15%</td><td class=\"win\">~22%</td></tr> </table></div> <h3>What GIP Recepto"
+ },
+ {
+  "id": 764,
+  "slug": "retatrutide-vs-tirzepatide-research",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~28.7%</strong><span>Reta weight loss (68wk)</span></div>",
+  "value": "~28.7%",
+  "label": "Reta weight loss (68wk)"
+ },
+ {
+  "id": 764,
+  "slug": "retatrutide-vs-tirzepatide-research",
+  "kind": "stat_tile",
+  "find": "<div class=\"pl-stat-item\"><strong>~22%</strong><span>Tirz weight loss (72wk)</span></div>",
+  "value": "~22%",
+  "label": "Tirz weight loss (72wk)"
+ }
+]
