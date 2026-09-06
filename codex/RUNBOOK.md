@@ -2,6 +2,10 @@
 
 Self-contained. Assume no prior context.
 
+> **If a previous run already applied these phases, start with
+> [FIX-NOW.md](FIX-NOW.md) instead** — it covers the table-column bug and the scanner
+> blind spot that let an incomplete pass report clean.
+
 **Goal:** bring `https://www.oligopolypeptides.com` into line with the VERIFIED Credit Card
 Processing RUO requirements (August 2026 guidance) so it can pass the compliance scan that
 gates Stripe processing.

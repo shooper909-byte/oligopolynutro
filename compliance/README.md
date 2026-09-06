@@ -13,6 +13,8 @@ Remediation tracking for the VERIFIED / Stripe RUO website review of
   metabolic compounds, and the editorial-corpus decision that determines whether a rename works.
 - **[PRODUCT-DATA-FIXES.md](PRODUCT-DATA-FIXES.md)** — bacteriostatic water volume/SKU
   conflict and the Retatrutide 10 mg title. Catalog accuracy, not compliance.
+- **[../codex/FIX-NOW.md](../codex/FIX-NOW.md)** — repair instructions for a site where the
+  first pass already ran. Start here if remediation was reported complete.
 - **[../codex/RUNBOOK.md](../codex/RUNBOOK.md)** — standalone execution runbook plus
   `remediate.py`, which applies P0/P1 over the REST API. Hand this to an agent to execute.
 - **[scan.py](scan.py)** — re-runnable scanner. The requirement doc makes ongoing
