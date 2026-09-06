@@ -69,6 +69,7 @@ CHECKS = [
     ("calculator", "P0", "Dosing or reconstitution calculator / interactive tool",
      r"(?i)\b(peptide calculator|dos(e|age|ing) calculator|reconstitution "
      r"(tool|calculator)|syringe (tool|calculator)|unit converter|calculate your)\b"),
+    ("outcome-table-row", "P1", "Human-outcome figure inside a comparison table", None),
     ("restricted-naming", "P2", "Restricted / pre-clearance product naming (flag to VERIFIED)",
      r"(?i)\b(retatrutide|tesamorelin|semaglutide|tirzepatide|cagrilintide|"
      r"ss-?31|elamipretide|bacteriostatic water|bac water|glp-?1)\b"),
@@ -168,14 +169,40 @@ def main():
     boilerplate = {s for s, n in seen.items() if n > cutoff}
     print(f"Scanned {len(docs)} pages · {len(boilerplate)} boilerplate sentences excluded\n")
 
+    # Table rows are scanned separately. The sentence splitter breaks on cell
+    # boundaries, so a figure in one <td> and its label in another never appear
+    # in the same "sentence" and slip through every check above. That is how an
+    # intact weight-loss efficacy table can sit under a clean report.
+    table_hits = collections.defaultdict(list)
+    FIG = re.compile(r"(?i)[−-]?\s?\d[\d.]*\s?(kg|%)")
+    LAB = re.compile(r"(?i)weight|adipose|\bfat\b|body composition")
+    for url in docs:
+        path = os.path.join(CACHE, slug(url))
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            markup = fh.read()
+        for tbl in re.findall(r"(?is)<table[^>]*>.*?</table>", markup):
+            whole = html.unescape(re.sub(r"<[^>]+>", " ", tbl))
+            if not (FIG.search(whole) and LAB.search(whole)):
+                continue
+            for row in re.findall(r"(?is)<tr[^>]*>.*?</tr>", tbl):
+                text = html.unescape(re.sub(r"<[^>]+>", " | ", row))
+                text = re.sub(r"\s+", " ", text).strip(" |")
+                if FIG.search(text) and not NEGATED.search(text):
+                    table_hits[url].append(text[:160])
+
     findings = collections.defaultdict(lambda: collections.defaultdict(list))
     for url, lines in docs.items():
         for line in sorted(set(lines)):
             if line in boilerplate:
                 continue
             for cid, pri, _desc, pat in CHECKS:
+                if pat is None:
+                    continue                       # table rows are collected above
                 if re.search(pat, line) and not NEGATED.search(line):
                     findings[cid][url].append(line)
+
+    if table_hits:
+        findings["outcome-table-row"] = table_hits
 
     blocking = 0
     for cid, pri, desc, _pat in CHECKS:

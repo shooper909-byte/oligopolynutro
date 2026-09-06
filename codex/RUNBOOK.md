@@ -166,6 +166,35 @@ Peptide" and its own slug says `research-peptide`. One field. Do **not** change 
 
 ---
 
+## 3.4 REPAIR — run this if phase 3.2 was applied before 2026-09-06
+
+The first release of `remediate.py` had a bug in `strip_table_column`: it searched
+**every** row for the header text, not just the first. Several of these tables are
+row-oriented — the first *column* holds the labels — so matching a label like
+"Weight loss (highest dose, ~72wk)" deleted **column 0 from every row**, stripping the
+label column and leaving a table of bare numbers that still carried the figures.
+
+The bug is fixed (the header is now only matched in the first row, and `strip_table_rows`
+handles row-oriented tables). If the buggy version already ran:
+
+```sh
+python3 codex/remediate.py repair          # dry run
+python3 codex/remediate.py repair --apply
+```
+
+`repair.json` carries three corrective edits, each with the exact `find` and `replace`:
+
+| Page | What it does |
+|---|---|
+| 751 `/retatrutide-vs-tirzepatide/` | Rebuilds the damaged table from the pre-remediation original, with the label column restored and the outcome rows removed |
+| 764 `/retatrutide-vs-tirzepatide-research/` | Removes 4 rows from the "Published Efficacy Data Comparison" table |
+| 1412 `/retatrutide-vs-semaglutide/` | Removes the "Hepatic fat reduction … Up to 82%" row |
+
+If a `find` string is not located, the page has changed since `repair.json` was generated —
+the script says so and skips rather than guessing. Report it instead of forcing it.
+
+---
+
 ## 4. Verification
 
 ```sh
@@ -173,7 +202,12 @@ python3 codex/remediate.py verify
 python3 compliance/scan.py --refresh
 ```
 
-**Baseline before any work: 53 P0/P1 instances.** Target after P0 + P1: **0**.
+**Baseline before any work: 53 P0/P1 instances.** Target after P0 + P1 + repair: **0**.
+
+`scan.py` now scans **table rows separately**. It previously split text into sentences,
+which broke on cell boundaries — a figure in one `<td>` and its label in another never
+appeared together, so an intact weight-loss efficacy table passed a clean report. Do not
+trust a PASS from a scanner version without the `outcome-table-row` check.
 
 `scan.py` exits non-zero while any P0/P1 finding remains, so it can gate a deploy. The P2
 restricted-naming count (~1,885) **will stay high and that is correct** — it counts every

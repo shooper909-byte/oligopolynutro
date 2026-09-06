@@ -230,18 +230,22 @@ def save(pid, kind, doc, new_content, apply):
 
 
 def strip_table_column(html, header_text):
-    """Remove the column whose <th>/<td> header matches header_text, from every row."""
+    """Remove the column whose header matches header_text, from every row.
+
+    Only the table's FIRST row is searched for the header. Many of these tables
+    are row-oriented — the first *column* holds the labels — so matching a label
+    anywhere would delete the entire label column and leave a table of bare
+    numbers. Row-oriented tables are handled by strip_table_rows instead.
+    """
     def fix(tbl):
         rows = re.findall(r"(?is)<tr[^>]*>.*?</tr>", tbl)
         idx = None
-        for r in rows:
-            cells = re.findall(r"(?is)<t[hd][^>]*>.*?</t[hd]>", r)
+        if rows:
+            cells = re.findall(r"(?is)<t[hd][^>]*>.*?</t[hd]>", rows[0])
             for i, c in enumerate(cells):
                 if re.sub(r"<[^>]+>", "", c).strip().lower() == header_text.strip().lower():
                     idx = i
                     break
-            if idx is not None:
-                break
         if idx is None:
             return tbl
         out = tbl
@@ -251,6 +255,48 @@ def strip_table_column(html, header_text):
                 out = out.replace(r, r.replace(cells[idx], "", 1), 1)
         return out
     return re.sub(r"(?is)<table[^>]*>.*?</table>", lambda m: fix(m.group(0)), html)
+
+
+def strip_table_rows(html, pattern):
+    """Remove whole <tr> rows whose text matches pattern.
+
+    The counterpart to strip_table_column for row-oriented tables, where the
+    outcome is a row label ("Weight loss (highest dose)") rather than a column.
+    """
+    rx = re.compile(pattern, re.I)
+
+    def fix(tbl):
+        out = tbl
+        for r in re.findall(r"(?is)<tr[^>]*>.*?</tr>", tbl):
+            if rx.search(re.sub(r"<[^>]+>", " ", r)):
+                out = out.replace(r, "", 1)
+        return out
+    return re.sub(r"(?is)<table[^>]*>.*?</table>", lambda m: fix(m.group(0)), html)
+
+
+OUTCOME_ROWS = (r"weight loss|weight reduction|body weight|liver fat|hepatic fat|"
+                r"visceral adipose|[−-]?\s?\d[\d.]*\s?kg")
+
+
+def cmd_repair(a):
+    """Apply codex/repair.json — corrective edits for tables the first pass got wrong."""
+    path = os.path.join(HERE, "repair.json")
+    if not os.path.exists(path):
+        raise SystemExit("repair.json not found next to this script.")
+    for item in json.load(open(path)):
+        pid = item["id"]
+        kind = "post" if pid >= 2073 else "page"
+        d = fetch(pid, kind)
+        c = before = raw(d)
+        if item["find"] not in c:
+            print(f"  ! {pid} /{item['slug']}/  target not found — already repaired, or the "
+                  f"page changed since repair.json was generated. Skipping.")
+            continue
+        c = c.replace(item["find"], item["replace"], 1)
+        print(f"  * {pid} /{item['slug']}/  {item['why']}")
+        if show(pid, d["slug"], before, c):
+            save(pid, kind, d, c, a.apply)
+    print("\nDry run — nothing written. Re-run with --apply." if not a.apply else "\nApplied.")
 
 
 def cmd_check(_):
@@ -397,7 +443,8 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name, fn in (("check", cmd_check), ("backup", cmd_backup), ("p0", cmd_p0),
-                     ("p1", cmd_p1), ("products", cmd_products), ("verify", cmd_verify)):
+                     ("p1", cmd_p1), ("repair", cmd_repair), ("products", cmd_products),
+                     ("verify", cmd_verify)):
         p = sub.add_parser(name)
         p.add_argument("--apply", action="store_true", help="write changes (default: dry run)")
         p.set_defaults(fn=fn)

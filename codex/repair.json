@@ -1,0 +1,23 @@
+[
+ {
+  "id": 751,
+  "slug": "retatrutide-vs-tirzepatide",
+  "why": "column-removal bug deleted the row-label column; rebuild from original minus outcome rows",
+  "find": "<table class=\"pl-table\">\n<tr><th>Tirzepatide</th><th>Retatrutide</th></tr>\n<tr><td>GLP-1R, GIPR</td><td class=\"win\">GLP-1R, GIPR, GCGR</td></tr>\n<tr><td>~22%</td><td class=\"win\">~28.7% (68wk)</td></tr>\n<tr><td>\u221211.82 kg</td><td class=\"win\">\u221216.34 kg</td></tr>\n<tr><td>Approved (FDA 2022/2023)</td><td>Phase 3 trials</td></tr>\n<tr><td class=\"win\">Better (GIPR effect)</td><td>More GI events noted</td></tr>\n<tr><td>Significant</td><td class=\"win\">Up to 82% reduction</td></tr>\n</table>",
+  "replace": "<table class=\"pl-table\">\n<tr><th>Parameter</th><th>Tirzepatide</th><th>Retatrutide</th></tr>\n<tr><td>Receptor targets</td><td>GLP-1R, GIPR</td><td class=\"win\">GLP-1R, GIPR, GCGR</td></tr>\n\n\n<tr><td>Development stage</td><td>Approved (FDA 2022/2023)</td><td>Phase 3 trials</td></tr>\n<tr><td>GI tolerability</td><td class=\"win\">Better (GIPR effect)</td><td>More GI events noted</td></tr>\n\n</table>"
+ },
+ {
+  "id": 764,
+  "slug": "retatrutide-vs-tirzepatide-research",
+  "why": "remove every row carrying a human-outcome figure from the efficacy table",
+  "find": "<table class=\"pl-table\">\n<tr><th>Data Source</th><th>Tirzepatide</th><th>Retatrutide</th></tr>\n<tr><td>Network meta-analysis (absolute)</td><td>\u221211.82 kg (95% CI \u221215.08 to \u22128.56)</td><td class=\"win\">\u221216.34 kg (95% CI \u221222.11 to \u221210.56)</td></tr>\n<tr><td>Network meta-analysis (% weight)</td><td>\u2212MD not specified</td><td class=\"win\">\u221223.77% (95% CI \u221229.16 to \u221218.38)</td></tr>\n<tr><td>Highest dose, long-term (%)</td><td>~22% (72wk)</td><td class=\"win\">~28.7% (68wk)</td></tr>\n<tr><td>Liver fat reduction</td><td>Significant reduction</td><td class=\"win\">Up to 82% (Phase 2)</td></tr>\n<tr><td>GI adverse events</td><td class=\"win\">Lower frequency</td><td>Higher noted</td></tr>\n<tr><td>Head-to-head trial</td><td colspan=\"2\" class=\"neutral\">TRIUMPH-5 ongoing \u2014 results expected Dec 2026</td></tr>\n</table>",
+  "replace": "<table class=\"pl-table\">\n<tr><th>Data Source</th><th>Tirzepatide</th><th>Retatrutide</th></tr>\n\n\n\n\n<tr><td>GI adverse events</td><td class=\"win\">Lower frequency</td><td>Higher noted</td></tr>\n<tr><td>Head-to-head trial</td><td colspan=\"2\" class=\"neutral\">TRIUMPH-5 ongoing \u2014 results expected Dec 2026</td></tr>\n</table>"
+ },
+ {
+  "id": 1412,
+  "slug": "retatrutide-vs-semaglutide",
+  "why": "remove rows carrying human-outcome figures",
+  "find": "<table class=\"pl-table\">\n<tr><th>Mechanism</th><th>Semaglutide</th><th>Retatrutide</th></tr>\n<tr><td>GLP-1R agonism</td><td class=\"win\">\u2713 Primary target</td><td class=\"win\">\u2713 Included</td></tr>\n<tr><td>GIPR agonism</td><td>\u2717 Absent</td><td class=\"win\">\u2713 Added</td></tr>\n<tr><td>GCGR agonism</td><td>\u2717 Absent</td><td class=\"win\">\u2713 Added</td></tr>\n<tr><td>Fatty acid conjugation</td><td class=\"win\">C18 fatty acid</td><td class=\"win\">Fatty diacid moiety</td></tr>\n<tr><td>Thermogenic pathway</td><td>Indirect only</td><td class=\"win\">GCGR-mediated direct</td></tr>\n<tr><td>Hepatic fat reduction</td><td>Significant (MASH)</td><td class=\"win\">Up to 82% (Phase 2)</td></tr>\n</table>",
+  "replace": "<table class=\"pl-table\">\n<tr><th>Mechanism</th><th>Semaglutide</th><th>Retatrutide</th></tr>\n<tr><td>GLP-1R agonism</td><td class=\"win\">\u2713 Primary target</td><td class=\"win\">\u2713 Included</td></tr>\n<tr><td>GIPR agonism</td><td>\u2717 Absent</td><td class=\"win\">\u2713 Added</td></tr>\n<tr><td>GCGR agonism</td><td>\u2717 Absent</td><td class=\"win\">\u2713 Added</td></tr>\n<tr><td>Fatty acid conjugation</td><td class=\"win\">C18 fatty acid</td><td class=\"win\">Fatty diacid moiety</td></tr>\n<tr><td>Thermogenic pathway</td><td>Indirect only</td><td class=\"win\">GCGR-mediated direct</td></tr>\n\n</table>"
+ }
+]
