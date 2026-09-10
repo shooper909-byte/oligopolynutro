@@ -1,0 +1,198 @@
+[
+  {
+    "from": "https://www.oligopolypeptides.com/cellular-longevity-hub/",
+    "to": "https://www.oligopolypeptides.com/senescence-biology-hub/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/peptide-catalog/",
+      "https://www.oligopolypeptides.com/products/nad-500mg-research-compound/",
+      "https://www.oligopolypeptides.com/products/ghk-cu-50mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/mots-c-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/metabolic-research-hub/",
+    "to": "https://www.oligopolypeptides.com/endocrine-receptor-hub/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/peptide-catalog/",
+      "https://www.oligopolypeptides.com/quality-standards/",
+      "https://www.oligopolypeptides.com/about/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/product-category/research-blends-cat/",
+    "to": "https://www.oligopolypeptides.com/product-category/multi-compound-research-formulations/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/research-blends/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/recovery-research-hub/",
+    "to": "https://www.oligopolypeptides.com/ecm-signaling-hub/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/bpc-157-kpv-recovery-immune-research/",
+      "https://www.oligopolypeptides.com/peptide-catalog/",
+      "https://www.oligopolypeptides.com/products/bpc-157-kpv-blend/",
+      "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tb-500-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/product-category/research-compounds/",
+    "to": "https://www.oligopolypeptides.com/product-category/single-compound-research-materials/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/Research%20Panels/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/peptide-reconstitution-guide/",
+    "to": "https://www.oligopolypeptides.com/peptide-storage-handling-guide/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/quality-testing-hub/",
+      "https://www.oligopolypeptides.com/products/retatrutide-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/semaglutide-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/cagrilintide-5-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/semaglutide-5-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-10-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/retatrutide-20-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/retatrutide-20mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/retatrutide-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/retatrutide-5-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-20-mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/nad-500-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/klow-blend-research-peptide/",
+      "https://www.oligopolypeptides.com/products/bpc-157-5-mg/",
+      "https://www.oligopolypeptides.com/products/ghk-cu-50-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/bpc-157-tb-500-blend/",
+      "https://www.oligopolypeptides.com/products/comparative-pathway-collection/",
+      "https://www.oligopolypeptides.com/products/build-your-research-bundle-9-vials/",
+      "https://www.oligopolypeptides.com/products/selank-5-mg-6-vial-research-kit/",
+      "https://www.oligopolypeptides.com/products/cns-receptor-reference-collection/",
+      "https://www.oligopolypeptides.com/products/tissue-signaling-collection/",
+      "https://www.oligopolypeptides.com/products/telomere-biology-reference-collection/",
+      "https://www.oligopolypeptides.com/products/kpv-10-mg-ghk-cu-50-mg-research-blend/",
+      "https://www.oligopolypeptides.com/products/bpc-157-kpv-blend/",
+      "https://www.oligopolypeptides.com/products/metabolic-pathways-research-collection/",
+      "https://www.oligopolypeptides.com/products/mitochondrial-signaling-collection/",
+      "https://www.oligopolypeptides.com/products/build-your-research-bundle-3-vials/",
+      "https://www.oligopolypeptides.com/products/cjc-1295-no-dac-5-mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/aod-9604-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/nad-500mg-research-compound/",
+      "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/ghk-cu-50mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tb-500-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/build-your-research-bundle-6-vials/",
+      "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/mots-c-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/pt-141-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/dsip-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/kpv-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/semax-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/cagrilintide-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/product-category/research-products/",
+    "to": "https://www.oligopolypeptides.com/research-catalog/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/products/tirzepatide-20-mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/klow-blend-research-peptide/",
+      "https://www.oligopolypeptides.com/products/bpc-157-tb-500-blend/",
+      "https://www.oligopolypeptides.com/products/kpv-10-mg-ghk-cu-50-mg-research-blend/",
+      "https://www.oligopolypeptides.com/products/bpc-157-kpv-blend/",
+      "https://www.oligopolypeptides.com/products/cjc-1295-no-dac-5-mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tb-500-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/mots-c-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/pt-141-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/kpv-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/semax-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/coa",
+    "to": "https://www.oligopolypeptides.com/research-peptides-with-coa/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/products/retatrutide-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/comparative-pathway-collection/",
+      "https://www.oligopolypeptides.com/products/telomere-biology-reference-collection/",
+      "https://www.oligopolypeptides.com/products/bpc-157-kpv-blend/",
+      "https://www.oligopolypeptides.com/products/aod-9604-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/nad-500mg-research-compound/",
+      "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/ghk-cu-50mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/dsip-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/quality-standards",
+    "to": "https://www.oligopolypeptides.com/quality-standards/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/products/retatrutide-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/comparative-pathway-collection/",
+      "https://www.oligopolypeptides.com/products/telomere-biology-reference-collection/",
+      "https://www.oligopolypeptides.com/products/aod-9604-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/nad-500mg-research-compound/",
+      "https://www.oligopolypeptides.com/products/bpc-157-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/ghk-cu-50mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/selank-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/dsip-5mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/how-to-reconstitute-peptides/",
+    "to": "https://www.oligopolypeptides.com/peptide-storage-handling-guide/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/ultimate-research-peptides-guide/",
+      "https://www.oligopolypeptides.com/faq/",
+      "https://www.oligopolypeptides.com/what-are-research-peptides/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/mitochondrial-redox-signaling/",
+    "to": "https://www.oligopolypeptides.com/cellular-research/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/ultimate-research-peptides-guide/",
+      "https://www.oligopolypeptides.com/epitalon-vs-mots-c/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/quality-testing/",
+    "to": "https://www.oligopolypeptides.com/quality-testing-hub/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/products/retatrutide-10mg-research-peptide/",
+      "https://www.oligopolypeptides.com/products/tirzepatide-10mg-research-peptide/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/product-category/research-catalog/page/1/",
+    "to": "https://www.oligopolypeptides.com/product-category/research-catalog/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/product-category/research-catalog/page/2/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  },
+  {
+    "from": "https://www.oligopolypeptides.com/product-category/build-your-own-research-collection-eligible/page/1/",
+    "to": "https://www.oligopolypeptides.com/product-category/build-your-own-research-collection-eligible/",
+    "sourcePages": [
+      "https://www.oligopolypeptides.com/product-category/build-your-own-stack-eligible/page/2/",
+      "https://www.oligopolypeptides.com/product-category/build-your-own-research-collection-eligible/page/2/"
+    ],
+    "change": "href only; preserve all anchor text, markup classes, design and established destination paths"
+  }
+]
