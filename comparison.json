@@ -1,0 +1,33 @@
+{
+  "historicalEarlierSession": {
+    "discovered": 2148,
+    "fetched": 1031,
+    "sitemapUrls": 234,
+    "sitemap200": 223,
+    "indexable": 226,
+    "redirects": 410,
+    "notFound404": 42,
+    "gone410": 7,
+    "soft404Candidates": 13,
+    "noindexed": 436,
+    "robotsBlocked": 356,
+    "notFetched": 1117
+  },
+  "currentPreChange": {
+    "discovered": 2140,
+    "fetched": 1002,
+    "sitemapUrls": 234,
+    "sitemap200": 223,
+    "indexable": 226,
+    "redirects": 410,
+    "notFound404": 34,
+    "gone410": 7,
+    "soft404Candidates": 13,
+    "noindexed": 407,
+    "robotsBlocked": 356,
+    "notFetched": 1138
+  },
+  "postChange": null,
+  "productionChanged": false,
+  "warning": "Different crawl discovery/response counts are not evidence of repairs. No change was made in this session."
+}
