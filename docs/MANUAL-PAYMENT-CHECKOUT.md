@@ -23,30 +23,56 @@ be done from here. Four independent checks:
 | Staging site MCP access | **Unavailable** — Jetpack reports `site_disconnected` for blog 253939063 |
 | Staging site reachable | **No** — see below |
 
-### The existing staging site redirects to production
+### `oligopoly.mystagingwebsite.com` is an obsolete domain, not a staging environment
 
-`oligopoly.mystagingwebsite.com` returns **301 to production on every path tested**, including
-its own login screen:
+**Correction to an earlier hypothesis in this document.** It first appeared that the active
+*OligoPoly SEO Remediation* plugin was redirecting staging to production via canonical-www
+enforcement. **That is not what is happening.** Header analysis shows WordPress does not run on
+that hostname at all:
 
-```
-/              301 -> https://www.oligopolypeptides.com/
-/cart/         301 -> https://www.oligopolypeptides.com/cart/
-/wp-login.php  301 -> https://www.oligopolypeptides.com/wp-login.php
-/wp-json/      301 -> https://www.oligopolypeptides.com/wp-json/
-```
+| Signal | `oligopoly.mystagingwebsite.com` | `www.oligopolypeptides.com` |
+|---|---|---|
+| `/cart/` | 301 | 200 |
+| `server-timing` duration | **2 ms** | **2258 ms** |
+| WooCommerce session cookie | none | set |
+| Response body | 162 bytes, nginx default | full page |
+| `/nonexistent-path/` | **301** (~0.2–0.5 s) | **404** (2.6 s) |
 
-**This is a real bug, and it needs fixing before any staging work is possible.** The most likely
-cause is the active *OligoPoly SEO Remediation* plugin (v2026.08.13.3), whose stated job is to
-"enforce canonical www URLs" — applied on the staging clone, it rewrites every staging URL to the
-production hostname. A staging copy whose login page redirects to production is unusable, and
-anyone testing there would silently be operating on the live site.
+Every path redirects, including `/wp-content/uploads/`, `/xmlrpc.php`, and cache-busted query
+strings. A 2 ms nginx response with no WordPress cookies and a blanket 301 on paths that would
+otherwise 404 means **no WordPress install answers on that hostname**. It is an edge/vhost-level
+redirect alias pointing at production.
 
-The fix is to exempt non-production hostnames from that canonical enforcement, e.g. bail out early
-when `wp_get_environment_type() !== 'production'` or when the host does not match the canonical
-domain. That change belongs in the SEO remediation plugin, not this one.
+Both hostnames resolve to the same Pressable IPs (`199.16.172.100`, `199.16.173.200`,
+`fusion.mystagingwebsite.com`), so this is the same infrastructure with the staging domain
+configured as a redirect.
 
-The site's Jetpack `isStaging` flag also reports `false` for production, and the staging blog's
-path is recorded as `/1778113193-dedupe/` — consistent with WordPress.com having deduplicated a
+**Answer to "is this current or obsolete staging": obsolete.** There is no staging environment to
+repair, and no SEO-plugin bug to fix on it. A fresh clone from current production is required.
+
+### The canonical-redirect risk is still real — on the *new* clone
+
+Production's SEO Remediation plugin (v2026.08.13.3) genuinely does enforce canonical www URLs, and
+it will be cloned along with everything else. On a fresh staging copy it very likely *will* redirect
+staging → production. That is the point at which the problem this document originally described
+becomes real.
+
+[`woocommerce/staging-guard/`](../woocommerce/staging-guard/) contains a drop-in mu-plugin that
+prevents it, without editing the SEO plugin:
+
+- cancels any redirect whose destination host is the production host (plugin-agnostic — it catches
+  the SEO plugin's enforcement and anything else attempting the same, without needing its source)
+- disables WordPress core's own `redirect_canonical`
+- rewrites `home`/`siteurl` onto the staging host so links and login redirects stay put
+- shows a "Staging environment" banner in wp-admin
+
+**It is inert on production by construction** — every hook is registered only after confirming the
+request host is *not* the canonical host. Verified by simulating both hostnames: on
+`www.oligopolypeptides.com` the guard registers nothing; on a staging host a redirect to production
+is blocked. Install it in `wp-content/mu-plugins/` on staging only, before browsing the clone.
+
+The site's Jetpack `isStaging` flag reports `false` for production, and the old staging blog's path
+is recorded as `/1778113193-dedupe/` — consistent with WordPress.com having deduplicated a
 duplicated Jetpack connection at some point.
 
 ### What is needed to proceed
