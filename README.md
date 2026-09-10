@@ -37,6 +37,18 @@ deleting the pages removes every trace.
 node build.js
 ```
 
+Run the production technical-SEO release gate (writes JSON, CSV, and Markdown inventories
+under `reports/`):
+
+```sh
+python3 scripts/seo_audit.py --label pre-deploy
+python3 -m unittest discover -s tests
+```
+
+The crawler exits nonzero on blocking sitemap, canonical, robots, redirect, internal-link,
+or indexability errors. See [the canonical policy and deployment gate](docs/TECHNICAL-SEO-POLICY.md)
+before changing redirects or publishing.
+
 Regenerates two things from the `wordpress/*.html` source blocks:
 
 - `wordpress/research-partner-program.page.html` — full page content, ready to paste into

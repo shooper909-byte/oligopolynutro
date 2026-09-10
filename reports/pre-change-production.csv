@@ -1,0 +1,2 @@
+url,status,redirect_target,redirect_hops,final_url,canonical,canonical_count,meta_robots,x_robots_tag,robots_allowed,title,meta_description,h1,content_length,schema_types,internal_inlinks,internal_outlinks,sitemap_membership,host,protocol,query_parameters,error
+https://www.oligopolypeptides.com/,0,,0,https://www.oligopolypeptides.com/,,0,,,True,,,,0,,0,0,,www.oligopolypeptides.com,https,,<urlopen error Tunnel connection failed: 403 Forbidden>
