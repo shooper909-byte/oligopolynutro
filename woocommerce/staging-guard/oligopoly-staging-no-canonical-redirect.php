@@ -56,13 +56,29 @@ final class OligoPoly_Staging_Guard {
 	private static $host = '';
 
 	/**
-	 * Register the guard, but only off-production.
+	 * Register the guard, but only on a recognised staging hostname.
 	 */
 	public static function init() {
 		self::$host = self::current_host();
 
 		// No host (WP-CLI, cron) or we ARE production: do nothing at all.
 		if ( '' === self::$host || self::is_production() ) {
+			return;
+		}
+
+		/*
+		 * Fail safe on an unrecognised host.
+		 *
+		 * $_SERVER['HTTP_HOST'] is attacker-controllable. An earlier version activated on
+		 * "any host that is not production", which meant a spoofed Host header could switch
+		 * the guard on — and force_staging_host() would then write that attacker-supplied
+		 * value into home/siteurl, emitting absolute URLs pointing at their domain. Behind a
+		 * cache that does not key on Host, that is a cache-poisoning vector.
+		 *
+		 * Requiring a known staging hostname closes it: an unrecognised Host is treated
+		 * exactly like production, i.e. the guard stays inert.
+		 */
+		if ( ! self::is_allowed_staging_host() ) {
 			return;
 		}
 
@@ -109,6 +125,51 @@ final class OligoPoly_Staging_Guard {
 	 */
 	private static function is_production() {
 		return self::$host === strtolower( OLIGOPOLY_CANONICAL_HOST );
+	}
+
+	/**
+	 * Whether the current host is a hostname the guard is permitted to act on.
+	 *
+	 * Matches exact hostnames and leading-dot suffixes. Extend for a differently named clone:
+	 *
+	 *     add_filter( 'oligopoly_staging_hosts', function ( $hosts ) {
+	 *         $hosts[] = 'oligopoly-staging-2.mystagingwebsite.com';
+	 *         return $hosts;
+	 *     } );
+	 *
+	 * @return bool
+	 */
+	private static function is_allowed_staging_host() {
+		$allowed = apply_filters(
+			'oligopoly_staging_hosts',
+			array( '.mystagingwebsite.com', '.wpengine.com', 'localhost', '.local', '.test' )
+		);
+
+		foreach ( (array) $allowed as $candidate ) {
+			$candidate = strtolower( trim( (string) $candidate ) );
+
+			if ( '' === $candidate ) {
+				continue;
+			}
+
+			if ( '.' === $candidate[0] ) {
+				// Suffix match: ".mystagingwebsite.com" matches "oligopoly.mystagingwebsite.com"
+				// but never "notmystagingwebsite.com".
+				$suffix = substr( self::$host, -strlen( $candidate ) );
+
+				if ( $suffix === $candidate ) {
+					return true;
+				}
+
+				continue;
+			}
+
+			if ( self::$host === $candidate ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
