@@ -43,8 +43,16 @@ final class OligoPoly_Manual_Payments {
 			return;
 		}
 
+		self::load_gateways();
+
+		// Venmo / Cash App as first-party offline gateways.
+		add_filter( 'woocommerce_payment_gateways', array( __CLASS__, 'register_gateways' ) );
+
 		// Phase 4 — Order Received page.
 		add_action( 'woocommerce_before_thankyou', array( __CLASS__, 'render_thankyou_notice' ), 10, 1 );
+
+		// Payment instructions on the My Account order view, which native BACS does not cover.
+		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'render_my_account_instructions' ), 10, 1 );
 
 		// Phase 12 — customer transactional email.
 		add_action( 'woocommerce_email_before_order_table', array( __CLASS__, 'render_email_notice' ), 10, 4 );
@@ -64,20 +72,49 @@ final class OligoPoly_Manual_Payments {
 	}
 
 	/**
+	 * Load the offline gateway classes.
+	 */
+	private static function load_gateways() {
+		require_once __DIR__ . '/includes/class-oligopoly-offline-gateway.php';
+		require_once __DIR__ . '/includes/class-oligopoly-gateway-venmo.php';
+		require_once __DIR__ . '/includes/class-oligopoly-gateway-cashapp.php';
+	}
+
+	/**
+	 * Register the offline gateways with WooCommerce.
+	 *
+	 * @param array $gateways Registered gateway class names.
+	 * @return array
+	 */
+	public static function register_gateways( $gateways ) {
+		$gateways[] = 'OligoPoly_Gateway_Venmo';
+		$gateways[] = 'OligoPoly_Gateway_CashApp';
+
+		return $gateways;
+	}
+
+	/**
 	 * Payment gateways whose orders require manual payment verification.
 	 *
-	 * Phase 11 — adding another offline method later (Venmo, Cash App, Zelle) is a one-line
-	 * filter, and it inherits the same checkout -> on-hold -> verification -> processing flow:
+	 * These IDs drive the customer-facing messaging only — the payment-required panel, the email
+	 * framing, the pre-submit notice, and the staff note. The "Awaiting Payment Verification"
+	 * label is keyed off the on-hold status itself, so it applies to every gateway regardless.
+	 *
+	 * Zelle PRO is a third-party plugin whose gateway ID must be read off the site before it can
+	 * be added here (WooCommerce > Settings > Payments > Manage, then read `section=` in the URL):
 	 *
 	 *     add_filter( 'oligopoly_manual_payment_gateways', function ( $ids ) {
-	 *         $ids[] = 'cashapp';
+	 *         $ids[] = 'the_zelle_gateway_id';
 	 *         return $ids;
 	 *     } );
 	 *
 	 * @return string[] Gateway IDs.
 	 */
 	public static function manual_gateways() {
-		$gateways = apply_filters( 'oligopoly_manual_payment_gateways', array( 'bacs' ) );
+		$gateways = apply_filters(
+			'oligopoly_manual_payment_gateways',
+			array( 'bacs', 'oligopoly_venmo', 'oligopoly_cashapp' )
+		);
 
 		return array_values( array_unique( array_filter( array_map( 'strval', (array) $gateways ) ) ) );
 	}
@@ -154,6 +191,59 @@ final class OligoPoly_Manual_Payments {
 			</p>
 		</section>
 		<?php
+	}
+
+	/**
+	 * Payment instructions on the My Account order view.
+	 *
+	 * Native BACS renders its instructions on the Order Received page and in the email, but not
+	 * here — so a customer returning to their account later has no way to see where to send
+	 * payment. This closes that gap for every manual gateway.
+	 *
+	 * Scoped to the view-order endpoint so it cannot double up with the gateway's own output on
+	 * the Order Received page, which shares this template.
+	 *
+	 * @param WC_Order|mixed $order Order object.
+	 */
+	public static function render_my_account_instructions( $order ) {
+		if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'view-order' ) ) {
+			return;
+		}
+
+		if ( ! self::order_awaits_verification( $order ) ) {
+			return;
+		}
+
+		$gateways = WC()->payment_gateways() ? WC()->payment_gateways()->payment_gateways() : array();
+		$gateway  = isset( $gateways[ $order->get_payment_method() ] ) ? $gateways[ $order->get_payment_method() ] : null;
+
+		if ( ! $gateway ) {
+			return;
+		}
+
+		echo '<section class="oligopoly-omp-panel oligopoly-omp-panel--account">';
+		printf( '<h2 class="oligopoly-omp-panel__title">%s</h2>', esc_html__( 'PAYMENT REQUIRED', 'oligopoly-manual-payments' ) );
+
+		if ( method_exists( $gateway, 'render_instructions' ) ) {
+			// One of our own offline gateways: already includes the order-number reference.
+			$gateway->render_instructions( $order );
+		} elseif ( method_exists( $gateway, 'thankyou_page' ) ) {
+			// BACS and similar third-party gateways reuse their Order Received output.
+			$gateway->thankyou_page( $order->get_id() );
+
+			printf(
+				'<p class="oligopoly-omp-panel__lede">%s</p>',
+				esc_html(
+					sprintf(
+						/* translators: %s: order number. */
+						__( 'Payment reference / memo: Order #%s', 'oligopoly-manual-payments' ),
+						$order->get_order_number()
+					)
+				)
+			);
+		}
+
+		echo '</section>';
 	}
 
 	/**
@@ -334,7 +424,11 @@ JS;
 	 * affected. Colours follow the existing black/purple system with plain fallbacks.
 	 */
 	public static function render_styles() {
-		if ( ! function_exists( 'is_order_received_page' ) || ! is_order_received_page() ) {
+		$needed = ( function_exists( 'is_order_received_page' ) && is_order_received_page() )
+			|| ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'view-order' ) )
+			|| ( function_exists( 'is_checkout' ) && is_checkout() );
+
+		if ( ! $needed ) {
 			return;
 		}
 
@@ -346,6 +440,10 @@ JS;
 .oligopoly-omp-panel__steps{margin:0 0 1rem;padding-left:1.35rem;}
 .oligopoly-omp-panel__steps li{margin:0 0 .4rem;}
 .oligopoly-omp-panel__warning{margin:0;font-weight:600;color:#f0abfc;}
+.oligopoly-omp-panel--account p{margin:0 0 .75rem;}
+.oligopoly-omp-instructions__facts{list-style:none;margin:.75rem 0 0;padding:0;}
+.oligopoly-omp-instructions__facts li{margin:0 0 .35rem;}
+.oligopoly-omp-handle{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;}
 .oligopoly-omp-checkout-notice{margin:0 0 1rem;font-size:.875rem;line-height:1.5;opacity:.85;}
 @media (max-width:480px){.oligopoly-omp-panel{padding:1rem;}}
 </style>
